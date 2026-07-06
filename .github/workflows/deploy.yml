@@ -1,0 +1,40 @@
+name: 客户端小程序部署
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v5  # 🚀 从 v4 升级到 v5
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v5  # 🚀 从 v4 升级到 v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: npm install miniprogram-ci --save-dev
+
+      - name: 编译小程序产物
+        run: npm run build:mp-weixin
+
+      - name: 写入上传密钥
+        run: |
+          echo "${{ secrets.WX_PRIVATE_KEY }}" > private.key
+
+      - name: 执行上传脚本
+        run: node deploy.js
+        env:
+          WX_APPID: ${{ secrets.WX_APPID }}
+
+      - name: 清理密钥
+        if: always()
+        run: rm -f private.key
