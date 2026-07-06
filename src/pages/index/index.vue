@@ -2,7 +2,7 @@
   <view class="container">
     <view class="header">首页</view>
     <view class="content">
-      <text>欢迎来到移动商城首页！</text>
+      <text>欢迎来到移动商城首页2！</text>
     </view>
   </view>
 </template>
