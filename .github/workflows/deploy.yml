@@ -31,7 +31,7 @@ jobs:
           echo "${{ secrets.WX_PRIVATE_KEY }}" > private.key
 
       - name: 执行上传脚本
-        run: node deploy.js
+        run: node deploy.ts
         env:
           WX_APPID: ${{ secrets.WX_APPID }}
 
