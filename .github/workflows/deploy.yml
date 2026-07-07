@@ -1,4 +1,4 @@
-name: 客户端小程序部署
+name: zx的客户端小程序部署
 
 on:
   push:
