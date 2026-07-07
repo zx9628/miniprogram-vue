@@ -3,33 +3,64 @@
     <view class="header">首页</view>
     <view class="content">
       <text>欢迎来到移动商城首页5！</text>
+      <text class="result">{{ resultText }}</text>
     </view>
   </view>
 </template>
 
-<script setup lang="ts">
-// 逻辑层代码
-import {onMounted} from "@vue/runtime-core";
+<script>
+import { ref, onMounted } from 'vue';
 
-onMounted(() => {
-  uni.request({
-    url: 'https://www.example.com/request', //仅为示例，并非真实接口地址。
-    data: {
-      text: 'uni.request'
-    },
-    header: {
-      'custom-header': 'hello' //自定义请求头信息
-    },
-    success: (res) => {
-      console.log(res.data);
-      this.text = 'request success';
-    }
-  });
-})
+export default {
+  setup() {
+    const resultText = ref('');
+
+    onMounted(() => {
+      console.log('页面加载');
+      uni.request({
+        url: 'https://zfy.juntaitec.cn/wechat/test',
+        //url: 'https://1.14.132.150/wechat/test',
+        data: {
+          text: 'uni.request'
+        },
+        header: {
+          'custom-header': 'hello'
+        },
+        success: (res) => {
+          console.log("请求成功", res.data);
+          resultText.value = '✅ 成功: ' + res.data;
+        },
+        fail: (err) => {
+          console.error("请求失败", err);
+          resultText.value = '❌ 失败: ' + err.errMsg;
+        }
+      });
+    });
+
+    return {
+      resultText
+    };
+  }
+};
 </script>
 
 <style scoped>
-.container { padding: 20px; }
-.header { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #333; }
-.content { color: #666; font-size: 16px; }
+.container {
+  padding: 20px;
+}
+.header {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+.content {
+  color: #666;
+  font-size: 16px;
+}
+.result {
+  display: block;
+  margin-top: 20px;
+  color: #007aff;
+}
 </style>
