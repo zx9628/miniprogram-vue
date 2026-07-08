@@ -3,14 +3,68 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": "首页"
 			}
+		},
+		{
+			"path": "pages/my/my",
+			"style": {
+				"navigationBarTitleText": "我的"
+			}
+		},
+		{
+			"path": "pages/order/order",
+			"style": {
+				"navigationBarTitleText": "订单"
+			}
+		},
+		{
+			"path":"pages/login/login"
+		},
+		{
+			"path":"pages/member/member"
+		},
+		{
+			"path":	"pages/orderList/orderList"
+		},
+		{
+			"path":"pages/bindAccount/bindAccount"
+		},
+		{
+			"path":"pages/privacySet/privacySet"
 		}
+
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",
 		"navigationBarBackgroundColor": "#F8F8F8",
 		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#7A7E83",
+		"selectedColor": "#1296DB",
+		"borderStyle": "black",
+		"backgroundColor": "#FFFFFF",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "首页",
+				"selectedIconPath": "static/icon/home-selected.png",
+				"iconPath": "static/icon/home.png"
+			},
+			{
+				"pagePath": "pages/order/order",
+				"text": "点餐"
+			},
+			{
+				"pagePath": "pages/orders/orders",
+				"text": "订单"
+			},
+			{
+				"pagePath": "pages/my/my",
+				"text": "我的"
+			}
+		]
 	}
 }
