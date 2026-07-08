@@ -3,13 +3,19 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "zfy零售-首页"
+				"navigationBarTitleText": "三品王-首页"
 			}
 		},
 		{
 			"path": "pages/cart/cart",
 			"style": {
-				"navigationBarTitleText": "购物车"
+				"navigationBarTitleText": "点餐"
+			}
+		},
+		{
+			"path": "pages/order/order",
+			"style": {
+				"navigationBarTitleText": "订单"
 			}
 		},
 		{
@@ -41,7 +47,13 @@
 				"selectedIconPath": "static/icon/cart-selected.png",
 				"iconPath": "static/icon/cart.png",
 				"pagePath": "pages/cart/cart",
-				"text": "购物车"
+				"text": "点餐"
+			},
+			{
+				"selectedIconPath": "static/icon/order-selected.png",
+				"iconPath": "static/icon/order.png",
+				"pagePath": "pages/order/order",
+				"text": "订单"
 			},
 			{
 				"selectedIconPath": "static/icon/my-selected.png",

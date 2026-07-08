@@ -1,8 +1,8 @@
 <template>
   <view class="container">
-    <view class="header">点餐</view>
+    <view class="header">订单</view>
     <view class="content">
-      <text>您的购物车空空如也，快去挑点宝贝吧。</text>
+      <text>啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦</text>
     </view>
   </view>
 </template>
