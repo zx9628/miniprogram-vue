@@ -28,12 +28,12 @@ jobs:
 
       - name: 写入上传密钥
         run: |
-          echo "${{ secrets.QGL_PRIVATE_KEY }}" > private.key
+          echo "${{ secrets.CXM_PRIVATE_KEY }}" > private.key
 
       - name: 执行上传脚本
         run: node deploy.js
         env:
-          WX_APPID: ${{ secrets.QGL_APPID }}
+          WX_APPID: ${{ secrets.CXM_APPID }}
 
       - name: 清理密钥
         if: always()
