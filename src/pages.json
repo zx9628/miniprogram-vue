@@ -15,23 +15,32 @@
 		{
 			"path": "pages/order/order",
 			"style": {
+				"navigationBarTitleText": "点餐"
+			}
+		},
+		{
+			"path": "pages/orderList/orderList",
+			"style": {
 				"navigationBarTitleText": "订单"
 			}
 		},
 		{
-			"path":"pages/login/login"
+			"path":"pages/login/login-account",
+			"style": {
+				"navigationBarTitleText": "登录"
+			}
 		},
 		{
-			"path":"pages/member/member"
+			"path":"pages/my/accountManage/bindAccount",
+			"style": {
+				"navigationBarTitleText": "账号绑定管理"
+			}
 		},
 		{
-			"path":	"pages/orderList/orderList"
-		},
-		{
-			"path":"pages/bindAccount/bindAccount"
-		},
-		{
-			"path":"pages/privacySet/privacySet"
+			"path":"pages/my/accountManage/privacySet",
+			"style": {
+				"navigationBarTitleText": "隐私设置"
+			}
 		}
 
 	],
@@ -58,7 +67,7 @@
 				"text": "点餐"
 			},
 			{
-				"pagePath": "pages/orders/orders",
+				"pagePath": "pages/orderList/orderList",
 				"text": "订单"
 			},
 			{

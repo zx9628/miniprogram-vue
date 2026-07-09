@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from 'vue'
+import { ref } from 'vue'
 
 // 登录状态
 const isLogin = ref<boolean>(false)
@@ -82,17 +82,28 @@ const userInfo = ref({
   userId: ''
 })
 
+// 页面路径映射表（与 pages.json 中注册的路径保持一致）
+const pageMap: Record<string, string> = {
+  orderList: '/pages/orderList/orderList',                // 全部订单
+  bindAccount: '/pages/my/accountManage/bindAccount',     // 账号绑定管理
+  privacySet: '/pages/my/accountManage/privacySet'        // 隐私设置
+}
+
 // 页面跳转统一方法
 const navTo = (page: string) => {
-  uni.navigateTo({
-    url: `/pages/${page}/${page}`
-  })
+  const url = pageMap[page]
+  if (url) {
+    uni.navigateTo({ url })
+  } else {
+    // 尚未开发的页面给出提示
+    uni.showToast({ title: '功能开发中，敬请期待', icon: 'none' })
+  }
 }
 
 // 去登录注册页
 const goLogin = () => {
   uni.navigateTo({
-    url: '/pages/login/login'
+    url: '/pages/login/login-account'
   })
 }
 
@@ -132,7 +143,8 @@ const logout = () => {
   })
 }
 
-// // 页面加载读取本地登录态
+// 如果需要读取本地登录态，可取消下面注释
+// import { onMounted } from 'vue'
 // onMounted(() => {
 //   const token = uni.getStorageSync('token')
 //   const storageUser = uni.getStorageSync('userInfo')
@@ -144,13 +156,12 @@ const logout = () => {
 </script>
 
 <style scoped>
+/* 样式保持不变 */
 .page {
   background-color: #f5f5f5;
   min-height: 100vh;
   padding-bottom: 40rpx;
 }
-
-/* 用户头部 */
 .user-header {
   background: #fff;
   display: flex;
@@ -191,8 +202,6 @@ const logout = () => {
   font-size: 24rpx;
   color: #999;
 }
-
-/* 卡片通用 */
 .card {
   margin: 30rpx;
   background: #fff;
@@ -218,8 +227,6 @@ const logout = () => {
 .item-row:last-child {
   border-bottom: none;
 }
-
-/* 退出按钮 */
 .logout-btn {
   margin: 60rpx 30rpx;
   background: #fff;
