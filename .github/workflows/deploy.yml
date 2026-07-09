@@ -3,7 +3,7 @@ name: 客户端小程序部署
 on:
   push:
     branches:
-      - master
+      - zfy
   workflow_dispatch:  # 允许手动触发
 
 jobs:
