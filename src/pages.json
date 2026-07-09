@@ -41,6 +41,12 @@
 			"style": {
 				"navigationBarTitleText": "隐私设置"
 			}
+		},
+		{
+			"path": "pages/index/admin",
+			"style": {
+				"navigationBarTitleText": "后台管理"
+			}
 		}
 
 	],

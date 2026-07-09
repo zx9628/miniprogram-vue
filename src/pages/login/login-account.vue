@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import {defineStore} from "pinia";
+
+const handleLogin = () =>{
+  uni.navigateTo({url:"/pages/index/admin"})
+}
 
 </script>
 

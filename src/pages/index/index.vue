@@ -10,20 +10,6 @@
 import {onMounted, ref} from "vue";
 
 const title = ref("")
-
-// uni.request({
-//   url: 'https://zx.juntaitec.cn/tcm-api/test', //仅为示例，并非真实接口地址。
-//   data: {
-//     text: 'uni.request'
-//   },
-//   header: {
-//     'custom-header': 'hello' //自定义请求头信息
-//   },
-//   success: (res) => {
-//     console.log(res.data);
-//     title.value = res.data;
-//   }
-// });
 import request from "@/util/request";
 onMounted(()=>{
   let data = {
