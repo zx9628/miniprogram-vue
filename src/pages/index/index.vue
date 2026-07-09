@@ -2,7 +2,7 @@
   <view class="container">
     <view class="header">首页</view>
     <view class="content">
-      <text>欢迎来到三品王6！</text>
+      <text>欢迎来到三品王7！</text>
       <text class="result">{{ resultText }}</text>
     </view>
   </view>
