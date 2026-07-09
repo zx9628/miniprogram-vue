@@ -23,6 +23,12 @@
 			"style": {
 				"navigationBarTitleText": "个人中心"
 			}
+		},
+		{
+			"path": "pages/cart/shopChoose/shopChoose",
+			"style": {
+				"navigationBarTitleText": "地图选择"
+			}
 		}
 	],
 	"globalStyle": {
@@ -46,7 +52,7 @@
 			{
 				"selectedIconPath": "static/icon/cart-selected.png",
 				"iconPath": "static/icon/cart.png",
-				"pagePath": "pages/cart/cart",
+				"pagePath": "pages/cart/shopChoose/shopChoose",
 				"text": "点餐"
 			},
 			{

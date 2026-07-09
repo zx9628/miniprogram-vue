@@ -24,7 +24,7 @@
     <div class="member-card" @click="handleLogin">
       <div class="member-left">
         <div class="member-greeting">Hi，欢迎光临</div>
-        <div class="member-login-btn">注册 / 登录</div>
+        <div class="member-login-btn"><button @click="">注册</button> / <button @click="login">登录</button></div>
       </div>
       <div class="member-right">
         <div class="badge">注册会员</div>
@@ -38,6 +38,7 @@
       <div class="menu-item" @click="goToOrder">
         <span class="icon material-symbols-outlined"></span>
         <div class="info">
+          <!-- <img src="../../static/icon/order.png" style="width: 100px; height: 100px;" alt="订单图标"> -->
           <span class="label">我的订单</span>
           <div class="extra">
             <span class="order-badge"></span>
@@ -59,7 +60,7 @@
       <div class="menu-item" @click="goToMemberInfo">
         <span class="icon material-symbols-outlined"></span>
         <div class="info">
-          <span class="label">会员信息</span>
+          <span class="label" @click="">会员信息</span>
           <span class="arrow material-symbols-outlined"></span>
         </div>
       </div>
@@ -102,11 +103,22 @@
 
 
 <script setup lang="ts">
+import {Login} from "@/http/login";
+
 const goToOrder=()=>{
   uni.switchTab({
     url: '/pages/order/order'
   })
 }
+const login = async () => {
+  console.log("login");
+  const ifLogin = await Login({
+    username: "zfy",
+    password: "safsdgf"
+  });
+  console.log("测试登录是否成功", ifLogin);
+}
+
 </script>
 
 <style scoped>

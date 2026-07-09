@@ -2,7 +2,7 @@
   <view class="container">
     <view class="header">订单</view>
     <view class="content">
-      <text>啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦</text>
+      <text>啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦1</text>
     </view>
   </view>
 </template>
