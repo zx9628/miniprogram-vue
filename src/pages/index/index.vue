@@ -5,7 +5,8 @@
 
       </div>
     </div>
-    <div id="log">
+
+    <div id="log" class="main">
       <a href="" id="login-dir">
         <div id="log-block">
           <img src="/src/static/diamond.png" id="diamond" >
@@ -16,10 +17,10 @@
   </div>
 
   <div class="body">
-    <div id="main">
+    <div id="main" class="main">
     <div id="in-canteen" class="tubiao">
       <div class="block">
-        <a href="" class="tiao">
+        <a href="">
           <div class="littleBlock">
             <img src="/src/static/niuasan.jpg" class="pict">
             <div class="largeTitle">堂食/自提</div>
@@ -30,7 +31,7 @@
     </div>
       <div id="member-center" class="tubiao">
         <div class="block">
-          <a href="" class="tiao">
+          <a href="">
             <div class="littleBlock">
               <img src="/src/static/niuamei.jpg" class="pict">
               <div class="largeTitle">会员中心</div>
@@ -41,8 +42,27 @@
     </div>
   </div>
 
-    <div></div>
+    <div id="selections" class="main">
+      <div class="selection"><a href="">
+        <img src="/src/static/memberCard.png" class="selectionPic">
+        <div class="selectionTitle">会员储值</div>
+      </a></div>
+      <div class="selection"><a href="">
+        <img src="/src/static/selectionPict/groupMeal.png" class="selectionPic">
+        <div class="selectionTitle">团餐</div>
+      </a></div>
+      <div class="selection"><a href="">
+        <img src="/src/static/selectionPict/pointsShop.png" class="selectionPic">
+        <div class="selectionTitle">积分商店</div>
+      </a></div>
+      <div class="selection"><a href="">
+        <img src="/src/static/selectionPict/pointsBigWheel.png" class="selectionPic">
+        <div class="selectionTitle">积分大转盘</div>
+      </a></div>
+    </div>
   </div>
+
+
 
 </template>
 
@@ -60,7 +80,6 @@
   width: 94%;
   height: 50px;
   margin: -10px 3% 0 3%;
-  border-radius: 10px 7px;
   background-color: white;
 
 }
@@ -78,28 +97,53 @@
   position: relative;
   margin-left: 5px;
 }
+
+
 .body{
   width: 94%;
   height: 600px;
   margin: 10px 0 0 3%;
 }
-#main{
-  height: 150px;
+.main{
   width: auto;
   border: 1px solid grey;
   border-radius: 10px 7px;
+}
+#main{
+  height: 150px;
 }
 .tubiao{
   width: 50%;
   height: 100%;
   float: left;
 }
+#selections{
+  height: 100px;
+  width: auto;
+  margin-top: 10px;
+}
 .block{
   margin-top: -15.3px;
   width: 100%;
   height: 100%;
 }
-.tiao{
+.selection{
+  width: 25%;
+  height: 100%;
+  float: left;
+  text-align: center;
+}
+.selection::after{
+  content: "|";
+  float: right;
+  margin-top: -75px;
+
+}
+.selection:last-child::after{
+  content: none;
+}
+
+a{
   width: 100%;
   height: 100%;
 }
@@ -112,6 +156,14 @@
   width: 90px;
   height: 90px;
   margin-top: 10px;
+}
+.selectionPic{
+  width: 50px;
+  height: 50px;
+  margin: 10px 0 0 0;
+}
+.selectionTitle{
+  height: 35px;
 }
 .largeTitle{
   font-size: 20px;
