@@ -28,12 +28,12 @@ jobs:
 
       - name: 写入上传密钥
         run: |
-          echo "${{ secrets.WX_PRIVATE_KEY }}" > private.key
+          echo "${{ secrets.ZFY_PRIVATE_KEY }}" > private.key
 
       - name: 执行上传脚本
         run: node deploy.ts
         env:
-          WX_APPID: ${{ secrets.WX_APPID }}
+          WX_APPID: ${{ secrets.ZFY_APPID }}
 
       - name: 清理密钥
         if: always()
