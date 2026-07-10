@@ -131,7 +131,7 @@ const handleRegister = () => {
   uni.showLoading({ title: '注册中...' });
 
   uni.request({
-    url: 'http://localhost:8083/api/user/register',
+    url: 'http://localhost:8083/api/login/register',
     method: 'POST',
     header: {
       'Content-Type': 'application/json'
