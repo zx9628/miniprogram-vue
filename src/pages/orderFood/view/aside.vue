@@ -1,37 +1,57 @@
 <script setup lang="ts">
+import {ref} from "vue";
 
+const menuCategories = ref([
+  {
+    name:'原汤单点',
+  },
+  {
+    name:'原汤套餐',
+  },
+  {
+    name:'干拌单点',
+  },
+  {
+    name:'干拌套餐',
+  },
+  {
+    name:'精选小吃',
+  },
+  {
+    name:'爆款饮品',
+  },
+  {
+    name:'牛肉干',
+  }
+])
+
+const activeIndex = ref<number>(0)
+
+const switchCategories = (index:number) =>{
+  activeIndex.value = index;
+}
 </script>
 
 <template>
-  <div class="aside">
+  <view class="order-food-container">
     <view>
       <view class="uni-padding-wrap uni-common-mt">
 
         <view>
-          <scroll-view :scroll-top="scrollTop" scroll-y="true" class="scroll-Y" @scrolltoupper="upper"
-                       @scrolltolower="lower" @scroll="scroll">
-            <view id="demo1" class="scroll-view-item">原汤单点</view>
-            <view id="demo2" class="scroll-view-item">原汤套餐</view>
-            <view id="demo3" class="scroll-view-item">干拌单点</view>
-            <view id="demo1" class="scroll-view-item">干拌套餐</view>
-            <view id="demo2" class="scroll-view-item">精选小吃</view>
-            <view id="demo3" class="scroll-view-item">爆款饮品</view>
-            <view id="demo1" class="scroll-view-item">牛肉干</view>
-            <view id="demo1" class="scroll-view-item">外卖</view>
-            <view id="demo1" class="scroll-view-item">联系电话</view>
-            <view id="demo1" class="scroll-view-item">制作人</view>
-          </scroll-view>
+          <view
+              v-for="(item,idx) in menuCategories"
+              class="menu-item"
+              v-bind:class="{active : activeIndex === idx}"
+              @click="switchCategories(idx)">
+            {{item.name}}
+          </view>
         </view>
       </view>
     </view>
-  </div>
+  </view>
 </template>
 
 <style scoped>
-.aside{
-  width: 100px;
-  height: 300px;
-}
 .scroll-Y {
   height: 400px;
   width: 100px;
@@ -54,5 +74,13 @@
   text-align: center;
   font-size: 36rpx;
 }
-
+.menu-item{
+  width: 100px;
+  height: 50px;
+  border-right: 1px solid grey;
+  text-align: center;
+}
+.active{
+  background-color: red;
+}
 </style>
