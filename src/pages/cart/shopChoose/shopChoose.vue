@@ -110,6 +110,9 @@
 
 <script setup lang="ts">
 // 返回上一页
+import {onMounted} from "vue";
+import {getMapInfo} from "@/http/map";
+
 const goBack = () => {
   // 如果是Vue Router项目
   // router.go(-1)
@@ -128,6 +131,10 @@ const goToCart=()=>{
     url: '/pages/cart/cart'
   })
 }
+onMounted(async() => {
+  const ifSeeMap = await getMapInfo();
+  console.log("bbbbbbbbbbbbbbbbbbb",ifSeeMap);
+})
 </script>
 
 <style scoped>

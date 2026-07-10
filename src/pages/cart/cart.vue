@@ -36,7 +36,7 @@
 import {onMounted, ref} from 'vue'
 import Aside from './aside.vue'
 import Main from './main.vue'
-import {getMapInfo} from "@/http/map";
+import {getDishInfo} from "@/http/dish";
 
 const currentCategory = ref(0)
 
@@ -44,8 +44,8 @@ const onCategoryChange = (index: number) => {
   currentCategory.value = index
 }
 onMounted(async() => {
-  const ifSeeMap = await getMapInfo();
-  console.log("aaaaaaaaaaaaaa",ifSeeMap);
+   const DishInfo = await getDishInfo(1);
+   console.log("cccccccccccccccccc",DishInfo);
 })
 </script>
 
