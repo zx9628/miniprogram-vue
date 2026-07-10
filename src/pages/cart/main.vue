@@ -1,7 +1,8 @@
 <template>
   <view class="main-container">
     <scroll-view class="product-list" scroll-y>
-      <view class="product-card" v-for="(product, index) in filteredProducts" :key="index">
+      <!-- 数据列表 -->
+      <view class="product-card" v-for="product in filteredProducts" :key="product.id">
         <view class="product-info">
           <text class="product-name">{{ product.name }}</text>
           <text class="product-desc" v-if="product.desc">{{ product.desc }}</text>
@@ -16,47 +17,117 @@
           <view class="select-btn" @click="selectProduct(product)">选规格</view>
         </view>
       </view>
+
+      <!-- 空状态 -->
+      <view v-if="!loading && filteredProducts.length === 0" class="empty-state">
+        <text>该分类暂无菜品</text>
+      </view>
+
       <view class="bottom-placeholder"></view>
     </scroll-view>
   </view>
 </template>
 
-<script setup lang="ts">
-import { ref, computed } from 'vue'
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { getAllDishes } from "@/http/dish"
 
-const props = defineProps<{
-  categoryIndex: number
-}>()
-
-const productList = ref([
-  { category: 0, name: '全家福牛肉粉', desc: '79人推荐', price: '25', tag: '' },
-  { category: 0, name: '原汤牛肉片粉', desc: '79人推荐', price: '13.5', tag: '' },
-  { category: 0, name: '牛肉干', desc: '', price: '13.5', tag: '' },
-  { category: 1, name: '原汤套餐A', desc: '含小菜', price: '35', tag: '推荐' },
-  { category: 1, name: '原汤套餐B', desc: '含饮品', price: '38', tag: '' },
-  { category: 2, name: '酸辣汤粉', desc: '5人推荐', price: '16', tag: '' },
-  { category: 3, name: '干拌牛肉粉', desc: '12人推荐', price: '22', tag: '新品' },
-  { category: 4, name: '干拌套餐', desc: '含汤+小菜', price: '30', tag: '' }
-])
-
-const filteredProducts = computed(() => {
-  return productList.value.filter(p => p.category === props.categoryIndex)
+const props = defineProps({
+  categoryIndex: {
+    type: Number,
+    default: 0
+  }
 })
 
-const selectProduct = (product: any) => {
+const productList = ref([])
+const categoryList = ref([])
+const loading = ref(false)
+
+const currentCategoryName = computed(() => {
+  if (categoryList.value.length > 0 && props.categoryIndex >= 0 && props.categoryIndex < categoryList.value.length) {
+    return categoryList.value[props.categoryIndex].name
+  }
+  return ''
+})
+
+const filteredProducts = computed(() => {
+  if (!Array.isArray(productList.value) || productList.value.length === 0) {
+    return []
+  }
+
+  const categoryName = currentCategoryName.value
+  if (!categoryName) {
+    return []
+  }
+
+  const result = productList.value.filter(item => item.category === categoryName)
+  return result
+})
+
+const selectProduct = (product) => {
   uni.showToast({
     title: `选择了 ${product.name}`,
     icon: 'none'
   })
 }
+
+const fetchData = async () => {
+  try {
+    loading.value = true
+
+    const response = await getAllDishes()
+    console.log('Main 获取到的数据:', response)
+
+    let data = []
+    if (response && response.code === 200) {
+      if (Array.isArray(response.data)) {
+        data = response.data
+      } else {
+        data = []
+      }
+    } else if (Array.isArray(response)) {
+      data = response
+    } else {
+      data = []
+    }
+
+    productList.value = data
+
+    if (data.length > 0) {
+      const categoryMap = new Map()
+      data.forEach(product => {
+        const category = product.category
+        if (category) {
+          categoryMap.set(category, (categoryMap.get(category) || 0) + 1)
+        }
+      })
+
+      const categories = []
+      categoryMap.forEach((count, name) => {
+        categories.push({ name, count })
+      })
+      categoryList.value = categories
+      console.log('Main 提取的分类:', categories)
+    }
+
+  } catch (err) {
+    console.error('获取数据失败:', err)
+    productList.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchData()
+})
 </script>
 
 <style scoped>
 .main-container {
-  flex: 1;
+  width: 100%;
   height: 100%;
   background: #f5f5f5;
-  overflow: hidden;
 }
 
 .product-list {
@@ -147,5 +218,12 @@ const selectProduct = (product: any) => {
 
 .bottom-placeholder {
   height: 120rpx;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #999;
+  font-size: 28rpx;
 }
 </style>

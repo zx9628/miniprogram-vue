@@ -9,7 +9,7 @@
     <view class="store-header">
       <view class="store-info">
         <text class="store-name">三品王</text>
-        <text class="store-distance">322桂林解放东路店 > 距离您11.3km</text>
+        <text class="store-distance">322桂林解放东路店距离您11.3km</text>
       </view>
       <view class="promotion-banner">
         <text class="promotion-text">[换购]购买指定菜品最低加2元即可换购</text>
@@ -25,28 +25,30 @@
 
     <!-- 主体区域：左右分布 -->
     <view class="main-content">
-      <Aside @categoryChange="onCategoryChange" />
-      <div><Main category-index="currentCategory"></Main></div>
-      <Main :categoryIndex="currentCategory" />
+      <!-- 左侧分类导航 -->
+      <view class="aside-wrapper">
+        <Aside @categoryChange="onCategoryChange" />
+      </view>
+
+      <!-- 右侧菜品列表 -->
+      <view class="main-wrapper">
+        <Main :categoryIndex="currentCategory" />
+      </view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from 'vue'
+import { ref } from 'vue'
 import Aside from './aside.vue'
 import Main from './main.vue'
-import {getDishInfo} from "@/http/dish";
 
 const currentCategory = ref(0)
 
 const onCategoryChange = (index: number) => {
+  console.log('切换到分类索引:', index)
   currentCategory.value = index
 }
-onMounted(async() => {
-   const DishInfo = await getDishInfo(1);
-   console.log("cccccccccccccccccc",DishInfo);
-})
 </script>
 
 <style scoped>
@@ -140,12 +142,26 @@ onMounted(async() => {
   border-radius: 20rpx;
 }
 
-/* ===== 关键：左右分布 ===== */
 .main-content {
   flex: 1;
-  display: flex;           /* 必须要有 */
-  flex-direction: row;     /* 水平排列 */
+  display: flex;
+  flex-direction: row;
   overflow: hidden;
   min-height: 0;
+}
+
+.aside-wrapper {
+  flex-shrink: 0;
+  width: 180rpx;
+  background: #f8f8f8;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.main-wrapper {
+  flex: 1;
+  overflow: hidden;
+  background: #f5f5f5;
+  height: 100%;
 }
 </style>
