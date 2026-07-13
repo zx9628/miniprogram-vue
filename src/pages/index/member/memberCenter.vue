@@ -64,19 +64,19 @@ const handleJump = (title: string) => {
         <view class="assets-row">
           <view class="asset-item" @click="handleJump('积分')">
             <text class="num">{{ userInfo.points }}</text>
-            <text class="label">积分 &gt;</text>
+            <text class="label">积分</text>
           </view>
           <view class="asset-item" @click="handleJump('余额')">
             <text class="num">¥ {{ userInfo.balance }}</text>
-            <text class="label">余额 &gt;</text>
+            <text class="label">余额</text>
           </view>
           <view class="asset-item" @click="handleJump('优惠券')">
             <text class="num">{{ userInfo.coupons }}</text>
-            <text class="label">优惠券 &gt;</text>
+            <text class="label">优惠券</text>
           </view>
           <view class="asset-item" @click="handleJump('礼品卡')">
             <text class="num">{{ userInfo.giftCards }}</text>
-            <text class="label">礼品卡 &gt;</text>
+            <text class="label">礼品卡</text>
           </view>
         </view>
       </view> <!-- ✅ 修复 3：这里正确闭合 vip-card -->
@@ -134,7 +134,7 @@ const handleJump = (title: string) => {
             <image class="list-icon" :src="item.iconPath" mode="aspectFit" />
             <text class="list-text">{{ item.title }}</text>
           </view>
-          <image class="arrow-icon" src="/static/images/common/arrow-right.png" mode="aspectFit" />
+          <image class="arrow-icon" src="/static/images/arrow-right.png" mode="aspectFit" />
         </view>
       </view>
     </view>
