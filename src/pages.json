@@ -59,6 +59,12 @@
       "style": {
         "navigationBarTitleText": "会员信息"
       }
+    },
+    {
+      "path": "pages/index/admin",
+      "style": {
+        "navigationBarTitleText": "后台管理"
+      }
     }
   ],
   "globalStyle": {
@@ -92,6 +98,10 @@
         "text": "我的",
         "selectedIconPath": "static/icon/my-selected.png",
         "iconPath": "static/icon/my.png"
+      },
+      {
+        "pagePath": "pages/index/admin",
+        "text": "管理端"
       }
     ]
   }

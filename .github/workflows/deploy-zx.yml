@@ -1,9 +1,9 @@
-name: 客户端小程序部署
+name: zx的客户端小程序部署
 
 on:
   push:
     branches:
-      - cxm
+      - zhouxin
   workflow_dispatch:  # 允许手动触发
 
 jobs:
@@ -28,12 +28,12 @@ jobs:
 
       - name: 写入上传密钥
         run: |
-          echo "${{ secrets.CXM_PRIVATE_KEY }}" > private.key
+          echo "${{ secrets.ZX_PRIVATE_KEY }}" > private.key
 
       - name: 执行上传脚本
         run: node deploy.js
         env:
-          WX_APPID: ${{ secrets.CXM_APPID }}
+          WX_APPID: ${{ secrets.ZX_APPID }}
 
       - name: 清理密钥
         if: always()

@@ -1,0 +1,731 @@
+<template>
+  <view class="admin-container">
+    <!-- 顶部栏 -->
+    <view class="admin-header">
+      <view class="header-left">
+        <text class="logo-text">🍽️ 大胃王</text>
+      </view>
+      <view class="header-right">
+        <view class="user-info">
+          <uni-icons type="person-filled" size="18" color="#7f8c8d"></uni-icons>
+          <text class="user-name">{{ currentUser.name }}</text>
+          <text class="role-tag">({{ currentUser.role }})</text>
+        </view>
+        <view class="logout-btn" @click="handleLogout">
+          <text>退出</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 主体布局 -->
+    <view class="admin-layout">
+      <!-- 左侧可折叠导航 -->
+      <view class="sidebar-wrapper" :class="{ collapsed: sidebarCollapsed }">
+        <!-- 折叠按钮 -->
+        <view class="collapse-btn-area">
+          <view class="collapse-btn" @click="toggleSidebar">
+            <uni-icons
+                :type="sidebarCollapsed ? 'bars' : 'left'"
+                size="20"
+                color="#ecf0f1"
+            ></uni-icons>
+          </view>
+        </view>
+
+        <!-- 菜单滚动区 -->
+        <scroll-view class="menu-scroll" scroll-y :show-scrollbar="false">
+          <view class="menu-list">
+            <view
+                v-for="menu in filteredMenus"
+                :key="menu.code"
+                class="menu-item"
+                :class="{ open: menu.open, active: isMenuActive(menu) }"
+            >
+              <!-- 一级菜单 -->
+              <view class="menu-item-header" @click="handleMenuClick(menu)">
+                <uni-icons
+                    :type="menu.icon"
+                    size="18"
+                    :color="isMenuActive(menu) ? '#fff' : '#bdc3c7'"
+                    class="menu-icon"
+                ></uni-icons>
+                <text v-if="!sidebarCollapsed" class="menu-text">{{ menu.name }}</text>
+                <uni-icons
+                    v-if="!sidebarCollapsed && menu.children && menu.children.length"
+                    type="right"
+                    size="12"
+                    :color="isMenuActive(menu) ? '#fff' : '#bdc3c7'"
+                    class="arrow-icon"
+                    :class="{ rotated: menu.open }"
+                ></uni-icons>
+              </view>
+
+              <!-- 二级菜单 -->
+              <view
+                  v-if="menu.children && menu.children.length && menu.open && !sidebarCollapsed"
+                  class="submenu-list"
+              >
+                <view
+                    v-for="child in menu.children"
+                    :key="child.code"
+                    class="submenu-item"
+                    :class="{ 'router-active': currentRoute === child.route }"
+                    @click.stop="navigateTo(child)"
+                >
+                  <view class="submenu-dot"></view>
+                  <text>{{ child.name }}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 右侧内容区 -->
+      <view class="main-content">
+        <scroll-view class="content-view" scroll-y :show-scrollbar="false">
+          <!-- 工作台（默认首页） -->
+          <view v-if="currentRoute === 'dashboard'" class="dashboard-page">
+            <!-- 统计卡片 -->
+            <view class="dashboard-cards">
+              <view class="stat-card">
+                <uni-icons type="list" size="36" color="#e67e22"></uni-icons>
+                <view class="stat-info">
+                  <text class="stat-label">今日订单</text>
+                  <text class="stat-number">{{ stats.todayOrders }}</text>
+                </view>
+              </view>
+              <view class="stat-card">
+                <uni-icons type="gift" size="36" color="#e67e22"></uni-icons>
+                <view class="stat-info">
+                  <text class="stat-label">今日营业额</text>
+                  <text class="stat-number">¥{{ stats.todayRevenue }}</text>
+                </view>
+              </view>
+              <view v-if="hasPermission('order:refund_approve')" class="stat-card">
+                <uni-icons type="info" size="36" color="#e74c3c"></uni-icons>
+                <view class="stat-info">
+                  <text class="stat-label">待处理退款</text>
+                  <text class="stat-number warn">{{ stats.pendingRefunds }}</text>
+                </view>
+              </view>
+              <view v-if="hasPermission('inventory:view')" class="stat-card">
+                <uni-icons type="settings" size="36" color="#f39c12"></uni-icons>
+                <view class="stat-info">
+                  <text class="stat-label">库存预警</text>
+                  <text class="stat-number warn">{{ stats.lowStock }}</text>
+                </view>
+              </view>
+            </view>
+
+            <!-- 快捷入口 -->
+            <view class="quick-section">
+              <text class="section-title">快捷入口</text>
+              <view class="quick-actions">
+                <view
+                    v-if="hasPermission('table:manage')"
+                    class="action-btn"
+                    @click="navigateTo({ route: 'table-manage' })"
+                >
+                  <uni-icons type="map" size="16" color="#e67e22"></uni-icons>
+                  <text>开台</text>
+                </view>
+                <view
+                    v-if="hasPermission('menu:edit')"
+                    class="action-btn"
+                    @click="navigateTo({ route: 'menu-edit' })"
+                >
+                  <uni-icons type="plus" size="16" color="#e67e22"></uni-icons>
+                  <text>新建菜品</text>
+                </view>
+                <view
+                    v-if="hasPermission('order:list')"
+                    class="action-btn"
+                    @click="navigateTo({ route: 'order-list' })"
+                >
+                  <uni-icons type="list" size="16" color="#e67e22"></uni-icons>
+                  <text>订单列表</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 其他页面占位 -->
+          <view v-else class="page-placeholder">
+            <text class="page-title">{{ currentPageTitle }}</text>
+            <text class="page-desc">此处为【{{ currentPageTitle }}】功能页面，内容待实现。</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script setup>
+import { ref, computed, reactive, onMounted } from 'vue'
+
+// ==================== 模拟用户与权限 ====================
+// 实际项目中应从登录接口获取
+const currentUser = reactive({
+  name: '店长李明',
+  role: '超级管理员',
+  // 用户拥有的权限标识列表（模拟超级管理员拥有全部权限）
+  permissions: [
+    'dashboard',
+    'order',
+    'order:list',
+    'order:refund_approve',
+    'order:kitchen',
+    'dine_in',
+    'table:manage',
+    'dine:order',
+    'menu',
+    'menu:category',
+    'menu:list',
+    'menu:edit',
+    'inventory',
+    'inventory:view',
+    'inventory:record',
+    'purchase:order',
+    'supplier:manage',
+    'marketing',
+    'coupon:manage',
+    'promotion:manage',
+    'member:level',
+    'review:manage',
+    'finance',
+    'report:sales',
+    'finance:transactions',
+    'report:profit',
+    'system',
+    'system:user',
+    'system:role',
+    'system:shop',
+    'system:log',
+  ],
+})
+
+// 判断是否拥有某权限
+const hasPermission = (permCode) => {
+  return currentUser.permissions.includes(permCode)
+}
+
+// ==================== 菜单配置 ====================
+// 完整菜单树，icon 使用 uni-icons 支持的 type 值
+const menuConfig = [
+  { name: '工作台', code: 'dashboard', icon: 'home-filled', route: 'dashboard' },
+  {
+    name: '订单管理',
+    code: 'order',
+    icon: 'list',
+    children: [
+      { name: '订单列表', code: 'order:list', route: 'order-list' },
+      { name: '退款审核', code: 'order:refund_approve', route: 'refund-approve' },
+      { name: '出餐管理', code: 'order:kitchen', route: 'kitchen' },
+    ],
+  },
+  {
+    name: '堂食管理',
+    code: 'dine_in',
+    icon: 'map',
+    children: [
+      { name: '桌台视图', code: 'table:manage', route: 'table-manage' },
+      { name: '点餐页面', code: 'dine:order', route: 'dine-order' },
+    ],
+  },
+  {
+    name: '菜品管理',
+    code: 'menu',
+    icon: 'shop',
+    children: [
+      { name: '菜品分类', code: 'menu:category', route: 'menu-category' },
+      { name: '菜品列表', code: 'menu:list', route: 'menu-list' },
+      { name: '菜品编辑', code: 'menu:edit', route: 'menu-edit' },
+    ],
+  },
+  {
+    name: '库存采购',
+    code: 'inventory',
+    icon: 'gift',
+    children: [
+      { name: '库存总览', code: 'inventory:view', route: 'inventory-view' },
+      { name: '出入库记录', code: 'inventory:record', route: 'inventory-record' },
+      { name: '采购单管理', code: 'purchase:order', route: 'purchase-order' },
+      { name: '供应商管理', code: 'supplier:manage', route: 'supplier-manage' },
+    ],
+  },
+  {
+    name: '营销会员',
+    code: 'marketing',
+    icon: 'heart',
+    children: [
+      { name: '优惠券管理', code: 'coupon:manage', route: 'coupon-manage' },
+      { name: '促销活动', code: 'promotion:manage', route: 'promotion-manage' },
+      { name: '会员等级', code: 'member:level', route: 'member-level' },
+      { name: '评价管理', code: 'review:manage', route: 'review-manage' },
+    ],
+  },
+  {
+    name: '数据财务',
+    code: 'finance',
+    icon: 'bars',
+    children: [
+      { name: '营业报表', code: 'report:sales', route: 'report-sales' },
+      { name: '交易流水', code: 'finance:transactions', route: 'finance-transactions' },
+      { name: '利润分析', code: 'report:profit', route: 'report-profit' },
+    ],
+  },
+  {
+    name: '系统管理',
+    code: 'system',
+    icon: 'gear',
+    children: [
+      { name: '员工管理', code: 'system:user', route: 'system-user' },
+      { name: '角色管理', code: 'system:role', route: 'system-role' },
+      { name: '店铺设置', code: 'system:shop', route: 'system-shop' },
+      { name: '操作日志', code: 'system:log', route: 'system-log' },
+    ],
+  },
+]
+
+// 根据权限递归过滤菜单
+const filterMenusByPermission = (menus) => {
+  return menus
+      .filter((menu) => {
+        if (menu.children && menu.children.length) {
+          const visibleChildren = menu.children.filter((child) => hasPermission(child.code))
+          if (visibleChildren.length > 0) {
+            // 保留有权限的子菜单
+            menu.children = visibleChildren
+            return true
+          }
+          return false
+        }
+        return hasPermission(menu.code)
+      })
+      .map((menu) => ({
+        ...menu,
+        open: false, // 初始化折叠状态
+      }))
+}
+
+const filteredMenus = ref(filterMenusByPermission(menuConfig))
+
+// ==================== 侧边栏折叠 ====================
+// 小程序中使用 uni.getStorageSync / uni.setStorageSync 持久化
+const getStoredCollapsed = () => {
+  try {
+    const val = uni.getStorageSync('sidebar_collapsed')
+    return val === true || val === 'true'
+  } catch (e) {
+    return false
+  }
+}
+
+const sidebarCollapsed = ref(getStoredCollapsed())
+
+const toggleSidebar = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+  uni.setStorageSync('sidebar_collapsed', sidebarCollapsed.value.toString())
+}
+
+// ==================== 路由模拟 ====================
+const currentRoute = ref('dashboard')
+
+const currentPageTitle = computed(() => {
+  const findTitle = (menus, route) => {
+    for (const menu of menus) {
+      if (menu.route === route) return menu.name
+      if (menu.children) {
+        const child = menu.children.find((c) => c.route === route)
+        if (child) return child.name
+      }
+    }
+    return '未知页面'
+  }
+  return findTitle(menuConfig, currentRoute.value)
+})
+
+const navigateTo = (menuItem) => {
+  if (menuItem.route) {
+    currentRoute.value = menuItem.route
+  }
+  // 小程序端：导航后自动收起侧边栏（节省屏幕空间）
+  const systemInfo = uni.getSystemInfoSync()
+  // if (systemInfo.windowWidth < 768) {
+  //   sidebarCollapsed.value = true
+  //   uni.setStorageSync('sidebar_collapsed', 'true')
+  // }
+}
+
+// 一级菜单点击：展开/折叠子菜单，或直接跳转
+const handleMenuClick = (menu) => {
+  if (menu.children && menu.children.length) {
+    menu.open = !menu.open
+  } else {
+    navigateTo(menu)
+  }
+}
+
+// 判断一级菜单是否激活
+const isMenuActive = (menu) => {
+  if (menu.children && menu.children.length) {
+    return menu.children.some((child) => child.route === currentRoute.value)
+  }
+  return menu.route === currentRoute.value
+}
+
+// ==================== 工作台数据 ====================
+const stats = reactive({
+  todayOrders: 128,
+  todayRevenue: 8642.5,
+  pendingRefunds: 3,
+  lowStock: 7,
+})
+
+// 退出登录
+const handleLogout = () => {
+  uni.showModal({
+    title: '提示',
+    content: '确定要退出登录吗？',
+    success: (res) => {
+      if (res.confirm) {
+        // 实际项目中清除 token 并跳转登录页
+        uni.showToast({ title: '已退出登录', icon: 'none' })
+        // uni.redirectTo({ url: '/pages/login/login' })
+      }
+    },
+  })
+}
+
+// ==================== 初始化 ====================
+onMounted(() => {
+  // 默认展开所有一级菜单（有子菜单的）
+  filteredMenus.value.forEach((menu) => {
+    if (menu.children && menu.children.length) {
+      menu.open = true
+    }
+  })
+})
+</script>
+
+<style scoped>
+.admin-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f0f2f5;
+  overflow: hidden;
+}
+
+/* ========== 顶部栏 ========== */
+.admin-header {
+  height: 96rpx;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  flex-shrink: 0;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+}
+.logo-text {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #e67e22;
+  letter-spacing: 2rpx;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.user-name {
+  font-size: 24rpx;
+  color: #2c3e50;
+  font-weight: 500;
+}
+.role-tag {
+  font-size: 20rpx;
+  color: #95a5a6;
+}
+.logout-btn {
+  padding: 8rpx 20rpx;
+  border: 1rpx solid #e0e0e0;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  color: #555;
+  background: #fff;
+  white-space: nowrap;
+}
+.logout-btn:active {
+  background: #f8f8f8;
+  border-color: #ccc;
+  color: #e67e22;
+}
+
+/* ========== 主体布局 ========== */
+.admin-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ========== 侧边栏 ========== */
+.sidebar-wrapper {
+  background: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.25s ease;
+  width: 200rpx;
+}
+.sidebar-wrapper.collapsed {
+  width: 70rpx;
+}
+
+.collapse-btn-area {
+  padding: 16rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+.collapse-btn {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 12rpx;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.collapse-btn:active {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* 菜单滚动区 */
+.menu-scroll {
+  flex: 1;
+  height: 0; /* 配合flex:1使scroll-view正常工作 */
+  padding: 0 8rpx 16rpx;
+}
+
+/* 菜单列表 */
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.menu-item {
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.menu-item-header {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 12rpx;
+  color: #bdc3c7;
+  border-radius: 12rpx;
+  white-space: nowrap;
+  gap: 8rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+.menu-item-header:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+.menu-item.active > .menu-item-header {
+  background: #e67e22;
+  color: #ffffff;
+}
+
+.menu-icon {
+  flex-shrink: 0;
+}
+
+.menu-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 24rpx;
+}
+
+.arrow-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.arrow-icon.rotated {
+  transform: rotate(90deg);
+}
+
+/* 二级菜单 */
+.submenu-list {
+  padding-left: 20rpx;
+  padding-top: 4rpx;
+  padding-bottom: 4rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 16rpx;
+  border-radius: 10rpx;
+  color: #bdc3c7;
+  font-size: 22rpx;
+  white-space: nowrap;
+  gap: 10rpx;
+}
+.submenu-item:active {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+.submenu-item.router-active {
+  background: rgba(230, 126, 34, 0.35);
+  color: #f39c12;
+  font-weight: 500;
+}
+
+.submenu-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: #7f8c8d;
+  flex-shrink: 0;
+}
+.submenu-item.router-active .submenu-dot {
+  background: #f39c12;
+}
+
+/* ========== 右侧内容区 ========== */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f5f7fa;
+}
+
+.content-view {
+  flex: 1;
+  height: 0;
+  padding: 24rpx;
+}
+
+/* ========== 工作台 ========== */
+.dashboard-page {
+  padding-bottom: 40rpx;
+}
+
+.dashboard-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 32rpx;
+}
+
+.stat-card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  width: calc(50% - 8rpx);
+  min-width: 280rpx;
+  box-sizing: border-box;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: #7f8c8d;
+}
+
+.stat-number {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #2c3e50;
+}
+.stat-number.warn {
+  color: #e74c3c;
+}
+
+/* 快捷入口 */
+.quick-section {
+  margin-top: 8rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: #ffffff;
+  border: 1rpx solid #e8e8e8;
+  padding: 14rpx 24rpx;
+  border-radius: 32rpx;
+  font-size: 24rpx;
+  color: #333;
+}
+.action-btn:active {
+  border-color: #e67e22;
+  color: #e67e22;
+  background: #fef9f4;
+}
+
+/* ========== 其他页面占位 ========== */
+.page-placeholder {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 40rpx 32rpx;
+  min-height: 400rpx;
+}
+
+.page-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.page-desc {
+  font-size: 26rpx;
+  color: #7f8c8d;
+  line-height: 1.6;
+}
+</style>
