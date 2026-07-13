@@ -8,7 +8,7 @@
       }
     },
     {
-      "path": "pages/index/order/order",
+      "path": "pages/order/order",
       "style": {
         "navigationBarTitleText": "点餐"
       }
@@ -70,7 +70,7 @@
         "text": "首页"
       },
       {
-        "pagePath": "pages/index/order/order",
+        "pagePath": "pages/order/order",
         "text": "点餐"
       }
     ]
