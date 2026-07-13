@@ -38,7 +38,7 @@ const menuList = [
 // 简单的跳转逻辑占位
 const handleJump = (title: string) => {
   console.log('点击了：', title);
-  // uni.navigateTo({ url: '...' })
+
 };
 </script>
 
