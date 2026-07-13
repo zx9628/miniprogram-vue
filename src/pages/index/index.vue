@@ -19,7 +19,6 @@
               <text class="vip-tag" @click="goToMemberCenter">六品王VIP卡·铁牛会员</text>
             </view>
             <view class="stats">
-              <!-- ✅ 修改：给余额、积分、优惠券添加点击事件 -->
               <text @click="handleJump('balance')">余额 0</text>
               <text @click="handleJump('points')">积分 0</text>
               <text @click="handleJump('coupons')">优惠券 0</text>
@@ -27,8 +26,8 @@
           </view>
         </view>
 
-        <!-- ✅ 修改：给会员码区域添加点击事件 -->
-        <view class="qr-code"@click="goToMemberCode">
+        <!-- ✅ 修复：这里 @click 前面补上了一个空格 -->
+        <view class="qr-code" @click="goToMemberCode">
           <image src="/static/images/qrcode-icon.png" mode="widthFix" style="width: 40rpx;"></image>
           <text>会员码</text>
         </view>
@@ -36,14 +35,12 @@
 
       <!-- 核心功能区 (堂食/会员) -->
       <view class="core-actions">
-        <!-- ✅ 修改：给整个堂食卡片添加点击事件 -->
         <view class="action-item large" @click="handleJump('dineIn')">
           <image src="/static/images/icon-eat.png" class="action-icon" mode="widthFix"></image>
           <text class="action-title">堂食/自提</text>
           <text class="action-desc">手机点餐免排队</text>
         </view>
 
-        <!-- ✅ 修改：给整个会员中心卡片添加点击事件 -->
         <view class="action-item large" @click="goToMemberCenter">
           <image src="/static/images/icon-member.png" class="action-icon" mode="widthFix"></image>
           <text class="action-title">会员中心</text>
@@ -61,22 +58,12 @@
 
       <!-- 营销活动 Banner (暖心行动) -->
       <view class="promo-section">
-        <image
-            src="/static/images/banner-promo.png"
-            mode="widthFix"
-            class="promo-img"
-            @click="goToActivity"
-        ></image>
+        <image src="/static/images/banner-promo.png" mode="widthFix" class="promo-img" @click="goToActivity"></image>
       </view>
 
       <!-- 底部广告 (诚邀加盟) -->
       <view class="bottom-ad">
-        <image
-            src="/static/images/ad-join.png"
-            mode="widthFix"
-            class="ad-img"
-            @click="goToJoin"
-        ></image>
+        <image src="/static/images/ad-join.png" mode="widthFix" class="ad-img" @click="goToJoin"></image>
       </view>
 
       <!-- 占位符 -->
@@ -88,14 +75,13 @@
 <script setup>
 import { ref } from 'vue';
 
-// 定义金刚区数据与跳转路径
+// ✅ 注意：如果会员储值也移到了分包，记得把这里的 url 也改成 /subPackages/member/recharge
 const gridList = ref([
-  { name: '会员储值', icon: '/static/images/grid-1.png', url: '/pages/index/member/recharge' },
+  { name: '会员储值', icon: '/static/images/grid-1.png', url: '/subPackages/member/recharge' },
   { name: '团餐', icon: '/static/images/grid-2.png', url: '/pages/index/grid/groupMeal' },
   { name: '积分商城', icon: '/static/images/grid-3.png', url: '/pages/index/grid/pointsMall' },
   { name: '积分大转盘', icon: '/static/images/grid-4.png', url: '/pages/index/grid/wheel' }
 ]);
-
 
 const handleJump = (type) => {
   console.log('触发跳转类型:', type);
@@ -103,7 +89,7 @@ const handleJump = (type) => {
   switch (type) {
     case 'balance': // 余额 -> 充值界面
       uni.navigateTo({
-        url: '/pages/index/member/recharge'
+        url: '/subPackages/member/recharge' // ✅ 更新分包路径
       });
       break;
 
@@ -114,11 +100,15 @@ const handleJump = (type) => {
       break;
 
     case 'points': // 积分
-      uni.navigateTo({ url: '/pages/index/member/points' });
+      uni.navigateTo({
+        url: '/subPackages/member/points' // ✅ 更新分包路径
+      });
       break;
 
     case 'coupons': // 优惠券
-      uni.navigateTo({ url: '/pages/index/member/coupons' });
+      uni.navigateTo({
+        url: '/subPackages/member/coupons' // ✅ 更新分包路径
+      });
       break;
 
     default:
@@ -139,27 +129,26 @@ const handleGridClick = (item) => {
   }
 };
 
+// ✅ 更新分包路径
 const goToMemberCode = () => {
   uni.navigateTo({
-    url: '/pages/index/member/qrcode'
+    url: '/subPackages/member/qrcode'
   });
 };
-// 会员中心跳转 (TabBar页面需用 switchTab)
+
+// ✅ 更新分包路径
 const goToMemberCenter = () => {
   uni.navigateTo({
-    url: '/pages/index/member/memberCenter'
+    url: '/subPackages/member/memberCenter'
   });
 };
 
-
-// 1. 跳转到【暖心行动】详情页
 const goToActivity = () => {
   uni.navigateTo({
     url: '/pages/index/activity/activity'
   });
 };
 
-// 2. 跳转到【诚邀加盟/加入我们】页
 const goToJoin = () => {
   uni.navigateTo({
     url: '/pages/index/join/join'
@@ -168,7 +157,7 @@ const goToJoin = () => {
 </script>
 
 <style lang="scss" scoped>
-/* ... 样式保持不变 ... */
+/* 样式保持不变 */
 $theme-pink: #f8dce4;
 $theme-red: #e63a46;
 $text-dark: #333;
@@ -228,7 +217,6 @@ $text-gray: #999;
       font-size: 24rpx; color: $text-gray;
       text {
         margin-right: 20rpx;
-        /* 增加一点可点击的视觉提示 */
         &:active { color: $theme-red; }
       }
     }
@@ -237,7 +225,7 @@ $text-gray: #999;
   .qr-code {
     text-align: center; font-size: 22rpx; color: $text-dark;
     image { display: block; margin: 0 auto 6rpx; }
-    &:active { opacity: 0.7; } /* 点击反馈 */
+    &:active { opacity: 0.7; }
   }
 }
 
@@ -245,7 +233,6 @@ $text-gray: #999;
   display: flex; justify-content: space-between; margin-bottom: 24rpx;
   .action-item {
     width: 48%; background: #fff; border-radius: 20rpx; padding: 30rpx 0; display: flex; flex-direction: column; align-items: center; box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.03);
-    /* 增加点击反馈 */
     &:active { background-color: #fafafa; transform: scale(0.98); transition: all 0.2s; }
 
     .action-icon { width: 120rpx; height: 120rpx; margin-bottom: 16rpx; }
