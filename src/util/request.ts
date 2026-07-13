@@ -1,7 +1,7 @@
 // utils/request.ts
 
 // 1. 定义基础配置
-const BASE_URL = 'https://zx.juntaitec.cn' // 替换为你的后端地址
+const BASE_URL = 'http://localhost:8081' // 替换为你的后端地址
 const TIMEOUT = 10000
 
 // 2. 封装请求函数

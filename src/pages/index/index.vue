@@ -12,16 +12,9 @@ import {onMounted, ref} from "vue";
 const title = ref("")
 import request from "@/util/request";
 onMounted(()=>{
-  let data = {
-    text: 'uni.request'
-  };
-  request.get("/tcm-api/test",data)
-      .then((res) =>{
-          console.log(res.data);
-          title.value = res;
-          }
-      )
-})
+
+    }
+)
 
 </script>
 
