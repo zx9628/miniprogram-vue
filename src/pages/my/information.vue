@@ -6,7 +6,7 @@ import { onLoad } from '@dcloudio/uni-app';
 const userInfo = reactive({
   id: 0,
   avatar: '/static/cow.png', // 默认头像
-  nickname: '',
+  username: '',
   phone: '',
   gender: 0,                 // 0: 未知, 1: 男, 2: 女
   birthday: ''
@@ -44,7 +44,7 @@ const onBirthdayChange = (e: any) => {
 };
 
 const saveInfo = () => {
-  if (!userInfo.nickname) {
+  if (!userInfo.username) {
     uni.showToast({ title: '请输入姓名', icon: 'none' });
     return;
   }
@@ -55,7 +55,7 @@ const saveInfo = () => {
     method: 'PUT',
     data: {
       id: userInfo.id,
-      username: userInfo.nickname,
+      username: userInfo.username,
       gender: userInfo.gender,
       birthday: userInfo.birthday,
       avatar: userInfo.avatar
@@ -67,7 +67,7 @@ const saveInfo = () => {
         const serverData = res.data.data;
         Object.assign(userInfo, serverData);
         if (serverData.username) {
-          userInfo.nickname = serverData.username;
+          userInfo.username = serverData.username;
         }
 
         //更新本地缓存，保证下次进来也是对的
@@ -96,7 +96,7 @@ onLoad(() => {
   const storedUser = uni.getStorageSync('userInfo');
   if (storedUser) {
     Object.assign(userInfo, storedUser);
-    userInfo.nickname = storedUser.username || '';
+    userInfo.username = storedUser.username || '';
   } else {
     uni.showToast({ title: '请先登录', icon: 'none' });
   }
@@ -128,7 +128,7 @@ onLoad(() => {
         <text class="label">姓名</text>
         <input
             class="input-field"
-            v-model="userInfo.nickname"
+            v-model="userInfo.username"
             placeholder="请输入姓名"
             placeholder-class="placeholder-style"
         />

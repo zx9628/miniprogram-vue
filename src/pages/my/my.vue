@@ -12,7 +12,9 @@
       <view class="card user-card" @click="handleUserClick">
         <image class="avatar" src="/static/cow.png" mode="aspectFill" />
         <view class="user-info">
-          <text v-if="userInfo" class="username">{{ userInfo.phone || '微信用户' }}</text>
+          <text v-if="userInfo" class="username">
+            {{ userInfo.username || userInfo.phone || '微信用户' }}
+          </text>
           <text v-else class="username">注册/登录</text>
           <text class="sub-text">注册会员尊享更多专属特权</text>
         </view>
