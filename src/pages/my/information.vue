@@ -51,7 +51,7 @@ const saveInfo = () => {
   uni.showLoading({ title: '保存中...' });
 
   uni.request({
-    url: 'http://localhost:8083/api/user/update',
+    url: 'http://172.20.10.2:8083/api/user/update',
     method: 'PUT',
     data: {
       id: userInfo.id,

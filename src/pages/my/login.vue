@@ -69,7 +69,7 @@ const handleLogin = () => {
   uni.showLoading({ title: '登录中...' });
 
   uni.request({
-    url: 'http://localhost:8083/api/login/login',
+    url: 'http://172.20.10.2:8083/api/login/login',
     method: 'POST',
     header: {
       'Content-Type': 'application/json'
