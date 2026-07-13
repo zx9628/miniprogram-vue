@@ -152,8 +152,10 @@
 
           <!-- 其他页面占位 -->
           <view v-else class="page-placeholder">
-            <text class="page-title">{{ currentPageTitle }}</text>
-            <text class="page-desc">此处为【{{ currentPageTitle }}】功能页面，内容待实现。</text>
+            <order-manage v-if="currentPageTitle === '订单列表'"></order-manage>
+            <prod-manage v-if="currentPageTitle === '菜品编辑'"></prod-manage>
+<!--            <text class="page-title">{{ currentPageTitle }}</text>-->
+<!--            <text class="page-desc">此处为【{{ currentPageTitle }}】功能页面，内容待实现。</text>-->
           </view>
         </scroll-view>
       </view>
@@ -163,6 +165,9 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
+import OrderManage from "@/pages/index/admin/orderManage.vue";
+import ProdManage from "@/pages/index/admin/prodManage.vue";
+import request from "@/util/request"
 
 // ==================== 模拟用户与权限 ====================
 // 实际项目中应从登录接口获取
@@ -171,7 +176,7 @@ const currentUser = reactive({
   role: '超级管理员',
   // 用户拥有的权限标识列表（模拟超级管理员拥有全部权限）
   permissions: [
-    'dashboard',
+    // 'dashboard',
     'order',
     'order:list',
     'order:refund_approve',
@@ -225,15 +230,6 @@ const menuConfig = [
     ],
   },
   {
-    name: '堂食管理',
-    code: 'dine_in',
-    icon: 'map',
-    children: [
-      { name: '桌台视图', code: 'table:manage', route: 'table-manage' },
-      { name: '点餐页面', code: 'dine:order', route: 'dine-order' },
-    ],
-  },
-  {
     name: '菜品管理',
     code: 'menu',
     icon: 'shop',
@@ -241,17 +237,6 @@ const menuConfig = [
       { name: '菜品分类', code: 'menu:category', route: 'menu-category' },
       { name: '菜品列表', code: 'menu:list', route: 'menu-list' },
       { name: '菜品编辑', code: 'menu:edit', route: 'menu-edit' },
-    ],
-  },
-  {
-    name: '库存采购',
-    code: 'inventory',
-    icon: 'gift',
-    children: [
-      { name: '库存总览', code: 'inventory:view', route: 'inventory-view' },
-      { name: '出入库记录', code: 'inventory:record', route: 'inventory-record' },
-      { name: '采购单管理', code: 'purchase:order', route: 'purchase-order' },
-      { name: '供应商管理', code: 'supplier:manage', route: 'supplier-manage' },
     ],
   },
   {
@@ -400,6 +385,18 @@ const handleLogout = () => {
 
 // ==================== 初始化 ====================
 onMounted(() => {
+  request.post(
+      "/api/login/admin",
+      {
+        "username": "boss",
+        "password":"12345678wlb"
+      }
+  ).then((res)=>{
+    console.log(res)
+    currentUser.name = res.data.username
+      }
+  )
+
   // 默认展开所有一级菜单（有子菜单的）
   filteredMenus.value.forEach((menu) => {
     if (menu.children && menu.children.length) {
