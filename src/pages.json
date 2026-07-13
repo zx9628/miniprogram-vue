@@ -1,6 +1,6 @@
 {
   "pages": [
-    // 【主包】只保留首页、点餐页等启动必须的页面
+
     {
       "path": "pages/index/index",
       "style": {
@@ -13,43 +13,42 @@
         "navigationBarTitleText": "点餐"
       }
     }
-    // ⚠️ 注意：原本在这里的 member/center, member/recharge 等页面全部删掉！
+
   ],
 
-  // 【分包配置】新增这部分
+
   "subPackages": [
     {
       "root": "subPackages",
       "pages": [
-        // 会员中心
         {
           "path": "member/memberCenter",
           "style": {
             "navigationBarTitleText": "会员中心"
           }
         },
-        // 会员充值
+
         {
           "path": "member/recharge",
           "style": {
             "navigationBarTitleText": "会员储值"
           }
         },
-        // 积分明细
+
         {
           "path": "member/points",
           "style": {
             "navigationBarTitleText": "我的积分"
           }
         },
-        // 优惠券
+
         {
           "path": "member/coupons",
           "style": {
             "navigationBarTitleText": "我的优惠券"
           }
         },
-        // 会员码
+
         {
           "path": "member/qrcode",
           "style": {
@@ -60,7 +59,7 @@
     }
   ],
 
-  // TabBar 配置保持不变（但要注意 TabBar 指向的页面必须在主包 pages 里）
+
   "tabBar": {
     "color": "#7A7E83",
     "selectedColor": "#3cc51f",
