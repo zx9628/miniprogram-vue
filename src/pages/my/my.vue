@@ -67,22 +67,37 @@
         <!-- 关闭按钮 -->
         <view class="mask-close" @click="closeMask">✕</view>
 
-        <!-- 头像 -->
+        <!-- 头像及通用说明 -->
         <image class="mask-avatar" src="/static/cow.png" mode="aspectFill" />
 
-        <!-- 提示文字 -->
-        <text class="mask-title">登录后享受更多服务</text>
-        <text class="mask-desc">会员专享优惠券、积分、余额等功能</text>
+        <!-- ===== 步骤1：微信一键登录 ===== -->
+        <template v-if="!showPhoneAuth">
+          <text class="mask-title">登录后享受更多服务</text>
+          <text class="mask-desc">会员专享优惠券、积分、余额等功能</text>
+          <button class="wechat-login-btn" @click="wechatLogin">
+            微信一键登录
+          </button>
+          <view class="phone-login-area" @click="goPhoneLogin">
+            <text class="phone-login-text">手机号登录</text>
+          </view>
+        </template>
 
-        <!-- 微信一键登录按钮 -->
-        <button class="wechat-login-btn" @click="wechatLogin">
-          微信一键登录
-        </button>
-
-        <!-- 手机号登录 -->
-        <view class="phone-login-area" @click="goPhoneLogin">
-          <text class="phone-login-text">手机号登录</text>
-        </view>
+        <!-- ===== 步骤2：手机号授权 ===== -->
+        <template v-else>
+          <text class="mask-title">授权手机号</text>
+          <text class="mask-desc">用于会员信息登记及订单通知</text>
+          <button
+              class="wechat-login-btn"
+              open-type="getPhoneNumber"
+              @getphonenumber="onGetPhoneNumber"
+              :disabled="loadingPhone"
+          >
+            {{ loadingPhone ? '绑定中...' : '授权手机号' }}
+          </button>
+          <view class="phone-login-area" @click="closeMask">
+            <text class="phone-login-text">暂不绑定，稍后再说</text>
+          </view>
+        </template>
       </view>
     </view>
   </view>
@@ -94,7 +109,68 @@ import { onShow } from "@dcloudio/uni-app";
 
 // 用户信息
 const userInfo = ref<any>(null);
+// 手机号
+const showPhoneAuth = ref(false);   // 是否显示手机号授权界面
+const loadingPhone = ref(false);    // 手机号绑定加载状态
+// 手机号授权按钮回调
+const onGetPhoneNumber = (e: any) => {
+  console.log(e)
+  if (e.detail.errMsg !== 'getPhoneNumber:ok') {
+    uni.showToast({ title: '授权已取消', icon: 'none' });
+    return;
+  }
 
+  const phoneCode = e.detail.code;   // 新版动态 code
+  const openid = uni.getStorageSync('openid');
+  if (!openid) {
+    uni.showToast({ title: '登录信息缺失，请重新登录', icon: 'none' });
+    showLoginMask.value = false;
+    return;
+  }
+
+  loadingPhone.value = true;
+  uni.request({
+    url: 'http://localhost:8081/api/login/bindPhone',   // 后端需提供此接口
+    method: 'POST',
+    header: { 'Content-Type': 'application/json' },
+    data: {
+      openid: openid,
+      code: phoneCode
+    },
+    success: (res) => {
+      loadingPhone.value = false;
+      if (res.data.code === 200) {
+        // 绑定成功，更新用户信息
+        const phone = res.data.data;   // 假设接口直接返回手机号字符串
+        const newUserInfo = {
+          openid,
+          phone,
+          // 其他字段可保留默认值或从后端再次获取
+        };
+        uni.setStorageSync('userInfo', newUserInfo);
+        userInfo.value = newUserInfo;
+        showLoginMask.value = false;   // 关闭遮罩
+        showPhoneAuth.value = false;
+        uni.showToast({ title: '绑定成功' });
+      } else {
+        uni.showToast({ title: res.data.message || '绑定失败', icon: 'none' });
+      }
+    },
+    fail: () => {
+      loadingPhone.value = false;
+      uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+    }
+  });
+};
+
+// 修改关闭遮罩方法：如果在手机号授权步骤关闭，仅关闭遮罩，不清除登录状态（但用户未绑定手机号）
+const closeMask = () => {
+  if (showPhoneAuth.value) {
+    // 用户跳过手机号绑定，直接关闭，但已拿到 openid，可让用户稍后绑定
+    showPhoneAuth.value = false;
+  }
+  showLoginMask.value = false;
+};
 // 遮罩层显示状态
 const showLoginMask = ref(false);
 
@@ -119,15 +195,11 @@ const handleUserClick = () => {
   }
 };
 
-// 关闭遮罩层
-const closeMask = () => {
-  showLoginMask.value = false;
-};
 
 // 微信一键登录
+// 修改 wechatLogin 方法
 const wechatLogin = () => {
   uni.showLoading({ title: '登录中...' });
-
   uni.login({
     provider: 'weixin',
     success: (loginRes) => {
@@ -136,21 +208,29 @@ const wechatLogin = () => {
         uni.showToast({ title: '获取登录凭证失败', icon: 'none' });
         return;
       }
-
       uni.request({
-        url: 'https://cxm.juntaitec.cn/miniprogram/api/login/wechatLogin',
+        url: 'http://localhost:8081/api/login/wechat',
         method: 'POST',
         header: { 'Content-Type': 'application/json' },
         data: { code: loginRes.code },
         success: (res) => {
           uni.hideLoading();
           if (res.data.code === 200) {
-            const userData = res.data.data;
-            console.log('后端返回的数据:', res.data);
-            uni.setStorageSync('userInfo', userData);
-            userInfo.value = userData;
-            showLoginMask.value = false; // 关闭遮罩层
-            uni.showToast({ title: '登录成功' });
+            const userData = res.data.data;          // 假设返回 { openid, phone, ... }
+            const openid = userData.openid;
+            uni.setStorageSync('openid', openid);
+
+            // 核心判断：是否有手机号
+            if (!userData.phone) {
+              // 没有手机号 → 切换到手机号授权界面
+              showPhoneAuth.value = true;
+            } else {
+              // 已有手机号 → 直接完成登录
+              uni.setStorageSync('userInfo', userData);
+              userInfo.value = userData;
+              showLoginMask.value = false;
+              uni.showToast({ title: '登录成功' });
+            }
           } else {
             uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
           }
@@ -168,6 +248,7 @@ const wechatLogin = () => {
     }
   });
 };
+
 
 // 跳转手机号登录页
 const goPhoneLogin = () => {
