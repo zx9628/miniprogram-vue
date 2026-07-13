@@ -48,14 +48,21 @@
         </view>
         <view class="action-item large">
           <image src="/static/images/icon-member.png" class="action-icon" mode="widthFix"></image>
-          <text class="action-title"@click="goToMemberCenter">会员中心</text>
+          <!-- 修复：给文字加上了点击事件 -->
+          <text class="action-title" @click="goToMemberCenter">会员中心</text>
           <text class="action-desc">储值优惠</text>
         </view>
       </view>
 
       <!-- 金刚区 (四个小图标) -->
       <view class="grid-menu">
-        <view class="grid-item" v-for="(item, index) in gridList" :key="index">
+        <!-- 修复：增加了点击事件绑定 -->
+        <view
+            class="grid-item"
+            v-for="(item, index) in gridList"
+            :key="index"
+            @click="handleGridClick(item)"
+        >
           <image :src="item.icon" class="grid-icon" mode="widthFix"></image>
           <text>{{ item.name }}</text>
         </view>
@@ -85,26 +92,52 @@
 <script setup>
 import { ref } from 'vue';
 
-// 模拟金刚区数据
+// 定义金刚区数据与跳转路径
+// ✅ 路径已严格对齐截图中的物理文件夹结构（补全了 /index/ 层级）
 const gridList = ref([
-  { name: '会员储值', icon: '/static/images/grid-1.png' },
-  { name: '团餐', icon: '/static/images/grid-2.png' },
-  { name: '积分商城', icon: '/static/images/grid-3.png' },
-  { name: '积分大转盘', icon: '/static/images/grid-4.png' }
+  {
+    name: '会员储值',
+    icon: '/static/images/grid-1.png',
+    url: '/pages/index/member/recharge'
+  },
+  {
+    name: '团餐',
+    icon: '/static/images/grid-2.png',
+    url: '/pages/index/grid/groupMeal'
+  },
+  {
+    name: '积分商城',
+    icon: '/static/images/grid-3.png',
+    url: '/pages/index/grid/pointsMall'
+  },
+  {
+    name: '积分大转盘',
+    icon: '/static/images/grid-4.png',
+    url: '/pages/index/grid/wheel'
+  }
 ]);
 
-// 点击头像跳转会员中心
-const goToMemberCenter = () => {
-  // ⚠️ 注意：请将下面的路径替换为你项目中真实的会员中心页面路径
-  uni.navigateTo({
-    url: '/pages/member/memberCenter',
-  });
+// 通用跳转方法
+const handleGridClick = (item) => {
+  if (item.url) {
+    uni.navigateTo({
+      url: item.url,
+      fail: (err) => {
+        console.error('跳转失败，请检查路径:', item.url, err);
+        uni.showToast({ title: '页面正在开发中', icon: 'none' });
+      }
+    });
+  }
 };
 
-// 营销Banner点击事件
+// 会员中心跳转
+const goToMemberCenter = () => {
+  uni.navigateTo({ url: '/pages/index/member/memberCenter' });
+};
+
+// Banner点击
 const handleBannerClick = () => {
-  console.log('点击了营销Banner');
-  // uni.navigateTo({ url: '/pages/promo/detail' })
+  uni.navigateTo({ url: '/pages/index/join/join' });
 };
 </script>
 
@@ -268,6 +301,12 @@ $text-gray: #999;
       width: 60rpx;
       height: 60rpx;
       margin-bottom: 12rpx;
+    }
+
+    /* 新增：点击时的交互反馈 */
+    transition: opacity 0.2s;
+    &:active {
+      opacity: 0.6;
     }
   }
 }

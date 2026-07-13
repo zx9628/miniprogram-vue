@@ -7,39 +7,84 @@
         "navigationStyle": "custom"
       }
     },
+    // --- 首页子页面 (根据截图，它们都在 index 文件夹内) ---
     {
-      "path": "pages/member/memberCenter",
+      "path": "pages/index/member/memberCenter",
       "style": {
         "navigationBarTitleText": "会员中心"
       }
     },
     {
+      "path": "pages/index/activity/activity",
+      "style": {
+        "navigationBarTitleText": "活动详情"
+      }
+    },
+    {
+      "path": "pages/index/grid/groupMeal",
+      "style": {
+        "navigationBarTitleText": "团餐"
+      }
+    },
+    {
+      "path": "pages/index/grid/pointsMall",
+      "style": {
+        "navigationBarTitleText": "积分商城"
+      }
+    },
+    {
+      "path": "pages/index/grid/wheel",
+      "style": {
+        "navigationBarTitleText": "大转盘"
+      }
+    },
+    {
+      "path": "pages/index/join/join",
+      "style": {
+        "navigationBarTitleText": "加入我们"
+      }
+    },
+    // --- 会员模块子页面 (截图显示也在 index/member 下) ---
+    {
+      "path": "pages/index/member/coupons",
+      "style": {
+        "navigationBarTitleText": "优惠券"
+      }
+    },
+    {
+      "path": "pages/index/member/points",
+      "style": {
+        "navigationBarTitleText": "我的积分"
+      }
+    },
+    {
+      "path": "pages/index/member/qrcode",
+      "style": {
+        "navigationBarTitleText": "会员码"
+      }
+    },
+    {
+      "path": "pages/index/member/recharge",
+      "style": {
+        "navigationBarTitleText": "会员储值"
+      }
+    },
+    // --- TabBar 页面 (保持原样) ---
+    {
       "path": "pages/order/order",
       "style": {
         "navigationBarTitleText": "点餐"
       }
-    },
-    {
-      "path": "pages/list/list",
-      "style": {
-        "navigationBarTitleText": "订单"
-      }
-    },
-    {
-      "path": "pages/my/my",
-      "style": {
-        "navigationBarTitleText": "我的"
-      }
     }
-  ],
 
+
+  ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "三品王",
     "navigationBarBackgroundColor": "#fff0f0",
     "backgroundColor": "#f5f5f5"
   },
-
   "tabBar": {
     "color": "#999",
     "selectedColor": "#E63A46",
@@ -57,18 +102,6 @@
         "text": "点餐",
         "iconPath": "static/tab/order.png",
         "selectedIconPath": "static/tab/order-active.png"
-      },
-      {
-        "pagePath": "pages/list/list",
-        "text": "订单",
-        "iconPath": "static/tab/list.png",
-        "selectedIconPath": "static/tab/list-active.png"
-      },
-      {
-        "pagePath": "pages/my/my",
-        "text": "我的",
-        "iconPath": "static/tab/my.png",
-        "selectedIconPath": "static/tab/my-active.png"
       }
     ]
   }

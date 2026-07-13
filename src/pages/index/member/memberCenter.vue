@@ -11,7 +11,7 @@ const userInfo = ref({
   giftCards: 0
 });
 
-// 常用功能列表配置 (iconPath 请替换为你实际的图片路径)
+// 常用功能列表配置
 const commonFuncs = [
   { title: '充值', iconPath: '/static/images/member/recharge.png' },
   { title: '购买会员权益', iconPath: '/static/images/member/buy-rights.png' },
@@ -43,7 +43,11 @@ const handleJump = (title: string) => {
 </script>
 
 <template>
-  D
+  <!-- ✅ 修复 1：补上最外层的根节点 container -->
+  <view class="container">
+    <!-- ✅ 修复 2：补上顶部背景包裹层 vip-card-bg -->
+    <view class="vip-card-bg">
+      <view class="vip-card">
         <view class="card-top">
           <view class="user-info">
             <text class="level-name">{{ userInfo.levelName }}</text>
@@ -75,13 +79,13 @@ const handleJump = (title: string) => {
             <text class="label">礼品卡 &gt;</text>
           </view>
         </view>
-      </view>
+      </view> <!-- ✅ 修复 3：这里正确闭合 vip-card -->
+    </view> <!-- ✅ 修复 4：这里正确闭合 vip-card-bg -->
 
-      <!-- 进度条区域 (模拟截图中的升级进度) -->
-      <view class="progress-section">
-        <text class="progress-text">再消费 0 元可升至铜牛会员</text>
-        <button class="btn-outline">查看权益</button>
-      </view>
+    <!-- 进度条区域 -->
+    <view class="progress-section">
+      <text class="progress-text">再消费 0 元可升至铜牛会员</text>
+      <button class="btn-outline">查看权益</button>
     </view>
 
     <!-- 2. 常用功能 (3列布局) -->
@@ -134,7 +138,7 @@ const handleJump = (title: string) => {
         </view>
       </view>
     </view>
-  </view>
+  </view> <!-- ✅ 修复 5：正确闭合最外层 container -->
 </template>
 
 <style scoped>
@@ -208,7 +212,7 @@ const handleJump = (title: string) => {
 
 .progress-section {
   background-color: #fff;
-  margin-top: -20rpx; /* 稍微重叠一点卡片 */
+  margin-top: -20rpx;
   border-radius: 0 0 20rpx 20rpx;
   padding: 20rpx 30rpx;
   display: flex;
@@ -246,7 +250,7 @@ const handleJump = (title: string) => {
   font-weight: bold;
   color: #333;
   margin-bottom: 30rpx;
-  border-left: 6rpx solid #c48b5e; /* 左侧装饰条 */
+  border-left: 6rpx solid #c48b5e;
   padding-left: 16rpx;
   line-height: 1;
 }
@@ -272,7 +276,7 @@ const handleJump = (title: string) => {
   width: 80rpx;
   height: 80rpx;
   margin-bottom: 16rpx;
-  background-color: #f0f0f0; /* 占位背景色，加载图片前显示 */
+  background-color: #f0f0f0;
   border-radius: 50%;
 }
 
@@ -304,7 +308,7 @@ const handleJump = (title: string) => {
   width: 40rpx;
   height: 40rpx;
   margin-right: 20rpx;
-  background-color: #f0f0f0; /* 占位背景色 */
+  background-color: #f0f0f0;
 }
 
 .list-text {
