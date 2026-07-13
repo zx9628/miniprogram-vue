@@ -12,9 +12,7 @@
       <view class="card user-card" @click="handleUserClick">
         <image class="avatar" src="/static/cow.png" mode="aspectFill" />
         <view class="user-info">
-          <!-- 已登录：显示手机号 -->
-          <text v-if="userInfo" class="username">{{ userInfo.phone }}</text>
-          <!-- 未登录：显示注册/登录 -->
+          <text v-if="userInfo" class="username">{{ userInfo.phone || '微信用户' }}</text>
           <text v-else class="username">注册/登录</text>
           <text class="sub-text">注册会员尊享更多专属特权</text>
         </view>
@@ -44,7 +42,6 @@
             class="menu-item"
             @click="handleMenuClick(item)"
         >
-          <!-- 左侧图标区域 -->
           <view class="icon-box">
             <text class="menu-icon">{{ item.icon }}</text>
           </view>
@@ -61,26 +58,52 @@
         </view>
       </view>
 
-      <!-- 底部占位，防止内容被TabBar遮挡 -->
       <view style="height: 50rpx;"></view>
+    </view>
+
+    <!-- 3. 微信一键登录遮罩层 -->
+    <view class="login-mask" v-if="showLoginMask" @click="closeMask">
+      <view class="mask-content" @click.stop>
+        <!-- 关闭按钮 -->
+        <view class="mask-close" @click="closeMask">✕</view>
+
+        <!-- 头像 -->
+        <image class="mask-avatar" src="/static/cow.png" mode="aspectFill" />
+
+        <!-- 提示文字 -->
+        <text class="mask-title">登录后享受更多服务</text>
+        <text class="mask-desc">会员专享优惠券、积分、余额等功能</text>
+
+        <!-- 微信一键登录按钮 -->
+        <button class="wechat-login-btn" @click="wechatLogin">
+          微信一键登录
+        </button>
+
+        <!-- 手机号登录 -->
+        <view class="phone-login-area" @click="goPhoneLogin">
+          <text class="phone-login-text">手机号登录</text>
+        </view>
+      </view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import {onShow} from "@dcloudio/uni-app";
+import { onShow } from "@dcloudio/uni-app";
 
 // 用户信息
 const userInfo = ref<any>(null);
 
-// 为了还原图片，我添加了Emoji作为图标占位，你可以后续替换为 image 标签
+// 遮罩层显示状态
+const showLoginMask = ref(false);
+
 const menuList = [
   { name: '我的订单', icon: '📄', path: '/pages/order/order' },
   { name: '隐私设置', icon: '🔒', path: '' },
   { name: '会员信息', icon: '💳', path: '' },
   { name: '账号绑定管理', icon: '🔗', path: '' },
-  { name: '切换账号', icon: '↩️', path: '/pages/my/login' }
+  { name: '切换账号', icon: '↩️', path: '' }
 ];
 
 // 页面显示时检查登录状态
@@ -92,15 +115,70 @@ onShow(() => {
 // 点击用户卡片
 const handleUserClick = () => {
   if (!userInfo.value) {
-    // 未登录，跳转登录页
-    uni.navigateTo({ url: '/pages/my/login' });
+    showLoginMask.value = true; // 弹出遮罩层
   }
+};
+
+// 关闭遮罩层
+const closeMask = () => {
+  showLoginMask.value = false;
+};
+
+// 微信一键登录
+const wechatLogin = () => {
+  uni.showLoading({ title: '登录中...' });
+
+  uni.login({
+    provider: 'weixin',
+    success: (loginRes) => {
+      if (!loginRes.code) {
+        uni.hideLoading();
+        uni.showToast({ title: '获取登录凭证失败', icon: 'none' });
+        return;
+      }
+
+      uni.request({
+        url: 'http://localhost:8083/api/login/wechatLogin',
+        method: 'POST',
+        header: { 'Content-Type': 'application/json' },
+        data: { code: loginRes.code },
+        success: (res) => {
+          uni.hideLoading();
+          if (res.data.code === 200) {
+            const userData = res.data.data;
+            console.log('后端返回的数据:', res.data);
+            uni.setStorageSync('userInfo', userData);
+            userInfo.value = userData;
+            showLoginMask.value = false; // 关闭遮罩层
+            uni.showToast({ title: '登录成功' });
+          } else {
+            uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
+          }
+        },
+        fail: () => {
+          uni.hideLoading();
+          uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+        }
+      });
+    },
+    fail: (err) => {
+      uni.hideLoading();
+      console.error('wx.login 失败:', err);
+      uni.showToast({ title: '微信登录失败', icon: 'none' });
+    }
+  });
+};
+
+// 跳转手机号登录页
+const goPhoneLogin = () => {
+  showLoginMask.value = false; // 先关闭遮罩层
+  uni.navigateTo({ url: '/pages/my/login' });
 };
 
 // 跳转页面
 const goToPage = (path: string) => {
   if (!userInfo.value) {
-    uni.navigateTo({ url: '/pages/my/login' });
+    showLoginMask.value = true; // 未登录弹遮罩层
     return;
   }
   uni.navigateTo({ url: path });
@@ -108,19 +186,27 @@ const goToPage = (path: string) => {
 
 // 菜单点击处理
 const handleMenuClick = (item: any) => {
-  console.log('点击了菜单:', item.name);
-
-  if (item.path === '/pages/my/login') {
-    // 切换账号：清除登录状态，跳转登录页
-    uni.removeStorageSync('userInfo');
-    userInfo.value = null;
-    uni.navigateTo({ url: '/pages/my/login' });
+  if (item.name === '切换账号') {
+    if (userInfo.value) {
+      uni.showModal({
+        title: '提示',
+        content: '确定要退出当前账号吗？',
+        success: (res) => {
+          if (res.confirm) {
+            uni.removeStorageSync('userInfo');
+            userInfo.value = null;
+            uni.showToast({ title: '已退出登录' });
+          }
+        }
+      });
+    } else {
+      showLoginMask.value = true;
+    }
     return;
   }
 
-  // 会员信息需要登录才能访问
   if (item.name === '会员信息' && !userInfo.value) {
-    uni.showToast({ title: '请先登录', icon: 'none' });
+    showLoginMask.value = true;
     return;
   }
 
@@ -134,18 +220,12 @@ const handleMenuClick = (item: any) => {
   if (tabBarPages.includes(item.path)) {
     uni.switchTab({
       url: item.path,
-      fail: (err) => {
-        console.error('跳转失败:', err);
-        uni.showToast({ title: '页面不存在', icon: 'none' });
-      }
+      fail: () => uni.showToast({ title: '页面不存在', icon: 'none' })
     });
   } else {
     uni.navigateTo({
       url: item.path,
-      fail: (err) => {
-        console.error('跳转失败:', err);
-        uni.showToast({ title: '页面不存在', icon: 'none' });
-      }
+      fail: () => uni.showToast({ title: '页面不存在', icon: 'none' })
     });
   }
 };
@@ -155,20 +235,18 @@ const handleMenuClick = (item: any) => {
 /* 页面整体背景 */
 .container {
   min-height: 100vh;
-  background-color: #f7f8fa; /* 极淡的灰色背景 */
+  background-color: #f7f8fa;
 }
 
 /* 顶部背景区域 */
 .header-bg {
   height: 250rpx;
   background: linear-gradient(180deg, #ffeaec 0%, #ffc6ce 100%);
-
-  /* --- 核心修改 --- */
   display: flex;
-  flex-direction: column; /* 保持垂直排列 */
-  align-items: center;    /* 【横向居中】关键属性 */
-  justify-content: flex-start; /* 【贴住上部】从顶部开始排列 */
-  padding-top: 40rpx;     /* 给顶部留一点呼吸空间，避免文字顶死边框 */
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 40rpx;
 }
 
 .slogan-small {
@@ -183,9 +261,9 @@ const handleMenuClick = (item: any) => {
   color: #000;
 }
 
-/* 2. 主体内容区域 */
+/* 主体内容区域 */
 .main-content {
-  margin-top: -60rpx; /* 向上偏移，产生重叠效果 */
+  margin-top: -60rpx;
   padding: 0 30rpx;
   position: relative;
   z-index: 10;
@@ -194,14 +272,13 @@ const handleMenuClick = (item: any) => {
 /* 通用卡片样式 */
 .card {
   background: #fff;
-  border-radius: 24rpx; /* 圆角更大一点 */
+  border-radius: 24rpx;
   margin-bottom: 24rpx;
-  /* 阴影非常淡 */
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 
-/* 用户卡片特定样式 */
+/* 用户卡片 */
 .user-card {
   display: flex;
   align-items: center;
@@ -213,7 +290,7 @@ const handleMenuClick = (item: any) => {
   height: 110rpx;
   border-radius: 50%;
   margin-right: 30rpx;
-  background-color: #fce4ec; /* 头像占位色 */
+  background-color: #fce4ec;
 }
 
 .user-info {
@@ -261,16 +338,16 @@ const handleMenuClick = (item: any) => {
   color: #999;
 }
 
-/* 菜单列表特定样式 */
+/* 菜单列表 */
 .menu-card {
-  padding: 0 10rpx; /* 左右留一点内边距给分割线 */
+  padding: 0 10rpx;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
   padding: 35rpx 30rpx;
-  border-bottom: 1rpx solid #f5f5f5; /* 极淡的分割线 */
+  border-bottom: 1rpx solid #f5f5f5;
 }
 
 .menu-item:last-child {
@@ -295,15 +372,14 @@ const handleMenuClick = (item: any) => {
   flex: 1;
 }
 
-/* 3. 底部电话栏 (重点修改) */
+/* 底部电话栏 */
 .footer-banner {
-  background: #ffeef0; /* 浅粉色背景 */
+  background: #ffeef0;
   border-radius: 24rpx;
   padding: 30rpx;
   display: flex;
   align-items: center;
   margin-bottom: 50rpx;
-  /* 去掉阴影，或者保留很淡的 */
   box-shadow: none;
 }
 
@@ -327,9 +403,97 @@ const handleMenuClick = (item: any) => {
 }
 
 .banner-phone {
-  font-size: 40rpx; /* 电话号码很大 */
-  font-weight: 900; /* 很粗 */
+  font-size: 40rpx;
+  font-weight: 900;
   color: #333;
   letter-spacing: 1rpx;
+}
+
+/* ===== 微信登录遮罩层样式 ===== */
+.login-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.mask-content {
+  width: 100%;
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 60rpx 60rpx 80rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.mask-close {
+  position: absolute;
+  top: 30rpx;
+  right: 30rpx;
+  font-size: 36rpx;
+  color: #999;
+  padding: 10rpx 20rpx;
+}
+
+.mask-avatar {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  margin-bottom: 30rpx;
+  background-color: #fce4ec;
+}
+
+.mask-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.mask-desc {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 60rpx;
+}
+
+/* 微信一键登录按钮 */
+.wechat-login-btn {
+  width: 100%;
+  height: 90rpx;
+  line-height: 90rpx;
+  border-radius: 45rpx;
+  background-color: #07c160;
+  color: #fff;
+  font-size: 34rpx;
+  font-weight: bold;
+  border: none;
+  margin-bottom: 30rpx;
+}
+
+.wechat-login-btn::after {
+  border: none;
+}
+
+.wechat-login-btn:active {
+  opacity: 0.9;
+}
+
+/* 手机号登录 */
+.phone-login-area {
+  padding: 20rpx 0;
+}
+
+.phone-login-text {
+  font-size: 28rpx;
+  color: #a84c38;
+  text-decoration: underline;
 }
 </style>
