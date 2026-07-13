@@ -49,13 +49,43 @@ const saveInfo = () => {
     return;
   }
   uni.showLoading({ title: '保存中...' });
-  // 模拟请求成功
-  setTimeout(() => {
-    uni.hideLoading();
-    uni.showToast({ title: '保存成功' });
-    uni.setStorageSync('userInfo', userInfo);
-    setTimeout(() => uni.navigateBack(), 1000);
-  }, 1000);
+
+  uni.request({
+    url: 'http://172.20.10.2:8083/api/user/update',
+    method: 'PUT',
+    data: {
+      id: userInfo.id,
+      username: userInfo.nickname,
+      gender: userInfo.gender,
+      birthday: userInfo.birthday,
+      avatar: userInfo.avatar
+    },
+    success: (res) => {
+      uni.hideLoading();
+      if (res.data.code === 200) {
+        // 获取后端返回的最新用户信息
+        const serverData = res.data.data;
+        Object.assign(userInfo, serverData);
+        if (serverData.username) {
+          userInfo.nickname = serverData.username;
+        }
+
+        //更新本地缓存，保证下次进来也是对的
+        uni.setStorageSync('userInfo', userInfo);
+
+        uni.showToast({ title: '保存成功' });
+
+        console.log('后端返回的数据:', res.data);
+        setTimeout(() => uni.navigateBack(), 1000);
+      } else {
+        uni.showToast({ title: res.data.msg || '保存失败', icon: 'none' });
+      }
+    },
+    fail: () => {
+      uni.hideLoading();
+      uni.showToast({ title: '网络错误', icon: 'none' });
+    }
+  });
 };
 
 const navigateTo = (url: string) => {
@@ -66,6 +96,7 @@ onLoad(() => {
   const storedUser = uni.getStorageSync('userInfo');
   if (storedUser) {
     Object.assign(userInfo, storedUser);
+    userInfo.nickname = storedUser.username || '';
   } else {
     uni.showToast({ title: '请先登录', icon: 'none' });
   }
