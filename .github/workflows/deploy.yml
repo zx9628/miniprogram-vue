@@ -24,7 +24,7 @@ jobs:
         run: npm install miniprogram-ci --save-dev5
 
       - name: 编译小程序产物
-        run: npm run dev:mp-weixin
+        run: npm run build:mp-weixin
 
       - name: 写入上传密钥
         run: |
