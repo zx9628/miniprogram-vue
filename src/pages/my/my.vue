@@ -138,7 +138,7 @@ const wechatLogin = () => {
       }
 
       uni.request({
-        url: 'http://localhost:8083/api/login/wechatLogin',
+        url: 'http://172.20.10.2:8083/api/login/wechatLogin',
         method: 'POST',
         header: { 'Content-Type': 'application/json' },
         data: { code: loginRes.code },
