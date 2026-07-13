@@ -3,6 +3,7 @@
     <!-- 顶部导航 -->
     <view class="nav-bar">
       <text class="nav-title">点餐</text>
+      <text class="store-id-tag" v-if="storeId">门店 #{{ storeId }}</text>
     </view>
 
     <!-- 店铺信息 -->
@@ -25,14 +26,12 @@
 
     <!-- 主体区域：左右分布 -->
     <view class="main-content">
-      <!-- 左侧分类导航 -->
       <view class="aside-wrapper">
-        <Aside @categoryChange="onCategoryChange" />
+        <Aside :storeId="storeId" @categoryChange="onCategoryChange" />
       </view>
 
-      <!-- 右侧菜品列表 -->
       <view class="main-wrapper">
-        <Main :categoryIndex="currentCategory" />
+        <Main :categoryIndex="currentCategory" :storeId="storeId" />
       </view>
     </view>
   </view>
@@ -40,10 +39,17 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import Aside from './aside.vue'
 import Main from './main.vue'
 
 const currentCategory = ref(0)
+const storeId = ref(0)
+
+onLoad((options) => {
+  storeId.value = parseInt(options?.count) || 1
+  console.log('📦 页面加载，接收到的门店ID:', storeId.value)
+})
 
 const onCategoryChange = (index: number) => {
   console.log('切换到分类索引:', index)
@@ -66,12 +72,25 @@ const onCategoryChange = (index: number) => {
   text-align: center;
   flex-shrink: 0;
   border-bottom: 1rpx solid #f0f0f0;
+  position: relative;
 }
 
 .nav-title {
   font-size: 36rpx;
   font-weight: bold;
   color: #333;
+}
+
+.store-id-tag {
+  position: absolute;
+  right: 30rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20rpx;
+  color: #999;
+  background: #f5f5f5;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
 }
 
 .store-header {

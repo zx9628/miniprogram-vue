@@ -14,7 +14,7 @@
         </view>
         <view class="product-action">
           <view class="tag" v-if="product.tag">{{ product.tag }}</view>
-          <view class="select-btn" @click="selectProduct(product)">选规格</view>
+          <view class="select-btn" @click="openSpecModal(product)">选规格</view>
         </view>
       </view>
 
@@ -25,24 +25,87 @@
 
       <view class="bottom-placeholder"></view>
     </scroll-view>
+
+    <!-- 使用独立的弹窗组件 -->
+    <window-one
+        :visible="showModal"
+        :product="selectedProduct"
+        :spec-options="specOptions"
+        :extra-options="extraOptions"
+        :side-options="sideOptions"
+        :packaging-options="packagingOptions"
+        @close="closeModal"
+        @confirm="handleAddToCart"
+    />
   </view>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { getAllDishes } from "@/http/dish"
+import { ref, computed, onMounted, watch } from 'vue'
+import { getDishInfo } from "@/http/dish"
+import windowOne from './specificationWindow/windowOne.vue'
 
+// ==================== Props ====================
 const props = defineProps({
   categoryIndex: {
+    type: Number,
+    default: 0
+  },
+  storeId: {
     type: Number,
     default: 0
   }
 })
 
+// ==================== 数据 ====================
 const productList = ref([])
 const categoryList = ref([])
 const loading = ref(false)
 
+// ==================== 弹窗相关 ====================
+const showModal = ref(false)
+const selectedProduct = ref(null)
+
+// 规格选项
+const specOptions = ref([
+  { name: '2两圆粉' },
+  { name: '2两切粉' },
+  { name: '3两圆粉' },
+  { name: '3两切粉' }
+])
+
+// 加量选项
+const extraOptions = ref([
+  { name: '加一两圆粉' },
+  { name: '加一两切粉' }
+])
+
+// 配菜选项
+const sideOptions = ref([
+  { name: '配菜卤蛋', price: 2.5, soldOut: false },
+  { name: '配菜豆干', price: 2.5, soldOut: false },
+  { name: '配菜煎蛋', price: 2.5, soldOut: false },
+  { name: '配菜青菜', price: 2.5, soldOut: true }
+])
+
+// 打包选项
+const packagingOptions = ref([
+  { name: '打包盒', price: 2 },
+  { name: '袋子', price: 0 }
+])
+
+// ==================== 图片处理函数 ====================
+const getValidImage = (image) => {
+  if (!image || image === 'null' || image === 'undefined' || image.includes(',')) {
+    return 'https://via.placeholder.com/160x160/f5f5f5/999?text=暂无图片'
+  }
+  if (!image.startsWith('http://') && !image.startsWith('https://')) {
+    return image
+  }
+  return image
+}
+
+// ==================== 计算属性 ====================
 const currentCategoryName = computed(() => {
   if (categoryList.value.length > 0 && props.categoryIndex >= 0 && props.categoryIndex < categoryList.value.length) {
     return categoryList.value[props.categoryIndex].name
@@ -54,42 +117,65 @@ const filteredProducts = computed(() => {
   if (!Array.isArray(productList.value) || productList.value.length === 0) {
     return []
   }
-
   const categoryName = currentCategoryName.value
   if (!categoryName) {
     return []
   }
-
-  const result = productList.value.filter(item => item.category === categoryName)
-  return result
+  return productList.value.filter(item => item.category === categoryName)
 })
 
-const selectProduct = (product) => {
-  uni.showToast({
-    title: `选择了 ${product.name}`,
-    icon: 'none'
-  })
+// ==================== 方法 ====================
+const openSpecModal = (product) => {
+  selectedProduct.value = product
+  showModal.value = true
 }
 
-const fetchData = async () => {
+const closeModal = () => {
+  showModal.value = false
+  selectedProduct.value = null
+}
+
+const handleAddToCart = (order) => {
+  console.log('加入购物车:', order)
+
+  uni.showToast({
+    title: `已添加 ${order.product?.name}`,
+    icon: 'success'
+  })
+
+  closeModal()
+}
+
+// ==================== 获取数据 ====================
+const fetchData = async (shopId) => {
+  if (!shopId || shopId === 0) {
+    console.warn('⚠️ 未传入门店ID，跳过数据加载')
+    loading.value = false
+    return
+  }
+
   try {
     loading.value = true
+    console.log(`🔄 加载门店 ${shopId} 的菜品数据...`)
 
-    const response = await getAllDishes()
-    console.log('Main 获取到的数据:', response)
+    const response = await getDishInfo(shopId)
 
     let data = []
     if (response && response.code === 200) {
       if (Array.isArray(response.data)) {
         data = response.data
-      } else {
-        data = []
       }
     } else if (Array.isArray(response)) {
       data = response
-    } else {
-      data = []
     }
+
+    // 处理图片数据
+    data = data.map(product => {
+      return {
+        ...product,
+        image: getValidImage(product.image)
+      }
+    })
 
     productList.value = data
 
@@ -101,13 +187,11 @@ const fetchData = async () => {
           categoryMap.set(category, (categoryMap.get(category) || 0) + 1)
         }
       })
-
       const categories = []
       categoryMap.forEach((count, name) => {
         categories.push({ name, count })
       })
       categoryList.value = categories
-      console.log('Main 提取的分类:', categories)
     }
 
   } catch (err) {
@@ -118,8 +202,16 @@ const fetchData = async () => {
   }
 }
 
+// ==================== 生命周期 ====================
 onMounted(() => {
-  fetchData()
+  fetchData(props.storeId)
+})
+
+watch(() => props.storeId, (newVal) => {
+  if (newVal && newVal > 0) {
+    console.log(`🔄 门店ID变化为 ${newVal}，重新加载数据`)
+    fetchData(newVal)
+  }
 })
 </script>
 
@@ -128,6 +220,7 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   background: #f5f5f5;
+  position: relative;
 }
 
 .product-list {

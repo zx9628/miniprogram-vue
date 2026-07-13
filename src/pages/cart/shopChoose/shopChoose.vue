@@ -38,7 +38,7 @@
         <span class="filter-tab">营业中</span>
       </div>
 
-      <div class="store-card" @click="selectStore(322)">
+      <div class="store-card" @click="selectStore(1)">
         <div class="store-info">
           <div class="store-name">
             <span class="badge">322</span>
@@ -59,7 +59,7 @@
         </div>
       </div>
 
-      <div class="store-card" @click="selectStore(371)">
+      <div class="store-card" @click="selectStore(2)">
         <div class="store-info">
           <div class="store-name">
             <span class="badge">371</span>
@@ -80,7 +80,7 @@
         </div>
       </div>
 
-      <div class="store-card favorite" @click="selectStore(320)">
+      <div class="store-card favorite" @click="selectStore(3)">
         <div class="store-info">
           <div class="store-name">
             <span class="badge">320</span>
@@ -122,13 +122,13 @@ const goBack = () => {
 // 选择门店
 const selectStore = (storeId: number) => {
   console.log('选择了门店:', storeId)
-  goToCart();
+  goToCart(storeId);
   // 可以触发事件或跳转
 }
 
-const goToCart=()=>{
+const goToCart=(storedId:number)=>{
   wx.navigateTo({
-    url: '/pages/cart/cart'
+    url: `/pages/cart/cart?count=${storedId}`
   })
 }
 onMounted(async() => {
