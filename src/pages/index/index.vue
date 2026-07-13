@@ -7,12 +7,12 @@
     </div>
 
     <div id="log" class="main">
-      <a href="" id="login-dir">
+      <view>
         <div id="log-block">
           <img src="/src/static/diamond.png" id="diamond" >
           <div id="logging">注册会员|登入后尊享更多专属权限</div>
         </div>
-      </a>
+      </view>
     </div>
   </div>
 
@@ -20,45 +20,45 @@
     <div id="main" class="main">
     <div id="in-canteen" class="tubiao">
       <div class="block">
-        <a href="">
+        <view>
           <div class="littleBlock">
             <img src="/src/static/niuasan.jpg" class="pict">
             <div class="largeTitle">堂食/自提</div>
             <div class="littleTitle">手机点餐免排队</div>
           </div>
-        </a>
+        </view>
       </div>
     </div>
       <div id="member-center" class="tubiao">
         <div class="block">
-          <a href="">
+          <view>
             <div class="littleBlock">
               <img src="/src/static/niuamei.jpg" class="pict">
               <div class="largeTitle">会员中心</div>
               <div class="littleTitle">储值优惠</div>
             </div>
-          </a>
+          </view>
       </div>
     </div>
   </div>
 
     <div id="selections" class="main">
-      <div class="selection"><a href="">
+      <div class="selection"><view>
         <img src="/src/static/memberCard.png" class="selectionPic">
         <div class="selectionTitle">会员储值</div>
-      </a></div>
-      <div class="selection"><a href="">
+      </view></div>
+      <div class="selection"><view>
         <img src="/src/static/selectionPict/groupMeal.png" class="selectionPic">
         <div class="selectionTitle">团餐</div>
-      </a></div>
-      <div class="selection"><a href="">
+      </view></div>
+      <div class="selection"><view>
         <img src="/src/static/selectionPict/pointsShop.png" class="selectionPic">
         <div class="selectionTitle">积分商店</div>
-      </a></div>
-      <div class="selection"><a href="">
+      </view></div>
+      <div class="selection"><view>
         <img src="/src/static/selectionPict/pointsBigWheel.png" class="selectionPic">
         <div class="selectionTitle">积分大转盘</div>
-      </a></div>
+      </view></div>
     </div>
   </div>
 
