@@ -203,6 +203,7 @@ const handleJump = (title: string) => {
   opacity: 0.8;
 }
 
+
 .progress-section {
   background-color: #fff;
   margin-top: -20rpx;
