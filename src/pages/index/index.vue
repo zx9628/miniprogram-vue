@@ -79,10 +79,7 @@ import request from "@/util/request";
 onMounted(()=>{
 
     }
-)
-
-<script setup>
-import { ref } from 'vue';
+);
 
 // ✅ 注意：如果会员储值也移到了分包，记得把这里的 url 也改成 /subPackages/member/recharge
 const gridList = ref([
