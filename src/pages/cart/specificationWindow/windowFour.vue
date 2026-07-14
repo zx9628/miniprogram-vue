@@ -21,7 +21,7 @@
 
       <!-- 规格选择 -->
       <view class="spec-section">
-        <!-- 规格（使用独立的 specOptions） -->
+        <!-- 规格 -->
         <view class="spec-group">
           <text class="spec-title">规格</text>
           <view class="spec-options">
@@ -29,15 +29,19 @@
                 v-for="(spec, index) in specOptions"
                 :key="index"
                 class="spec-option"
-                :class="{ active: localSelectedSpec === index }"
-                @click="localSelectedSpec = index"
+                :class="{
+                  active: localSelectedSpec === index && !spec.soldOut,
+                  disabled: spec.soldOut
+                }"
+                @click="selectSpec(index)"
             >
               {{ spec.name }}
+              <text v-if="spec.soldOut" class="sold-out-tag-small">售罄</text>
             </view>
           </view>
         </view>
 
-        <!-- 口味定制（多选） -->
+        <!-- 口味定制 -->
         <view class="spec-group">
           <text class="spec-title">口味定制</text>
           <view class="spec-options flavor-options">
@@ -61,11 +65,14 @@
                 v-for="(item, index) in extraOptions"
                 :key="index"
                 class="spec-option"
-                :class="{ active: localSelectedExtra === index }"
-                @click="localSelectedExtra = index"
+                :class="{
+                  active: localSelectedExtra === index && !item.soldOut,
+                  disabled: item.soldOut
+                }"
+                @click="selectExtra(index)"
             >
               {{ item.name }}
-              <text class="option-price" v-if="item.price">￥{{ item.price }}</text>
+              <text v-if="item.soldOut" class="sold-out-tag-small">售罄</text>
             </view>
           </view>
         </view>
@@ -188,7 +195,9 @@ const getValidImage = (image) => {
 // ==================== 监听 visible 重置状态 ====================
 watch(() => props.visible, (newVal) => {
   if (newVal) {
-    localSelectedSpec.value = 0
+    // 找到第一个未售罄的规格作为默认选中
+    const firstAvailable = props.specOptions.findIndex(s => !s.soldOut)
+    localSelectedSpec.value = firstAvailable >= 0 ? firstAvailable : 0
     localSelectedFlavors.value = []
     localSelectedExtra.value = -1
     localSelectedSides.value = []
@@ -232,6 +241,16 @@ const computedTotalPrice = computed(() => {
 })
 
 // ==================== 方法 ====================
+const selectSpec = (index) => {
+  if (props.specOptions[index].soldOut) return
+  localSelectedSpec.value = index
+}
+
+const selectExtra = (index) => {
+  if (props.extraOptions[index].soldOut) return
+  localSelectedExtra.value = index
+}
+
 const toggleFlavor = (index) => {
   const idx = localSelectedFlavors.value.indexOf(index)
   if (idx > -1) {
@@ -403,6 +422,7 @@ const handleAddToCart = () => {
   color: #333;
   background: #f8f8f8;
   transition: all 0.2s;
+  position: relative;
 }
 
 .spec-option.active {
@@ -411,10 +431,24 @@ const handleAddToCart = () => {
   color: #07c160;
 }
 
+.spec-option.disabled {
+  opacity: 0.4;
+  border-color: #e5e5e5;
+  background: #f5f5f5;
+  color: #999;
+}
+
 .spec-option .option-price {
   font-size: 22rpx;
   color: #999;
   margin-left: 8rpx;
+}
+
+/* 售罄小标签 */
+.sold-out-tag-small {
+  font-size: 18rpx;
+  color: #ff4d4f;
+  margin-left: 6rpx;
 }
 
 .flavor-options {
