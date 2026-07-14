@@ -51,7 +51,8 @@ const saveInfo = () => {
   uni.showLoading({ title: '保存中...' });
 
   uni.request({
-    url: 'https://cxm.juntaitec.cn/miniprogram/api/user/update',
+    // url: 'https://cxm.juntaitec.cn/miniprogram/api/user/update',
+    url: 'http://localhost:8083/api/user/update',
     method: 'PUT',
     data: {
       id: userInfo.id,

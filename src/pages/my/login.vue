@@ -69,7 +69,8 @@ const handleLogin = () => {
   uni.showLoading({ title: '登录中...' });
 
   uni.request({
-    url: 'https://cxm.juntaitec.cn/miniprogram/api/login/login',
+    // url: 'https://cxm.juntaitec.cn/miniprogram/api/login/login',
+    url: 'https://localhost:8083/api/login/login',
     method: 'POST',
     header: {
       'Content-Type': 'application/json'

@@ -167,7 +167,8 @@ const handleGetPhoneNumber = (e: any) => {
 
   // 将两个 code 一起发送给后端
   uni.request({
-    url: 'https://cxm.juntaitec.cn/miniprogram/api/login/wechatLogin',
+    // url: 'https://cxm.juntaitec.cn/miniprogram/api/login/wechatLogin',
+    url: 'http://localhost:8083/api/login/wechatLogin',
     method: 'POST',
     header: { 'Content-Type': 'application/json' },
     data: {
