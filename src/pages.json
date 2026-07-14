@@ -22,35 +22,35 @@
       "root": "subPackages",
       "pages": [
         {
-          "path": "member/pages/memberCenter",
+          "path": "member/memberCenter",
           "style": {
             "navigationBarTitleText": "会员中心"
           }
         },
 
         {
-          "path": "member/pages/recharge",
+          "path": "member/recharge",
           "style": {
             "navigationBarTitleText": "会员储值"
           }
         },
 
         {
-          "path": "member/pages/points",
+          "path": "member/points",
           "style": {
             "navigationBarTitleText": "我的积分"
           }
         },
 
         {
-          "path": "member/pages/coupons",
+          "path": "member/coupons",
           "style": {
             "navigationBarTitleText": "我的优惠券"
           }
         },
 
         {
-          "path": "member/pages/qrcode",
+          "path": "member/qrcode",
           "style": {
             "navigationBarTitleText": "会员码"
           }

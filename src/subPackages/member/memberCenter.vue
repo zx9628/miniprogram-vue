@@ -23,7 +23,7 @@ const privileges = [
   { title: '会员优享价', iconPath: '/static/images/member/priv-price.png' },
   { title: '消费赠积分', iconPath: '/static/images/member/gift-points.png' },
   { title: '积分抵现', iconPath: '/static/images/member/points-cash.png' },
-  { title: '生日有礼', iconPath: 'subPackages\\member\\static\\birthday-gift.png' }
+  { title: '生日有礼', iconPath: '/static/images/member/birthday-gift.png' }
 ];
 
 // 底部菜单列表配置
@@ -32,7 +32,7 @@ const menuList = [
   { title: '密码设置', iconPath: '/static/images/member/password.png' },
   { title: '交易记录', iconPath: '/static/images/member/records.png' },
   { title: '适用门店', iconPath: '/static/images/member/stores.png' },
-  { title: '会员卡说明', iconPath: 'subPackages\\member\\static\\desc.png' }
+  { title: '会员卡说明', iconPath: '/static/images/member/desc.png' }
 ];
 
 // 简单的跳转逻辑占位
@@ -134,7 +134,7 @@ const handleJump = (title: string) => {
             <image class="list-icon" :src="item.iconPath" mode="aspectFit" />
             <text class="list-text">{{ item.title }}</text>
           </view>
-          <image class="arrow-icon" src="C:\Users\25927\IdeaProjects\miniprogram-vue\src\subPackages\member\static\images\arrow-right.png" mode="aspectFit" />
+          <image class="arrow-icon" src="/static/images/arrow-right.png" mode="aspectFit" />
         </view>
       </view>
     </view>

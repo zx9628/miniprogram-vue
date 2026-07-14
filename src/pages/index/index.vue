@@ -2,8 +2,7 @@
   <view class="container">
     <!-- 1. 顶部背景区域 -->
     <view class="header-bg">
-      <!-- 修改点：使用分包绝对路径 -->
-      <image src="/subPackages/member/static/images/header-full.png" mode="widthFix" class="header-img"></image>
+      <image src="/static/images/header-full.png" mode="widthFix" class="header-img"></image>
     </view>
 
     <!-- 2. 主要内容区域 -->
@@ -11,11 +10,12 @@
       <!-- 会员信息卡片 -->
       <view class="user-card">
         <view class="user-info">
-          <!-- 头像 -->
-          <image src="/subPackages/member/static/images/avatar.png" class="avatar" mode="aspectFill" @click="goToMemberCenter"></image>
+          <!-- 头像点击跳转 -->
+          <image src="/static/images/avatar.png" class="avatar" mode="aspectFill" @click="goToMemberCenter"></image>
           <view class="info-text">
             <view class="greeting">
               Hi 你好
+              <!-- 会员等级点击跳转 -->
               <text class="vip-tag" @click="goToMemberCenter">六品王VIP卡·铁牛会员</text>
             </view>
             <view class="stats">
@@ -26,9 +26,9 @@
           </view>
         </view>
 
-        <!-- 会员码 -->
+        <!-- ✅ 修复：这里 @click 前面补上了一个空格 -->
         <view class="qr-code" @click="goToMemberCode">
-          <image src="/subPackages/member/static/images/qrcode-icon.png" mode="widthFix" style="width: 40rpx;"></image>
+          <image src="/static/images/qrcode-icon.png" mode="widthFix" style="width: 40rpx;"></image>
           <text>会员码</text>
         </view>
       </view>
@@ -36,13 +36,13 @@
       <!-- 核心功能区 (堂食/会员) -->
       <view class="core-actions">
         <view class="action-item large" @click="handleJump('dineIn')">
-          <image src="/subPackages/member/static/images/icon-eat.png" class="action-icon" mode="widthFix"></image>
+          <image src="/static/images/icon-eat.png" class="action-icon" mode="widthFix"></image>
           <text class="action-title">堂食/自提</text>
           <text class="action-desc">手机点餐免排队</text>
         </view>
 
         <view class="action-item large" @click="goToMemberCenter">
-          <image src="/subPackages/member/static/images/icon-member.png" class="action-icon" mode="widthFix"></image>
+          <image src="/static/images/icon-member.png" class="action-icon" mode="widthFix"></image>
           <text class="action-title">会员中心</text>
           <text class="action-desc">储值优惠</text>
         </view>
@@ -51,7 +51,6 @@
       <!-- 金刚区 (四个小图标) -->
       <view class="grid-menu">
         <view class="grid-item" v-for="(item, index) in gridList" :key="index" @click="handleGridClick(item)">
-          <!-- 这里的 icon 是动态绑定的，路径在 script 中已修正 -->
           <image :src="item.icon" class="grid-icon" mode="widthFix"></image>
           <text>{{ item.name }}</text>
         </view>
@@ -59,13 +58,12 @@
 
       <!-- 营销活动 Banner (暖心行动) -->
       <view class="promo-section">
-        <!-- 修复点：原代码文件名缺失，根据文件列表补全为 banner-promo.png -->
-        <image src="/subPackages/member/static/images/banner-promo.png" mode="widthFix" class="promo-img" @click="goToActivity"></image>
+        <image src="/static/images/banner-promo.png" mode="widthFix" class="promo-img" @click="goToActivity"></image>
       </view>
 
       <!-- 底部广告 (诚邀加盟) -->
       <view class="bottom-ad">
-        <image src="/subPackages/member/static/images/ad-join.png" mode="widthFix" class="ad-img" @click="goToJoin"></image>
+        <image src="/static/images/ad-join.png" mode="widthFix" class="ad-img" @click="goToJoin"></image>
       </view>
 
       <!-- 占位符 -->
@@ -77,35 +75,48 @@
 <script setup>
 import { ref } from 'vue';
 
-// 修改点：将 Windows 路径分隔符 \ 改为 /，并确保路径指向分包 static
+// ✅ 注意：如果会员储值也移到了分包，记得把这里的 url 也改成 /subPackages/member/recharge
 const gridList = ref([
-  { name: '会员储值', icon: '/subPackages/member/static/images/grid-1.png', url: '/subPackages/member/recharge' },
-  { name: '团餐', icon: '/subPackages/member/static/images/grid-2.png', url: '/pages/index/grid/groupMeal' },
-  { name: '积分商城', icon: '/subPackages/member/static/images/grid-3.png', url: '/pages/index/grid/pointsMall' },
-  { name: '积分大转盘', icon: '/subPackages/member/static/images/grid-4.png', url: '/pages/index/grid/wheel' }
+  { name: '会员储值', icon: '/static/images/grid-1.png', url: '/subPackages/member/recharge' },
+  { name: '团餐', icon: '/static/images/grid-2.png', url: '/pages/index/grid/groupMeal' },
+  { name: '积分商城', icon: '/static/images/grid-3.png', url: '/pages/index/grid/pointsMall' },
+  { name: '积分大转盘', icon: '/static/images/grid-4.png', url: '/pages/index/grid/wheel' }
 ]);
 
 const handleJump = (type) => {
   console.log('触发跳转类型:', type);
+
   switch (type) {
-    case 'balance':
-      uni.navigateTo({ url: '/subPackages/member/pages/recharge' });
+    case 'balance': // 余额 -> 充值界面
+      uni.navigateTo({
+        url: '/subPackages/member/recharge' // ✅ 更新分包路径
+      });
       break;
-    case 'dineIn':
-      // 注意：switchTab 只能跳转到 tabBar 页面，请确认 /pages/index/order 是否配置在 tabBar 中
-      uni.switchTab({ url: '/pages/index/order' });
+
+    case 'dineIn': // 堂食 -> 底部点餐界面 (假设是TabBar页)
+      uni.switchTab({
+        url: '/pages/index/order'
+      });
       break;
-    case 'points':
-      uni.navigateTo({ url: '/subPackages/member/pages/points' });
+
+    case 'points': // 积分
+      uni.navigateTo({
+        url: '/subPackages/member/points' // ✅ 更新分包路径
+      });
       break;
-    case 'coupons':
-      uni.navigateTo({ url: '/subPackages/member/pages/coupons' });
+
+    case 'coupons': // 优惠券
+      uni.navigateTo({
+        url: '/subPackages/member/coupons' // ✅ 更新分包路径
+      });
       break;
+
     default:
       break;
   }
 };
 
+// 通用跳转方法 (金刚区)
 const handleGridClick = (item) => {
   if (item.url) {
     uni.navigateTo({
@@ -118,20 +129,30 @@ const handleGridClick = (item) => {
   }
 };
 
+// ✅ 更新分包路径
 const goToMemberCode = () => {
-  uni.navigateTo({ url: '/subPackages/member/pages/qrcode' });
+  uni.navigateTo({
+    url: '/subPackages/member/qrcode'
+  });
 };
 
+// ✅ 更新分包路径
 const goToMemberCenter = () => {
-  uni.navigateTo({ url: '/subPackages/member/pages/memberCenter' });
+  uni.navigateTo({
+    url: '/subPackages/member/memberCenter'
+  });
 };
 
 const goToActivity = () => {
-  uni.navigateTo({ url: '/pages/index/activity/activity' });
+  uni.navigateTo({
+    url: '/pages/index/activity/activity'
+  });
 };
 
 const goToJoin = () => {
-  uni.navigateTo({ url: '/pages/index/join/join' });
+  uni.navigateTo({
+    url: '/pages/index/join/join'
+  });
 };
 </script>
 
