@@ -130,7 +130,7 @@ const onGetPhoneNumber = (e: any) => {
   loadingPhone.value = true;
   uni.request({
     url: 'https://zx.juntaitec.cn/wechat/login/bindPhone',   // 后端需提供此接口
-    // url: 'http://localhost:8081/api/login/bindPhone',   // 后端需提供此接口
+    // url: 'http://localhost:8081/api/login/bindPhone',
     method: 'POST',
     header: { 'Content-Type': 'application/json' },
     data: {
@@ -209,7 +209,8 @@ const wechatLogin = () => {
         return;
       }
       uni.request({
-        url: 'http://localhost:8081/api/login/wechat',
+        // url: 'http://localhost:8081/api/login/wechat',
+        url: 'http://zx.juntaitec.cn/wechat/login/wechat',
         method: 'POST',
         header: { 'Content-Type': 'application/json' },
         data: { code: loginRes.code },
