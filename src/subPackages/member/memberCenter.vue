@@ -29,7 +29,6 @@ const privileges = [
 // 底部菜单列表配置
 const menuList = [
   { title: '会员信息', icon: '👤' },
-  { title: '密码设置', icon: '🔒' },
   { title: '交易记录', icon: '🧾' },
   { title: '适用门店', icon: '📍' },
   { title: '会员卡说明', icon: 'ℹ️' }
@@ -204,6 +203,7 @@ const handleJump = (title: string) => {
   opacity: 0.8;
 }
 
+
 .progress-section {
   background-color: #fff;
   margin-top: -20rpx;
@@ -299,6 +299,7 @@ const handleJump = (title: string) => {
   font-size: 40rpx;
   margin-right: 20rpx;
 }
+
 
 .list-text {
   font-size: 28rpx;
