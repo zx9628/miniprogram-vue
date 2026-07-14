@@ -13,39 +13,36 @@ const userInfo = ref({
 
 // 常用功能列表配置
 const commonFuncs = [
-  { title: '充值', iconPath: '/static/images/member/recharge.png' },
-  { title: '购买会员权益', iconPath: '/static/images/member/buy-rights.png' },
-  { title: '付费权益卡', iconPath: '/static/images/member/paid-card.png' }
+  { title: '充值', icon: '💳' },
+  { title: '购买会员权益', icon: '👑' },
+  { title: '付费权益卡', icon: '🎫' }
 ];
 
 // 会员特权列表配置
 const privileges = [
-  { title: '会员优享价', iconPath: '/static/images/member/priv-price.png' },
-  { title: '消费赠积分', iconPath: '/static/images/member/gift-points.png' },
-  { title: '积分抵现', iconPath: '/static/images/member/points-cash.png' },
-  { title: '生日有礼', iconPath: '/static/images/member/birthday-gift.png' }
+  { title: '会员优享价', icon: '🏷️' },
+  { title: '消费赠积分', icon: '🎁' },
+  { title: '积分抵现', icon: '💰' },
+  { title: '生日有礼', icon: '🎂' }
 ];
 
 // 底部菜单列表配置
 const menuList = [
-  { title: '会员信息', iconPath: '/static/images/member/info.png' },
-  { title: '密码设置', iconPath: '/static/images/member/password.png' },
-  { title: '交易记录', iconPath: '/static/images/member/records.png' },
-  { title: '适用门店', iconPath: '/static/images/member/stores.png' },
-  { title: '会员卡说明', iconPath: '/static/images/member/desc.png' }
+  { title: '会员信息', icon: '👤' },
+  { title: '交易记录', icon: '🧾' },
+  { title: '适用门店', icon: '📍' },
+  { title: '会员卡说明', icon: 'ℹ️' }
 ];
 
 // 简单的跳转逻辑占位
 const handleJump = (title: string) => {
   console.log('点击了：', title);
-
 };
 </script>
 
 <template>
-  <!-- ✅ 修复 1：补上最外层的根节点 container -->
   <view class="container">
-    <!-- ✅ 修复 2：补上顶部背景包裹层 vip-card-bg -->
+    <!-- 顶部背景包裹层 -->
     <view class="vip-card-bg">
       <view class="vip-card">
         <view class="card-top">
@@ -53,11 +50,8 @@ const handleJump = (title: string) => {
             <text class="level-name">{{ userInfo.levelName }}</text>
             <text class="card-no">{{ userInfo.cardNo }}</text>
           </view>
-          <image
-              class="qr-icon"
-              src="/static/images/member/qr-code.png"
-              mode="aspectFit"
-          />
+          <!-- 二维码图标 -->
+          <text class="qr-icon">📱</text>
         </view>
 
         <!-- 卡片中部：资产数据 -->
@@ -79,8 +73,8 @@ const handleJump = (title: string) => {
             <text class="label">礼品卡</text>
           </view>
         </view>
-      </view> <!-- ✅ 修复 3：这里正确闭合 vip-card -->
-    </view> <!-- ✅ 修复 4：这里正确闭合 vip-card-bg -->
+      </view>
+    </view>
 
     <!-- 进度条区域 -->
     <view class="progress-section">
@@ -98,7 +92,7 @@ const handleJump = (title: string) => {
             class="grid-item"
             @click="handleJump(item.title)"
         >
-          <image class="grid-icon" :src="item.iconPath" mode="aspectFit" />
+          <text class="grid-icon">{{ item.icon }}</text>
           <text class="grid-text">{{ item.title }}</text>
         </view>
       </view>
@@ -114,7 +108,7 @@ const handleJump = (title: string) => {
             class="grid-item"
             @click="handleJump(item.title)"
         >
-          <image class="grid-icon" :src="item.iconPath" mode="aspectFit" />
+          <text class="grid-icon">{{ item.icon }}</text>
           <text class="grid-text">{{ item.title }}</text>
         </view>
       </view>
@@ -131,14 +125,14 @@ const handleJump = (title: string) => {
             @click="handleJump(item.title)"
         >
           <view class="list-left">
-            <image class="list-icon" :src="item.iconPath" mode="aspectFit" />
+            <text class="list-icon">{{ item.icon }}</text>
             <text class="list-text">{{ item.title }}</text>
           </view>
-          <image class="arrow-icon" src="/static/images/arrow-right.png" mode="aspectFit" />
+          <text class="arrow-icon">›</text>
         </view>
       </view>
     </view>
-  </view> <!-- ✅ 修复 5：正确闭合最外层 container -->
+  </view>
 </template>
 
 <style scoped>
@@ -183,8 +177,7 @@ const handleJump = (title: string) => {
 }
 
 .qr-icon {
-  width: 48rpx;
-  height: 48rpx;
+  font-size: 48rpx;
 }
 
 .assets-row {
@@ -209,6 +202,7 @@ const handleJump = (title: string) => {
   font-size: 24rpx;
   opacity: 0.8;
 }
+
 
 .progress-section {
   background-color: #fff;
@@ -273,11 +267,8 @@ const handleJump = (title: string) => {
 }
 
 .grid-icon {
-  width: 80rpx;
-  height: 80rpx;
+  font-size: 64rpx;
   margin-bottom: 16rpx;
-  background-color: #f0f0f0;
-  border-radius: 50%;
 }
 
 .grid-text {
@@ -305,10 +296,8 @@ const handleJump = (title: string) => {
 }
 
 .list-icon {
-  width: 40rpx;
-  height: 40rpx;
+  font-size: 40rpx;
   margin-right: 20rpx;
-  background-color: #f0f0f0;
 }
 
 .list-text {
@@ -317,8 +306,7 @@ const handleJump = (title: string) => {
 }
 
 .arrow-icon {
-  width: 24rpx;
-  height: 24rpx;
-  opacity: 0.5;
+  font-size: 36rpx;
+  color: #ccc;
 }
 </style>
