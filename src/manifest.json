@@ -1,6 +1,6 @@
 {
     "name" : "",
-    "appid" : "wx1fab56bc823affd3",
+    "appid" : "wxdccb3d908e950565",
     "description" : "",
     "versionName" : "1.0.0",
     "versionCode" : "100",
@@ -61,6 +61,13 @@
 
       "minifyWXML": true,
       "minifyWXSS": true
+    /* 小程序特有相关 */
+    "mp-weixin" : {
+        "appid" : "wxdccb3d908e950565",
+        "setting" : {
+            "urlCheck" : false
+        },
+        "usingComponents" : true
     },
 
     "lazyCodeLoading": "requiredComponents",

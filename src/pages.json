@@ -86,5 +86,97 @@
     "navigationBarTitleText": "uni-app",
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
+    {
+      "path": "pages/order/order",
+      "style": {
+        "navigationBarTitleText": "订单"
+      }
+    },
+    {
+      "path": "pages/my/my",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/my/login",
+      "style": {
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/my/register",
+      "style": {
+        "navigationBarTitleText": "注册"
+      }
+    },
+    {
+      "path": "pages/my/coupon",
+      "style": {
+        "navigationBarTitleText": "优惠券"
+      }
+    },
+    {
+      "path": "pages/my/balance",
+      "style": {
+        "navigationBarTitleText": "余额"
+      }
+    },
+    {
+      "path": "pages/my/points",
+      "style": {
+        "navigationBarTitleText": "积分"
+      }
+    },
+    {
+      "path": "pages/my/information",
+      "style": {
+        "navigationBarTitleText": "会员信息"
+      }
+    },
+    {
+      "path": "pages/index/admin",
+      "style": {
+        "navigationBarTitleText": "后台管理"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "UniApp-Store",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#1296DB",
+    "borderStyle": "black",
+    "backgroundColor": "#FFFFFF",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "selectedIconPath": "static/icon/home-selected.png",
+        "iconPath": "static/icon/home.png"
+      },
+      {
+        "pagePath": "pages/cart/cart",
+        "text": "点餐"
+      },
+      {
+        "pagePath": "pages/order/order",
+        "text": "订单"
+      },
+      {
+        "pagePath": "pages/my/my",
+        "text": "我的",
+        "selectedIconPath": "static/icon/my-selected.png",
+        "iconPath": "static/icon/my.png"
+      },
+      {
+        "pagePath": "pages/index/admin",
+        "text": "管理端"
+      }
+    ]
   }
 }
