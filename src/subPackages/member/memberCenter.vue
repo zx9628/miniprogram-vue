@@ -134,7 +134,7 @@ const handleJump = (title: string) => {
             <image class="list-icon" :src="item.iconPath" mode="aspectFit" />
             <text class="list-text">{{ item.title }}</text>
           </view>
-          <image class="arrow-icon" src="/static/images/arrow-right.png" mode="aspectFit" />
+          <text class="arrow-icon">›</text>
         </view>
       </view>
     </view>
@@ -317,8 +317,7 @@ const handleJump = (title: string) => {
 }
 
 .arrow-icon {
-  width: 24rpx;
-  height: 24rpx;
-  opacity: 0.5;
+  font-size: 36rpx;
+  color: #ccc;
 }
 </style>
