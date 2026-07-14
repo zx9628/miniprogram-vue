@@ -71,6 +71,15 @@
     </view>
   </view>
 </template>
+<script setup>
+import {onMounted, ref} from "vue";
+
+const title = ref("")
+import request from "@/util/request";
+onMounted(()=>{
+
+    }
+)
 
 <script setup>
 import { ref } from 'vue';
