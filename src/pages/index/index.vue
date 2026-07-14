@@ -89,17 +89,17 @@ const handleJump = (type) => {
   console.log('触发跳转类型:', type);
   switch (type) {
     case 'balance':
-      uni.navigateTo({ url: '/subPackages/member/recharge' });
+      uni.navigateTo({ url: '/subPackages/member/pages/recharge' });
       break;
     case 'dineIn':
       // 注意：switchTab 只能跳转到 tabBar 页面，请确认 /pages/index/order 是否配置在 tabBar 中
       uni.switchTab({ url: '/pages/index/order' });
       break;
     case 'points':
-      uni.navigateTo({ url: '/subPackages/member/points' });
+      uni.navigateTo({ url: '/subPackages/member/pages/points' });
       break;
     case 'coupons':
-      uni.navigateTo({ url: '/subPackages/member/coupons' });
+      uni.navigateTo({ url: '/subPackages/member/pages/coupons' });
       break;
     default:
       break;
@@ -119,11 +119,11 @@ const handleGridClick = (item) => {
 };
 
 const goToMemberCode = () => {
-  uni.navigateTo({ url: '/subPackages/member/qrcode' });
+  uni.navigateTo({ url: '/subPackages/member/pages/qrcode' });
 };
 
 const goToMemberCenter = () => {
-  uni.navigateTo({ url: '/subPackages/member/memberCenter' });
+  uni.navigateTo({ url: '/subPackages/member/pages/memberCenter' });
 };
 
 const goToActivity = () => {
