@@ -77,7 +77,10 @@
         <text class="mask-desc">会员专享优惠券、积分、余额等功能</text>
 
         <!-- 微信一键登录按钮 -->
-        <button class="wechat-login-btn" @click="wechatLogin">
+        <button
+            class="wechat-login-btn"
+            open-type="getPhoneNumber"
+            @getphonenumber="handleGetPhoneNumber">
           微信一键登录
         </button>
 
@@ -100,6 +103,9 @@ const userInfo = ref<any>(null);
 // 遮罩层显示状态
 const showLoginMask = ref(false);
 
+// 用于存储基础登录的 code
+const loginCode = ref('');
+
 const menuList = [
   { name: '我的订单', icon: '📄', path: '/pages/order/order' },
   { name: '隐私设置', icon: '🔒', path: '' },
@@ -108,11 +114,31 @@ const menuList = [
   { name: '切换账号', icon: '↩️', path: '' }
 ];
 
+// 2. 获取基础登录 code 的函数
+const getLoginCode = () => {
+  uni.login({
+    provider: 'weixin',
+    success: (res) => {
+      if (res.code) {
+        loginCode.value = res.code;
+      } else {
+        console.error('uni.login 获取 code 失败：' + res.errMsg);
+      }
+    },
+    fail: (err) => {
+      console.error('uni.login 调用失败：', err);
+    }
+  });
+};
+
 // 页面显示时检查登录状态
 onShow(() => {
   const stored = uni.getStorageSync('userInfo');
   userInfo.value = stored || null;
+  getLoginCode(); // 每次页面显示都刷新一下 code
 });
+
+
 
 // 点击用户卡片
 const handleUserClick = () => {
@@ -126,47 +152,48 @@ const closeMask = () => {
   showLoginMask.value = false;
 };
 
-// 微信一键登录
-const wechatLogin = () => {
-  uni.showLoading({ title: '登录中...' });
+// 处理用户点击「微信一键登录」按钮后，授权手机号的回调
+const handleGetPhoneNumber = (e: any) => {
+  // 用户拒绝授权
+  if (!e.detail.code) {
+    uni.showToast({ title: '您取消了手机号授权', icon: 'none' });
+    return;
+  }
 
-  uni.login({
-    provider: 'weixin',
-    success: (loginRes) => {
-      if (!loginRes.code) {
-        uni.hideLoading();
-        uni.showToast({ title: '获取登录凭证失败', icon: 'none' });
-        return;
-      }
+  // 用户同意授权，获取到手机号专属的 phoneCode
+  const phoneCode = e.detail.code;
 
-      uni.request({
-        url: 'https://cxm.juntaitec.cn/miniprogram/api/login/wechatLogin',
-        method: 'POST',
-        header: { 'Content-Type': 'application/json' },
-        data: { code: loginRes.code },
-        success: (res) => {
-          uni.hideLoading();
-          if (res.data.code === 200) {
-            const userData = res.data.data;
-            console.log('后端返回的数据:', res.data);
-            uni.setStorageSync('userInfo', userData);
-            userInfo.value = userData;
-            showLoginMask.value = false; // 关闭遮罩层
-            uni.showToast({ title: '登录成功' });
-          } else {
-            uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
-          }
-        },
-        fail: () => {
-          uni.hideLoading();
-          uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
-        }
-      });
+  uni.showLoading({ title: '登录中...', mask: true });
+
+  // 将两个 code 一起发送给后端
+  uni.request({
+    url: 'https://cxm.juntaitec.cn/miniprogram/api/login/wechatLogin',
+    method: 'POST',
+    header: { 'Content-Type': 'application/json' },
+    data: {
+      loginCode: loginCode.value,  // 基础登录 code
+      phoneCode: phoneCode         // 手机号专属 code
     },
-    fail: (err) => {
+    success: (res) => {
       uni.hideLoading();
-      console.error('wx.login 失败:', err);
-      uni.showToast({ title: '微信登录失败', icon: 'none' });
+      if (res.data.code === 200) {
+        const userData = res.data.data;
+        console.log('后端返回的数据:', res.data);
+        uni.setStorageSync('userInfo', userData);
+        userInfo.value = userData;
+        showLoginMask.value = false;
+        uni.showToast({ title: '登录成功' });
+        // 登录成功后刷新 loginCode，为下次登录做准备
+        getLoginCode();
+      } else {
+        uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
+        getLoginCode();
+      }
+    },
+    fail: () => {
+      uni.hideLoading();
+      uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+      getLoginCode();
     }
   });
 };
