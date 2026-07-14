@@ -1,11 +1,11 @@
 <template>
   <view class="content">
-    <text>订单中心页面正在开发中...</text>
+    <text>我的优惠券页面正在开发中...</text>
   </view>
 </template>
 
 <script setup>
-// 订单数据获取逻辑后续在这里写
+// 优惠券列表逻辑后续在这里写
 </script>
 
 <style lang="scss">
