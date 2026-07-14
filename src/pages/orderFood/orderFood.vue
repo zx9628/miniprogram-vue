@@ -1,6 +1,5 @@
 <script setup lang="ts">
 
-import Aside from "@/pages/orderFood/view/aside.vue";
 import Body from "@/pages/orderFood/view/body.vue";
 </script>
 

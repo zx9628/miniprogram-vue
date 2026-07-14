@@ -14,24 +14,6 @@
 			}
 		},
 		{
-			"path": "pages/orderFood/order_menu/original_soup",
-			"style": {
-				"navigationBarTitleText": "原汤单点"
-			}
-		},
-		{
-			"path": "pages/orderFood/order_menu/original_soups",
-			"style": {
-				"navigationBarTitleText": "原汤套餐"
-			}
-		},
-		{
-			"path": "pages/orderFood/order_menu/dry_mix",
-			"style": {
-				"navigationBarTitleText": "干拌单点"
-			}
-		},
-		{
 			"path": "pages/order/order",
 			"style": {
 				"navigationBarTitleText": "订单"
