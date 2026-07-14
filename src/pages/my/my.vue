@@ -16,7 +16,7 @@
             {{ userInfo.username || userInfo.phone || '微信用户' }}
           </text>
           <text v-else class="username">注册/登录</text>
-          <text class="sub-text">注册会员尊享更多专属特权</text>
+          <text v-if="!userInfo" class="sub-text">注册会员尊享更多专属特权</text>
         </view>
       </view>
 
@@ -31,7 +31,7 @@
           <text class="stat-label">余额(元)</text>
         </view>
         <view class="stat-item" @click="goToPage('/pages/my/points')">
-          <text class="stat-value">{{ userInfo.points || 0 }}</text>
+          <text class="stat-value">{{ userInfo.score || 0 }}</text>
           <text class="stat-label">积分</text>
         </view>
       </view>
@@ -135,8 +135,27 @@ const getLoginCode = () => {
 onShow(() => {
   const stored = uni.getStorageSync('userInfo');
   userInfo.value = stored || null;
-  getLoginCode(); // 每次页面显示都刷新一下 code
+  getLoginCode();
+
+  // 已登录就从后端拉最新数据，保证积分等字段是最新的
+  if (stored && stored.id) {
+    refreshUserInfo(stored.id);
+  }
 });
+
+// 从后端刷新用户信息
+const refreshUserInfo = (userId: number) => {
+  uni.request({
+    url: `http://localhost:8083/api/user/get/${userId}`,
+    method: 'GET',
+    success: (res) => {
+      if (res.data.code === 200) {
+        uni.setStorageSync('userInfo', res.data.data);
+        userInfo.value = res.data.data;
+      }
+    }
+  });
+};
 
 
 

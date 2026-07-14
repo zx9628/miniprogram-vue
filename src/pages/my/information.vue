@@ -115,7 +115,7 @@ onLoad(() => {
           <view class="list-row">
             <text class="label">头像</text>
             <view class="right-content avatar-wrapper">
-              <image class="avatar-img" :src="userInfo.avatar" mode="aspectFill"></image>
+              <image class="avatar-img" :src="userInfo.avatar || '/static/cow.png'" mode="aspectFill"></image>
             </view>
           </view>
         </template>
