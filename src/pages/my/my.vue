@@ -129,7 +129,8 @@ const onGetPhoneNumber = (e: any) => {
 
   loadingPhone.value = true;
   uni.request({
-    url: 'http://localhost:8081/api/login/bindPhone',   // 后端需提供此接口
+    url: 'https://zx.juntaitec.cn/wechat/login/bindPhone',   // 后端需提供此接口
+    // url: 'http://localhost:8081/api/login/bindPhone',   // 后端需提供此接口
     method: 'POST',
     header: { 'Content-Type': 'application/json' },
     data: {
