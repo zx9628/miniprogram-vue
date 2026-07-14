@@ -119,7 +119,6 @@ const onGetPhoneNumber = (e: any) => {
     uni.showToast({ title: '授权已取消', icon: 'none' });
     return;
   }
-
   const phoneCode = e.detail.code;   // 新版动态 code
   const openid = uni.getStorageSync('openid');
   if (!openid) {
@@ -215,11 +214,12 @@ const wechatLogin = () => {
         data: { code: loginRes.code },
         success: (res) => {
           uni.hideLoading();
+          console.log(res)
           if (res.data.code === 200) {
             const userData = res.data.data;          // 假设返回 { openid, phone, ... }
-            const openid = userData.openid;
+            const openid = userData;
             uni.setStorageSync('openid', openid);
-
+            console.log(openid)
             // 核心判断：是否有手机号
             if (!userData.phone) {
               // 没有手机号 → 切换到手机号授权界面
