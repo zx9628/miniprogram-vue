@@ -5,6 +5,7 @@
       <image src="/static/images/header-full.png" mode="widthFix" class="header-img"></image>
     </view>
 
+
     <!-- 2. 主要内容区域 -->
     <view class="main-content">
       <!-- 会员信息卡片 -->
