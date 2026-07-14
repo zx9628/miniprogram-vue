@@ -12,104 +12,37 @@
         "navigationBarTitleText": "点餐"
       }
     },
-
     {
       "path": "pages/index/activity/activity",
-      "style": { "navigationBarTitleText": "暖心行动" }
+      "style": {
+        "navigationBarTitleText": "暖心行动"
+      }
     },
     {
       "path": "pages/index/grid/groupMeal",
-      "style": { "navigationBarTitleText": "团餐" }
+      "style": {
+        "navigationBarTitleText": "团餐"
+      }
     },
     {
       "path": "pages/index/grid/pointsMall",
-      "style": { "navigationBarTitleText": "积分商城" }
+      "style": {
+        "navigationBarTitleText": "积分商城"
+      }
     },
     {
       "path": "pages/index/grid/wheel",
-      "style": { "navigationBarTitleText": "积分大转盘" }
+      "style": {
+        "navigationBarTitleText": "积分大转盘"
+      }
     },
     {
       "path": "pages/index/join/join",
-      "style": { "navigationBarTitleText": "诚邀加盟" }
-    }
-  ],
-
-  // ⚠️ 重点修改区域：补全主包下的子页面 + 确认分包配置
-  "subPackages": [
-    {
-      "root": "subPackages",
-      "pages": [
-        // --- 1. 会员模块 (已存在) ---
-        {
-          "path": "member/memberCenter",
-          "style": { "navigationBarTitleText": "会员中心" }
-        },
-        {
-          "path": "member/recharge",
-          "style": { "navigationBarTitleText": "会员储值" }
-        },
-        {
-          "path": "member/points",
-          "style": { "navigationBarTitleText": "我的积分" }
-        },
-        {
-          "path": "member/coupons",
-          "style": { "navigationBarTitleText": "我的优惠券" }
-        },
-        {
-          "path": "member/qrcode",
-          "style": { "navigationBarTitleText": "会员码" }
-        }
-      ]
-    }
-  ],
-
-
-  "tabBar": {
-    "color": "#7A7E83",
-    "selectedColor": "#3cc51f",
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页"
-      },
-      {
-        "pagePath": "pages/order/order",
-        "text": "点餐"
-      }
-    ]
-  },
-
-  "globalStyle": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "uni-app",
-    "navigationBarBackgroundColor": "#F8F8F8",
-    "backgroundColor": "#F8F8F8"
-    {
-      "path": "pages/order/order",
       "style": {
-        "navigationBarTitleText": "订单"
+        "navigationBarTitleText": "诚邀加盟"
       }
     },
-    {
-      "path": "pages/my/my",
-      "style": {
-        "navigationBarTitleText": "我的"
-      }
-    },
-    {
-      "path": "pages/my/login",
-      "style": {
-        "navigationBarTitleText": "登录"
-      }
-    },
-    {
-      "path": "pages/my/register",
-      "style": {
-        "navigationBarTitleText": "注册"
-      }
-    },
+    // --- 以下是从 globalStyle 错误位置救回来的页面 ---
     {
       "path": "pages/my/coupon",
       "style": {
@@ -133,20 +66,45 @@
       "style": {
         "navigationBarTitleText": "会员信息"
       }
-    },
-    {
-      "path": "pages/index/admin",
-      "style": {
-        "navigationBarTitleText": "后台管理"
-      }
     }
   ],
-  "globalStyle": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "UniApp-Store",
-    "navigationBarBackgroundColor": "#F8F8F8",
-    "backgroundColor": "#F8F8F8"
-  },
+  "subPackages": [
+    {
+      "root": "subPackages",
+      "pages": [
+        {
+          "path": "member/memberCenter",
+          "style": {
+            "navigationBarTitleText": "会员中心"
+          }
+        },
+        {
+          "path": "member/recharge",
+          "style": {
+            "navigationBarTitleText": "会员储值"
+          }
+        },
+        {
+          "path": "member/points",
+          "style": {
+            "navigationBarTitleText": "我的积分"
+          }
+        },
+        {
+          "path": "member/coupons",
+          "style": {
+            "navigationBarTitleText": "我的优惠券"
+          }
+        },
+        {
+          "path": "member/qrcode",
+          "style": {
+            "navigationBarTitleText": "会员码"
+          }
+        }
+      ]
+    }
+  ],
   "tabBar": {
     "color": "#7A7E83",
     "selectedColor": "#1296DB",
@@ -159,24 +117,17 @@
         "selectedIconPath": "static/icon/home-selected.png",
         "iconPath": "static/icon/home.png"
       },
-      {
-        "pagePath": "pages/cart/cart",
-        "text": "点餐"
-      },
+
       {
         "pagePath": "pages/order/order",
         "text": "订单"
-      },
-      {
-        "pagePath": "pages/my/my",
-        "text": "我的",
-        "selectedIconPath": "static/icon/my-selected.png",
-        "iconPath": "static/icon/my.png"
-      },
-      {
-        "pagePath": "pages/index/admin",
-        "text": "管理端"
       }
     ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "UniApp-Store",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
   }
 }
