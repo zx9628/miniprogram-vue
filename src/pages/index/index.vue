@@ -10,7 +10,7 @@
       <!-- 会员信息卡片 -->
       <view class="user-card">
         <view class="user-info">
-          <!-- ✅ 动态头像：如果有后端数据用后端的，没有用默认图 -->
+          <!-- ✅ 动态头像：优先显示后端返回的头像，没有则显示默认图 -->
           <image
               :src="userInfo.avatar || '/static/images/avatar.png'"
               class="avatar"
@@ -29,7 +29,7 @@
             </view>
 
             <view class="stats">
-              <!-- ✅ 动态资产数据 -->
+              <!-- ✅ 动态资产数据（如果没有数据则默认显示 0） -->
               <text @click="handleJump('balance')">余额 {{ userInfo.balance || 0 }}</text>
               <text @click="handleJump('points')">积分 {{ userInfo.points || 0 }}</text>
               <text @click="handleJump('coupons')">优惠券 {{ userInfo.couponCount || 0 }}</text>
@@ -84,8 +84,9 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
+import  request  from "@/util/request"; // 引入封装好的请求工具
 
-// 1. 定义一个响应式对象，用来存放从后端拿到的用户信息
+// 1. 定义响应式对象，用于存放真实的用户信息
 const userInfo = ref({
   nickname: '',
   avatar: '',
@@ -95,7 +96,7 @@ const userInfo = ref({
   couponCount: 0
 });
 
-// 金刚区配置（静态数据保持不变）
+// 金刚区配置（保持静态不变）
 const gridList = ref([
   { name: '会员储值', icon: '/static/images/grid-1.png', url: '/subPackages/member/recharge' },
   { name: '团餐', icon: '/static/images/grid-2.png', url: '/pages/index/grid/groupMeal' },
@@ -103,7 +104,7 @@ const gridList = ref([
   { name: '积分大转盘', icon: '/static/images/grid-4.png', url: '/pages/index/grid/wheel' }
 ]);
 
-// 2. 页面加载时执行获取用户信息
+// 2. 页面加载时自动获取用户信息
 onMounted(() => {
   loadUserInfo();
 });
@@ -113,7 +114,7 @@ const loadUserInfo = () => {
   // 从本地缓存中获取登录时存的用户信息
   const cachedUser = uni.getStorageSync('userInfo');
 
-  // 如果没有登录，直接返回，不请求
+  // 如果没有登录，直接返回，不请求后端
   if (!cachedUser || !cachedUser.id) {
     console.log("未登录或缓存中无用户ID，跳过请求");
     return;
@@ -121,26 +122,18 @@ const loadUserInfo = () => {
 
   const userId = cachedUser.id; // 获取用户ID
 
-  uni.request({
-    // 拼接正确的 URL：/api/user/get/{id}
-    url: `http://localhost:8083/api/user/get/${userId}`,
-    method: 'GET',
-    header: {
-      // 如果后端需要 Token 验证，请在这里带上
-      'token': uni.getStorageSync('token') || ''
-    },
-    success: (res) => {
-      if (res.data.code === 200) {
-        // 将后端返回的最新数据覆盖到 userInfo
-        userInfo.value = res.data.data;
-        console.log("首页获取最新用户信息成功:", userInfo.value);
-      } else {
-        console.error("获取信息失败:", res.data.message);
-      }
-    },
-    fail: (err) => {
-      console.error("网络请求失败", err);
+  // 调用封装好的 request 发起请求
+  request({
+    url: `/api/user/get/${userId}`, // 对应后端 UserController 的 /api/user/get/{id}
+    method: 'GET'
+  }).then(res => {
+    if (res.code === 200) {
+      // 将后端返回的最新数据覆盖到 userInfo
+      userInfo.value = res.data;
+      console.log("首页获取最新用户信息成功:", userInfo.value);
     }
+  }).catch(err => {
+    console.error("获取首页用户信息失败", err);
   });
 };
 
@@ -151,7 +144,7 @@ const handleJump = (type) => {
       uni.navigateTo({ url: '/subPackages/member/recharge' });
       break;
     case 'dineIn':
-      uni.switchTab({ url: '/pages/index/order' });
+      uni.switchTab({ url: '/pages/order/order' });
       break;
     case 'points':
       uni.navigateTo({ url: '/subPackages/member/points' });

@@ -11,7 +11,7 @@ interface RequestOptions {
     header?: any;
 }
 
-export const request = (options: RequestOptions) => {
+ const request = (options: RequestOptions) => {
     return new Promise((resolve, reject) => {
         uni.request({
             // 自动拼接前缀
@@ -40,4 +40,5 @@ export const request = (options: RequestOptions) => {
             }
         });
     });
-};
+
+};  export default request;

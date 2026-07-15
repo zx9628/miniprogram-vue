@@ -45,6 +45,8 @@
 
 <script setup>
 import { reactive } from 'vue';
+// ✅ 1. 引入我们封装好的 request 工具
+import request from '@/util/request';
 
 const formData = reactive({
   phone: '',
@@ -68,6 +70,36 @@ const handleLogin = () => {
 
   uni.showLoading({ title: '登录中...' });
 
+  // ✅ 2. 使用新的 request 工具发起请求
+  request({
+    url: '/api/user/login', // 这里的路径要和你后端 @PostMapping 的路径一致
+    method: 'POST',
+    data: {
+      phone: formData.phone,
+      password: formData.password
+    }
+  }).then(res => {
+    uni.hideLoading();
+    // 注意：使用 request 工具后，res 就是后端返回的 { code: 200, data: ... } 对象
+    if (res.code === 200) {
+      const userData = res.data;
+      console.log('登录成功，准备存储的用户信息:', userData);
+      uni.setStorageSync('userInfo', userData);
+      uni.showToast({ title: '登录成功' });
+      setTimeout(() => {
+        uni.switchTab({ url: '/pages/my/my' });
+      }, 1500);
+    } else {
+      uni.showToast({ title: res.message || '登录失败', icon: 'none' });
+    }
+  }).catch(err => {
+    uni.hideLoading();
+    console.error('登录请求失败:', err);
+    uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+  });
+
+  // ❌ 3. 以下是被注释掉的旧代码，保留了作为对比
+  /*
   uni.request({
     url: 'https://cxm.juntaitec.cn/miniprogram/api/login/login',
     method: 'POST',
@@ -109,6 +141,7 @@ const handleLogin = () => {
       formData.password = '';
     }
   });
+  */
 };
 
 // 跳转注册页
@@ -118,6 +151,7 @@ const goRegister = () => {
 </script>
 
 <style lang="scss" scoped>
+/* ... 样式部分保持不变 ... */
 .login-container {
   min-height: 100vh;
   background-color: #ffffff;
