@@ -45,8 +45,8 @@
 
 <script setup>
 import { reactive } from 'vue';
-// ✅ 1. 引入我们封装好的 request 工具
-import request from '@/util/request';
+// 引入封装好的请求工具
+import request from '@/util/request'
 
 const formData = reactive({
   phone: '',
@@ -54,7 +54,8 @@ const formData = reactive({
 });
 
 // 点击登录
-const handleLogin = () => {
+const handleLogin = async () => {
+  // 表单校验
   if (!formData.phone) {
     uni.showToast({ title: '请输入手机号', icon: 'none' });
     return;
@@ -69,79 +70,33 @@ const handleLogin = () => {
   }
 
   uni.showLoading({ title: '登录中...' });
-
-  // ✅ 2. 使用新的 request 工具发起请求
-  request({
-    url: '/api/user/login', // 这里的路径要和你后端 @PostMapping 的路径一致
-    method: 'POST',
-    data: {
+  try {
+    // 请求本地SpringBoot后端接口
+    const res = await request("/api/login/login", "POST", {
       phone: formData.phone,
       password: formData.password
-    }
-  }).then(res => {
-    uni.hideLoading();
-    // 注意：使用 request 工具后，res 就是后端返回的 { code: 200, data: ... } 对象
+    })
+    uni.hideLoading()
     if (res.code === 200) {
-      const userData = res.data;
-      console.log('登录成功，准备存储的用户信息:', userData);
-      uni.setStorageSync('userInfo', userData);
+      // 核心：存储JWT token，首页接口自动携带
+      uni.setStorageSync('token', res.data.token)
+      // 可选：存储用户基础信息
+      uni.setStorageSync('userInfo', res.data.userInfo)
+
       uni.showToast({ title: '登录成功' });
       setTimeout(() => {
-        uni.switchTab({ url: '/pages/my/my' });
-      }, 1500);
+        // 跳普通用户首页 pages/index/index，admin不用
+        uni.switchTab({ url: '/pages/index/index' });
+      }, 1200);
     } else {
       uni.showToast({ title: res.message || '登录失败', icon: 'none' });
+      formData.phone = ''
+      formData.password = ''
     }
-  }).catch(err => {
-    uni.hideLoading();
-    console.error('登录请求失败:', err);
-    uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
-  });
-
-  // ❌ 3. 以下是被注释掉的旧代码，保留了作为对比
-  /*
-  uni.request({
-    url: 'https://cxm.juntaitec.cn/miniprogram/api/login/login',
-    method: 'POST',
-    header: {
-      'Content-Type': 'application/json'
-    },
-    data: {
-      phone: formData.phone,
-      password: formData.password
-    },
-    success: (res) => {
-      uni.hideLoading();
-      console.log('后端返回完整数据:', JSON.stringify(res.data));
-      if (res.data.code === 200) {
-        const userData = res.data.data; // 获取后端返回的用户对象
-
-        // 【关键】打印一下，确保数据是对的
-        console.log('登录成功，准备存储的用户信息:', userData);
-
-        // 存入本地缓存
-        uni.setStorageSync('userInfo', userData);
-
-        uni.showToast({ title: '登录成功' });
-        setTimeout(() => {
-          uni.switchTab({ url: '/pages/my/my' });
-        }, 1500);
-      } else {
-        // 后端返回的错误信息（如"用户不存在，请先注册"、"密码错误"）
-        uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
-        formData.phone = '';
-        formData.password = '';
-      }
-    },
-    fail: (err) => {
-      uni.hideLoading();
-      console.error('登录请求失败:', err);
-      uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
-      formData.phone = '';
-      formData.password = '';
-    }
-  });
-  */
+  } catch (err) {
+    uni.hideLoading()
+    uni.showToast({ title: '连接后端失败，请检查IDEA服务是否启动', icon: 'none' })
+  }
 };
 
 // 跳转注册页
@@ -151,7 +106,6 @@ const goRegister = () => {
 </script>
 
 <style lang="scss" scoped>
-/* ... 样式部分保持不变 ... */
 .login-container {
   min-height: 100vh;
   background-color: #ffffff;

@@ -1,10 +1,42 @@
 <script setup lang="ts">
-import {defineStore} from "pinia";
+import { ref } from "vue"
+import request from "@/util/request"
 
-const handleLogin = () =>{
-  uni.navigateTo({url:"/pages/index/admin"})
+const phone = ref("")
+const password = ref("")
+const showPassword = ref(false)
+
+const handleLogin = async () => {
+  if (!phone.value || phone.value.length !== 11) {
+    uni.showToast({ title: "请输入11位手机号", icon: "none" })
+    return
+  }
+  if (!password.value) {
+    uni.showToast({ title: "请输入密码", icon: "none" })
+    return
+  }
+
+  try {
+    const res = await request("/api/login/login", "POST", {
+      phone: phone.value,
+      password: password.value
+    })
+
+    if (res.code === 200) {
+      uni.setStorageSync("token", res.data.token)
+      uni.showToast({ title: "登录成功" })
+      uni.switchTab({ url: "/pages/index/admin" })
+    } else {
+      uni.showToast({ title: res.message, icon: "none" })
+    }
+  } catch (err) {
+    uni.showToast({ title: "网络请求失败", icon: "none" })
+  }
 }
 
+const handleWechatLogin = () => {
+  uni.showToast({ title: "微信登录待开发", icon: "none" })
+}
 </script>
 
 <template>

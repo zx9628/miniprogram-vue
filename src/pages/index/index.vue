@@ -10,29 +10,16 @@
       <!-- 会员信息卡片 -->
       <view class="user-card">
         <view class="user-info">
-          <!-- ✅ 动态头像：优先显示后端返回的头像，没有则显示默认图 -->
-          <image
-              :src="userInfo.avatar || '/static/images/avatar.png'"
-              class="avatar"
-              mode="aspectFill"
-              @click="goToMemberCenter"
-          ></image>
-
+          <image src="/static/images/avatar.png" class="avatar" mode="aspectFill" @click="goToMemberCenter"></image>
           <view class="info-text">
             <view class="greeting">
-              <!-- ✅ 动态昵称 -->
-              Hi {{ userInfo.nickname || '你好' }}
-              <!-- ✅ 动态会员等级 -->
-              <text class="vip-tag" @click="goToMemberCenter">
-                {{ userInfo.vipLevelName || '普通会员' }}
-              </text>
+              Hi {{ userInfo.username || "你好" }}
+              <text class="vip-tag" @click="goToMemberCenter">{{ userInfo.vipName || "普通会员" }}</text>
             </view>
-
             <view class="stats">
-              <!-- ✅ 动态资产数据（如果没有数据则默认显示 0） -->
-              <text @click="handleJump('balance')">余额 {{ userInfo.balance || 0 }}</text>
-              <text @click="handleJump('points')">积分 {{ userInfo.points || 0 }}</text>
-              <text @click="handleJump('coupons')">优惠券 {{ userInfo.couponCount || 0 }}</text>
+              <text @click="handleJump('balance')">余额 {{ userInfo.balance }}</text>
+              <text @click="handleJump('points')">积分 {{ userInfo.points }}</text>
+              <text @click="handleJump('coupons')">优惠券 {{ userInfo.couponNum }}</text>
             </view>
           </view>
         </view>
@@ -81,22 +68,18 @@
     </view>
   </view>
 </template>
-
 <script setup>
 import { onMounted, ref } from "vue";
-import  request  from "@/util/request"; // 引入封装好的请求工具
+import request from "@/util/request";
 
-// 1. 定义响应式对象，用于存放真实的用户信息
+// 用户信息（后端赋值，不再写死）
 const userInfo = ref({
-  nickname: '',
-  avatar: '',
-  vipLevelName: '',
+  username: "",
+  vipName: "",
   balance: 0,
   points: 0,
-  couponCount: 0
+  couponNum: 0
 });
-
-// 金刚区配置（保持静态不变）
 const gridList = ref([
   { name: '会员储值', icon: '/static/images/grid-1.png', url: '/subPackages/member/recharge' },
   { name: '团餐', icon: '/static/images/grid-2.png', url: '/pages/index/grid/groupMeal' },
@@ -104,53 +87,56 @@ const gridList = ref([
   { name: '积分大转盘', icon: '/static/images/grid-4.png', url: '/pages/index/grid/wheel' }
 ]);
 
-// 2. 页面加载时自动获取用户信息
-onMounted(() => {
-  loadUserInfo();
-});
-
-// 3. 封装获取用户信息的方法
-const loadUserInfo = () => {
-  // 从本地缓存中获取登录时存的用户信息
-  const cachedUser = uni.getStorageSync('userInfo');
-
-  // 如果没有登录，直接返回，不请求后端
-  if (!cachedUser || !cachedUser.id) {
-    console.log("未登录或缓存中无用户ID，跳过请求");
+// 页面加载
+onMounted(async () => {
+  // 1. 判断是否登录，无token直接跳登录
+  const token = uni.getStorageSync("token");
+  if (!token) {
+    uni.redirectTo({ url: "/pages/my/login" });
     return;
   }
+  // 2. 请求后端获取当前登录用户信息接口
+  await getUserData();
+});
 
-  const userId = cachedUser.id; // 获取用户ID
-
-  // 调用封装好的 request 发起请求
-  request({
-    url: `/api/user/get/${userId}`, // 对应后端 UserController 的 /api/user/get/{id}
-    method: 'GET'
-  }).then(res => {
+// 请求后端用户信息接口
+const getUserData = async () => {
+  try {
+    const res = await request("/api/user/getUserInfo", "GET");
     if (res.code === 200) {
-      // 将后端返回的最新数据覆盖到 userInfo
-      userInfo.value = res.data;
-      console.log("首页获取最新用户信息成功:", userInfo.value);
+      userInfo.value.username = res.data.username;
+      userInfo.value.vipName = res.data.vipName;
+      userInfo.value.balance = res.data.balance;
+      userInfo.value.points = res.data.points;
+      userInfo.value.couponNum = res.data.couponNum;
+    } else if (res.code === 401) {
+      uni.clearStorageSync("token");
+      // 这里同步改成 /pages/my/login
+      uni.redirectTo({ url: "/pages/my/login" });
     }
-  }).catch(err => {
-    console.error("获取首页用户信息失败", err);
-  });
+  } catch (err) {
+    uni.showToast({ title: "获取用户信息失败", icon: "none" });
+    console.error("用户接口异常：", err);
+  }
 };
 
-// --- 以下跳转逻辑保持原样 ---
+// 跳转逻辑（原有不变）
 const handleJump = (type) => {
+  console.log('触发跳转类型:', type);
   switch (type) {
     case 'balance':
       uni.navigateTo({ url: '/subPackages/member/recharge' });
       break;
     case 'dineIn':
-      uni.switchTab({ url: '/pages/order/order' });
+      uni.switchTab({ url: '/pages/index/order' });
       break;
     case 'points':
       uni.navigateTo({ url: '/subPackages/member/points' });
       break;
     case 'coupons':
       uni.navigateTo({ url: '/subPackages/member/coupons' });
+      break;
+    default:
       break;
   }
 };
@@ -159,18 +145,33 @@ const handleGridClick = (item) => {
   if (item.url) {
     uni.navigateTo({
       url: item.url,
-      fail: () => uni.showToast({ title: '功能开发中', icon: 'none' })
+      fail: (err) => {
+        console.error('跳转失败，请检查路径:', item.url, err);
+        uni.showToast({ title: '页面正在开发中', icon: 'none' });
+      }
     });
   }
 };
 
-const goToMemberCode = () => uni.navigateTo({ url: '/subPackages/member/qrcode' });
-const goToMemberCenter = () => uni.navigateTo({ url: '/subPackages/member/memberCenter' });
-const goToActivity = () => uni.navigateTo({ url: '/pages/index/activity/activity' });
-const goToJoin = () => uni.navigateTo({ url: '/pages/index/join/join' });
+const goToMemberCode = () => {
+  uni.navigateTo({ url: '/subPackages/member/qrcode' });
+};
+
+const goToMemberCenter = () => {
+  uni.navigateTo({ url: '/subPackages/member/memberCenter' });
+};
+
+const goToActivity = () => {
+  uni.navigateTo({ url: '/pages/index/activity/activity' });
+};
+
+const goToJoin = () => {
+  uni.navigateTo({ url: '/pages/index/join/join' });
+};
 </script>
 
 <style lang="scss" scoped>
+/* 样式保持不变 */
 $theme-pink: #f8dce4;
 $theme-red: #e63a46;
 $text-dark: #333;
