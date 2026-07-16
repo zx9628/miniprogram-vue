@@ -2,8 +2,8 @@
   <view class="login-container">
     <!-- 头部区域 -->
     <view class="header-section">
-      <text class="main-title">欢迎登录</text>
-      <text class="sub-title">使用手机号和密码登录</text>
+      <text class="main-title">管理员登录</text>
+      <text class="sub-title">使用用户名和密码登录</text>
     </view>
 
     <!-- 表单区域 -->
@@ -11,11 +11,11 @@
       <view class="input-item">
         <input
             class="uni-input"
-            type="number"
-            v-model="formData.phone"
-            placeholder="请输入手机号"
+            type="text"
+            v-model="formData.username"
+            placeholder="请输入用户名"
             placeholder-class="placeholder-style"
-            maxlength="11"
+            maxlength="20"
         />
       </view>
 
@@ -47,57 +47,47 @@
 import { reactive } from 'vue';
 
 const formData = reactive({
-  phone: '',
-  password: ''
+  username: 'boss',
+  password: '12345678wlb'
 });
 
 // 点击登录
 const handleLogin = () => {
-  if (!formData.phone) {
-    uni.showToast({ title: '请输入手机号', icon: 'none' });
-    return;
-  }
-  if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
-    uni.showToast({ title: '手机号格式不正确', icon: 'none' });
+  if (!formData.username) {
+    uni.showToast({ title: '请输入用户名', icon: 'none' });
     return;
   }
   if (!formData.password) {
     uni.showToast({ title: '请输入密码', icon: 'none' });
     return;
   }
-
   uni.showLoading({ title: '登录中...' });
-
   uni.request({
-    url: 'https://cxm.juntaitec.cn/miniprogram/api/login/login',
+    url: 'http://localhost:8081/api/login/admin',
     method: 'POST',
     header: {
       'Content-Type': 'application/json'
     },
     data: {
-      phone: formData.phone,
+      username: formData.username,
       password: formData.password
     },
     success: (res) => {
       uni.hideLoading();
       console.log('后端返回完整数据:', JSON.stringify(res.data));
       if (res.data.code === 200) {
-        const userData = res.data.data; // 获取后端返回的用户对象
-
-        // 【关键】打印一下，确保数据是对的
-        console.log('登录成功，准备存储的用户信息:', userData);
-
-        // 存入本地缓存
-        uni.setStorageSync('userInfo', userData);
-
+        const adminData = res.data.data;
+        console.log('登录成功，准备存储的用户信息:', adminData);
+        uni.setStorageSync('adminInfo', adminData);
         uni.showToast({ title: '登录成功' });
         setTimeout(() => {
-          uni.switchTab({ url: '/pages/my/my' });
+          // 【修改】若非tabBar页面请使用reLaunch或redirectTo
+          // reLaunch会关闭所有页面并打开新页面，适合登录成功场景
+          uni.reLaunch({ url: '/pages/index/admin' });
         }, 1500);
       } else {
-        // 后端返回的错误信息（如"用户不存在，请先注册"、"密码错误"）
         uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
-        formData.phone = '';
+        formData.username = '';
         formData.password = '';
       }
     },
@@ -105,7 +95,7 @@ const handleLogin = () => {
       uni.hideLoading();
       console.error('登录请求失败:', err);
       uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
-      formData.phone = '';
+      formData.username = '';
       formData.password = '';
     }
   });

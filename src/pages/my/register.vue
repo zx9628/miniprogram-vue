@@ -12,7 +12,7 @@
         <input
             class="uni-input"
             type="number"
-            v-model="formData.phone"
+            v-model="formData.username"
             placeholder="请输入手机号"
             placeholder-class="placeholder-style"
             maxlength="11"
@@ -87,7 +87,7 @@ import { reactive, ref } from 'vue';
 
 // 表单数据
 const formData = reactive({
-  phone: '',
+  username: '',
   password: '',
   confirmPassword: ''
 });
@@ -102,11 +102,11 @@ const onAgreementChange = (e) => {
 
 // 点击注册
 const handleRegister = () => {
-  if (!formData.phone) {
+  if (!formData.username) {
     uni.showToast({ title: '请输入手机号', icon: 'none' });
     return;
   }
-  if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
+  if (!/^1[3-9]\d{9}$/.test(formData.username)) {
     uni.showToast({ title: '手机号格式不正确', icon: 'none' });
     return;
   }
@@ -137,7 +137,7 @@ const handleRegister = () => {
       'Content-Type': 'application/json'
     },
     data: {
-      phone: formData.phone,
+      username: formData.username,
       password: formData.password,
       confirmPassword: formData.confirmPassword
     },

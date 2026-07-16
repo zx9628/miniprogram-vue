@@ -7,7 +7,7 @@ const userInfo = reactive({
   id: 0,
   avatar: '/static/cow.png', // 默认头像
   nickname: '',
-  phone: '',
+  username: '',
   gender: 0,                 // 0: 未知, 1: 男, 2: 女
   birthday: ''
 });
@@ -141,7 +141,7 @@ onLoad(() => {
       <view class="list-item">
         <text class="label">手机</text>
         <view class="right-content link-row">
-          <text>{{ userInfo.phone || '未绑定' }}</text>
+          <text>{{ userInfo.username || '未绑定' }}</text>
           <uni-icons type="right" size="14" color="#ccc"></uni-icons>
         </view>
       </view>

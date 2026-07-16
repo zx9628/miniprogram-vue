@@ -101,7 +101,7 @@ const handleJump = (type) => {
 
     case 'dineIn': // 堂食 -> 底部点餐界面 (假设是TabBar页)
       uni.switchTab({
-        url: '/pages/index/order'
+        url: '/pages/order/order'
       });
       break;
 

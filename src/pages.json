@@ -7,12 +7,65 @@
       }
     },
     {
+      "path": "pages/order/orderList",
+      "style": {
+        "navigationBarTitleText": "订单"
+      }
+    },
+    {
       "path": "pages/order/order",
       "style": {
         "navigationBarTitleText": "点餐"
       }
     },
-
+    {
+      "path": "pages/my/my",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/my/login",
+      "style": {
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/my/register",
+      "style": {
+        "navigationBarTitleText": "注册"
+      }
+    },
+    {
+      "path": "pages/my/coupon",
+      "style": {
+        "navigationBarTitleText": "优惠券"
+      }
+    },
+    {
+      "path": "pages/my/balance",
+      "style": {
+        "navigationBarTitleText": "余额"
+      }
+    },
+    {
+      "path": "pages/my/points",
+      "style": {
+        "navigationBarTitleText": "积分"
+      }
+    },
+    {
+      "path": "pages/my/information",
+      "style": {
+        "navigationBarTitleText": "会员信息"
+      }
+    },
+    {
+      "path": "pages/index/admin",
+      "style": {
+        "navigationBarTitleText": "后台管理"
+      }
+    },
     {
       "path": "pages/index/activity/activity",
       "style": { "navigationBarTitleText": "暖心行动" }
@@ -64,86 +117,9 @@
       ]
     }
   ],
-
-
-  "tabBar": {
-    "color": "#7A7E83",
-    "selectedColor": "#3cc51f",
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页"
-      },
-      {
-        "pagePath": "pages/order/order",
-        "text": "点餐"
-      }
-    ]
-  },
-
   "globalStyle": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "uni-app",
-    "navigationBarBackgroundColor": "#F8F8F8",
-    "backgroundColor": "#F8F8F8"
-    {
-      "path": "pages/order/order",
-      "style": {
-        "navigationBarTitleText": "订单"
-      }
-    },
-    {
-      "path": "pages/my/my",
-      "style": {
-        "navigationBarTitleText": "我的"
-      }
-    },
-    {
-      "path": "pages/my/login",
-      "style": {
-        "navigationBarTitleText": "登录"
-      }
-    },
-    {
-      "path": "pages/my/register",
-      "style": {
-        "navigationBarTitleText": "注册"
-      }
-    },
-    {
-      "path": "pages/my/coupon",
-      "style": {
-        "navigationBarTitleText": "优惠券"
-      }
-    },
-    {
-      "path": "pages/my/balance",
-      "style": {
-        "navigationBarTitleText": "余额"
-      }
-    },
-    {
-      "path": "pages/my/points",
-      "style": {
-        "navigationBarTitleText": "积分"
-      }
-    },
-    {
-      "path": "pages/my/information",
-      "style": {
-        "navigationBarTitleText": "会员信息"
-      }
-    },
-    {
-      "path": "pages/index/admin",
-      "style": {
-        "navigationBarTitleText": "后台管理"
-      }
-    }
-  ],
-  "globalStyle": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "UniApp-Store",
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
   },
@@ -160,11 +136,11 @@
         "iconPath": "static/icon/home.png"
       },
       {
-        "pagePath": "pages/cart/cart",
+        "pagePath": "pages/order/order",
         "text": "点餐"
       },
       {
-        "pagePath": "pages/order/order",
+        "pagePath": "pages/order/orderList",
         "text": "订单"
       },
       {
@@ -172,10 +148,6 @@
         "text": "我的",
         "selectedIconPath": "static/icon/my-selected.png",
         "iconPath": "static/icon/my.png"
-      },
-      {
-        "pagePath": "pages/index/admin",
-        "text": "管理端"
       }
     ]
   }
