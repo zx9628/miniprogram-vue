@@ -1,11 +1,12 @@
 <template>
   <view class="content">
-    <text>订单中心页面正在开发中...</text>
+    <text>充值页面正在开发中...</text>
+    <!-- 这里后续可以放充值金额选项、支付方式等 -->
   </view>
 </template>
 
 <script setup>
-// 订单数据获取逻辑后续在这里写
+// 充值逻辑后续在这里写
 </script>
 
 <style lang="scss">

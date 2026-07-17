@@ -1,11 +1,11 @@
 <template>
   <view class="content">
-    <text>订单中心页面正在开发中...</text>
+    <text>幸运大转盘页面正在开发中...</text>
   </view>
 </template>
 
 <script setup>
-// 订单数据获取逻辑后续在这里写
+// 抽奖逻辑后续在这里写
 </script>
 
 <style lang="scss">
