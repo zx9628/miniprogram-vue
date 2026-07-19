@@ -13,7 +13,7 @@
       }
     },
     {
-      "path": "pages/order/order",
+      "path": "pages/orderFood/orderFood",
       "style": {
         "navigationBarTitleText": "点餐"
       }
@@ -136,7 +136,7 @@
         "iconPath": "static/icon/home.png"
       },
       {
-        "pagePath": "pages/order/order",
+        "pagePath": "pages/orderFood/orderFood",
         "text": "点餐"
       },
       {
