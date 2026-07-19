@@ -88,12 +88,10 @@
     }
   ],
 
-  // ⚠️ 重点修改区域：补全主包下的子页面 + 确认分包配置
   "subPackages": [
     {
       "root": "subPackages",
       "pages": [
-        // --- 1. 会员模块 (已存在) ---
         {
           "path": "member/memberCenter",
           "style": { "navigationBarTitleText": "会员中心" }
