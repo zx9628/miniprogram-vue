@@ -1,176 +1,262 @@
 <template>
-  <div class="header">
-    <div id="top">
-      <div id="topBackground">
+  <view class="container">
+    <!-- 1. 顶部背景区域 -->
+    <view class="header-bg">
+      <image src="/static/images/header-full.png" mode="widthFix" class="header-img"></image>
+    </view>
 
-      </div>
-    </div>
-
-    <div id="log" class="main">
-      <view>
-        <div id="log-block">
-          <img src="/src/static/diamond.png" id="diamond" >
-          <div id="logging">注册会员|登入后尊享更多专属权限</div>
-        </div>
-      </view>
-    </div>
-  </div>
-
-  <div class="body">
-    <div id="main" class="main">
-    <div id="in-canteen" class="tubiao">
-      <div class="block">
-        <view>
-          <div class="littleBlock">
-            <img src="/src/static/niuasan.jpg" class="pict">
-            <div class="largeTitle">堂食/自提</div>
-            <div class="littleTitle">手机点餐免排队</div>
-          </div>
-        </view>
-      </div>
-    </div>
-      <div id="member-center" class="tubiao">
-        <div class="block">
-          <view>
-            <div class="littleBlock">
-              <img src="/src/static/niuamei.jpg" class="pict">
-              <div class="largeTitle">会员中心</div>
-              <div class="littleTitle">储值优惠</div>
-            </div>
+    <!-- 2. 主要内容区域 -->
+    <view class="main-content">
+      <!-- 会员信息卡片 -->
+      <view class="user-card">
+        <view class="user-info">
+          <!-- 头像点击跳转 -->
+          <image src="/static/images/avatar.png" class="avatar" mode="aspectFill" @click="goToMemberCenter"></image>
+          <view class="info-text">
+            <view class="greeting">
+              Hi 你好
+              <!-- 会员等级点击跳转 -->
+              <text class="vip-tag" @click="goToMemberCenter">六品王VIP卡·铁牛会员</text>
+            </view>
+            <view class="stats">
+              <text @click="handleJump('balance')">余额 0</text>
+              <text @click="handleJump('points')">积分 0</text>
+              <text @click="handleJump('coupons')">优惠券 0</text>
+            </view>
           </view>
-      </div>
-    </div>
-  </div>
+        </view>
 
-    <div id="selections" class="main">
-      <div class="selection"><view>
-        <img src="/src/static/memberCard.png" class="selectionPic">
-        <div class="selectionTitle">会员储值</div>
-      </view></div>
-      <div class="selection"><view>
-        <img src="/src/static/selectionPict/groupMeal.png" class="selectionPic">
-        <div class="selectionTitle">团餐</div>
-      </view></div>
-      <div class="selection"><view>
-        <img src="/src/static/selectionPict/pointsShop.png" class="selectionPic">
-        <div class="selectionTitle">积分商店</div>
-      </view></div>
-      <div class="selection"><view>
-        <img src="/src/static/selectionPict/pointsBigWheel.png" class="selectionPic">
-        <div class="selectionTitle">积分大转盘</div>
-      </view></div>
-    </div>
-  </div>
+        <!-- ✅ 修复：这里 @click 前面补上了一个空格 -->
+        <view class="qr-code" @click="goToMemberCode">
+          <image src="/static/images/qrcode-icon.png" mode="widthFix" style="width: 40rpx;"></image>
+          <text>会员码</text>
+        </view>
+      </view>
 
+      <!-- 核心功能区 (堂食/会员) -->
+      <view class="core-actions">
+        <view class="action-item large" @click="handleJump('dineIn')">
+          <image src="/static/images/icon-eat.png" class="action-icon" mode="widthFix"></image>
+          <text class="action-title">堂食/自提</text>
+          <text class="action-desc">手机点餐免排队</text>
+        </view>
 
+        <view class="action-item large" @click="goToMemberCenter">
+          <image src="/static/images/icon-member.png" class="action-icon" mode="widthFix"></image>
+          <text class="action-title">会员中心</text>
+          <text class="action-desc">储值优惠</text>
+        </view>
+      </view>
 
+      <!-- 金刚区 (四个小图标) -->
+      <view class="grid-menu">
+        <view class="grid-item" v-for="(item, index) in gridList" :key="index" @click="handleGridClick(item)">
+          <image :src="item.icon" class="grid-icon" mode="widthFix"></image>
+          <text>{{ item.name }}</text>
+        </view>
+      </view>
+
+      <!-- 营销活动 Banner (暖心行动) -->
+      <view class="promo-section">
+        <image src="/static/images/banner-promo.png" mode="widthFix" class="promo-img" @click="goToActivity"></image>
+      </view>
+
+      <!-- 底部广告 (诚邀加盟) -->
+      <view class="bottom-ad">
+        <image src="/static/images/ad-join.png" mode="widthFix" class="ad-img" @click="goToJoin"></image>
+      </view>
+
+      <!-- 占位符 -->
+      <view style="height: 100rpx;"></view>
+    </view>
+  </view>
 </template>
+<script setup>
+import {onMounted, ref} from "vue";
 
-<script setup lang="ts">
+const title = ref("")
+import request from "@/util/request";
+onMounted(()=>{
+
+    }
+);
+
+// ✅ 注意：如果会员储值也移到了分包，记得把这里的 url 也改成 /subPackages/member/recharge
+const gridList = ref([
+  { name: '会员储值', icon: '/static/images/grid-1.png', url: '/subPackages/member/recharge' },
+  { name: '团餐', icon: '/static/images/grid-2.png', url: '/pages/index/grid/groupMeal' },
+  { name: '积分商城', icon: '/static/images/grid-3.png', url: '/pages/index/grid/pointsMall' },
+  { name: '积分大转盘', icon: '/static/images/grid-4.png', url: '/pages/index/grid/wheel' }
+]);
+
+const handleJump = (type) => {
+  console.log('触发跳转类型:', type);
+
+  switch (type) {
+    case 'balance': // 余额 -> 充值界面
+      uni.navigateTo({
+        url: '/subPackages/member/recharge' // ✅ 更新分包路径
+      });
+      break;
+
+    case 'dineIn': // 堂食 -> 底部点餐界面 (假设是TabBar页)
+      uni.switchTab({
+        url: '/pages/order/order'
+      });
+      break;
+
+    case 'points': // 积分
+      uni.navigateTo({
+        url: '/subPackages/member/points' // ✅ 更新分包路径
+      });
+      break;
+
+    case 'coupons': // 优惠券
+      uni.navigateTo({
+        url: '/subPackages/member/coupons' // ✅ 更新分包路径
+      });
+      break;
+
+    default:
+      break;
+  }
+};
+
+// 通用跳转方法 (金刚区)
+const handleGridClick = (item) => {
+  if (item.url) {
+    uni.navigateTo({
+      url: item.url,
+      fail: (err) => {
+        console.error('跳转失败，请检查路径:', item.url, err);
+        uni.showToast({ title: '页面正在开发中', icon: 'none' });
+      }
+    });
+  }
+};
+
+// ✅ 更新分包路径
+const goToMemberCode = () => {
+  uni.navigateTo({
+    url: '/subPackages/member/qrcode'
+  });
+};
+
+// ✅ 更新分包路径
+const goToMemberCenter = () => {
+  uni.navigateTo({
+    url: '/subPackages/member/memberCenter'
+  });
+};
+
+const goToActivity = () => {
+  uni.navigateTo({
+    url: '/pages/index/activity/activity'
+  });
+};
+
+const goToJoin = () => {
+  uni.navigateTo({
+    url: '/pages/index/join/join'
+  });
+};
 </script>
 
-<style>
-#topBackground{
-  background-color: pink;
-  height: 250px;
-  width: 100%;
-}
-#log{
-  border: 1px solid grey;
-  width: 94%;
-  height: 50px;
-  margin: -10px 3% 0 3%;
-  background-color: white;
+<style lang="scss" scoped>
+/* 样式保持不变 */
+$theme-pink: #f8dce4;
+$theme-red: #e63a46;
+$text-dark: #333;
+$text-gray: #999;
 
-}
-#log-block{
-  margin: 10px 0 0 10px;
-}
-#diamond{
-  height: 15px;
-  width: 15px;
-  float: left;
-  margin-top: 3px;
-}
-#logging{
-  float: left;
+.container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
   position: relative;
-  margin-left: 5px;
+  box-sizing: border-box;
 }
 
-
-.body{
-  width: 94%;
-  height: 600px;
-  margin: 10px 0 0 3%;
-}
-.main{
-  width: auto;
-  border: 1px solid grey;
-  border-radius: 10px 7px;
-}
-#main{
-  height: 150px;
-}
-.tubiao{
-  width: 50%;
-  height: 100%;
-  float: left;
-}
-#selections{
-  height: 100px;
-  width: auto;
-  margin-top: 10px;
-}
-.block{
-  margin-top: -15.3px;
-  width: 100%;
-  height: 100%;
-}
-.selection{
-  width: 25%;
-  height: 100%;
-  float: left;
-  text-align: center;
-}
-.selection::after{
-  content: "|";
-  float: right;
-  margin-top: -75px;
-
-}
-.selection:last-child::after{
-  content: none;
+.header-bg {
+  height: 450rpx;
+  background-color: #fbbecc;
+  background-image: linear-gradient(180deg, #fab9c8 50%, #ffeff3 100%);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 80rpx;
 }
 
-a{
-  width: 100%;
-  height: 100%;
+.header-img { width: 100%; display: block; }
+
+.main-content {
+  padding: 0 24rpx;
+  margin-top: -40rpx;
+  position: relative;
+  z-index: 10;
 }
-.littleBlock{
-  margin: 15px 0 0 25%;
-  width: 90px;
-  text-align: center;
+
+.user-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
+  margin-bottom: 24rpx;
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    .avatar {
+      width: 80rpx; height: 80rpx; border-radius: 50%; background-color: #eee; margin-right: 20rpx;
+    }
+    .info-text { display: flex; flex-direction: column; }
+    .greeting {
+      font-size: 28rpx; color: $text-dark; margin-bottom: 10rpx;
+      .vip-tag {
+        background: #ffd700; color: #5a3e00; font-size: 20rpx; padding: 2rpx 8rpx; border-radius: 6rpx; margin-left: 10rpx;
+      }
+    }
+    .stats {
+      font-size: 24rpx; color: $text-gray;
+      text {
+        margin-right: 20rpx;
+        &:active { color: $theme-red; }
+      }
+    }
+  }
+
+  .qr-code {
+    text-align: center; font-size: 22rpx; color: $text-dark;
+    image { display: block; margin: 0 auto 6rpx; }
+    &:active { opacity: 0.7; }
+  }
 }
-.pict{
-  width: 90px;
-  height: 90px;
-  margin-top: 10px;
+
+.core-actions {
+  display: flex; justify-content: space-between; margin-bottom: 24rpx;
+  .action-item {
+    width: 48%; background: #fff; border-radius: 20rpx; padding: 30rpx 0; display: flex; flex-direction: column; align-items: center; box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.03);
+    &:active { background-color: #fafafa; transform: scale(0.98); transition: all 0.2s; }
+
+    .action-icon { width: 120rpx; height: 120rpx; margin-bottom: 16rpx; }
+    .action-title { font-size: 32rpx; font-weight: bold; color: $text-dark; margin-bottom: 8rpx; }
+    .action-desc { font-size: 22rpx; color: $text-gray; }
+  }
 }
-.selectionPic{
-  width: 50px;
-  height: 50px;
-  margin: 10px 0 0 0;
+
+.grid-menu {
+  background: #fff; border-radius: 20rpx; padding: 30rpx 0; display: flex; justify-content: space-around; margin-bottom: 24rpx;
+  .grid-item {
+    display: flex; flex-direction: column; align-items: center; font-size: 24rpx; color: $text-dark;
+    .grid-icon { width: 60rpx; height: 60rpx; margin-bottom: 12rpx; }
+    transition: opacity 0.2s;
+    &:active { opacity: 0.6; }
+  }
 }
-.selectionTitle{
-  height: 35px;
-}
-.largeTitle{
-  font-size: 20px;
-  font-weight: bold;
-}
-.littleTitle{
-  font-size: 10px;
-  font-weight: lighter;
-}
+
+.promo-section { margin-bottom: 24rpx; .promo-img { width: 100%; display: block; border-radius: 20rpx; } }
+.bottom-ad { border-radius: 20rpx; overflow: hidden; margin-bottom: 20rpx; .ad-img { width: 100%; display: block; } }
 </style>
