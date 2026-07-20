@@ -7,7 +7,7 @@
       }
     },
     {
-      "path": "pages/order/orderList",
+      "path": "pages/order/order",
       "style": {
         "navigationBarTitleText": "订单"
       }
@@ -138,7 +138,7 @@
         "text": "点餐"
       },
       {
-        "pagePath": "pages/order/orderList",
+        "pagePath": "pages/order/order",
         "text": "订单"
       },
       {
