@@ -38,7 +38,7 @@
               <view class="food-tags">
                 <text class="tag" v-if="food.spicy === false">不辣</text>
                 <text class="tag" v-if="food.spicy === true">辣</text>
-                <text class="tag type-tag">{{ food.type }}</text>
+                <text class="tag type-tag">{{ currentMenu.label }}</text>
               </view>
               <text class="food-price">￥{{ food.price }}/份起</text>
               <text class="food-recommend" v-if="food.recommend">🔥 {{ food.recommend }}人推荐</text>
@@ -64,60 +64,16 @@ const CategoryList = ref<any[]>([]);
 // 当前选中的菜单索引
 const currentIndex = ref(0);
 
+const AllDishes = ref<[]>([
+])
+
 // 默认菜单（当后端数据未加载时显示）
 const defaultMenuList = [
 ];
 
 // 默认菜品数据（当后端数据未加载时显示）
 const defaultFoodData: Record<string, any[]> = {
-  '原汤单点': [
-    {
-      id: 1,
-      name: '原汤牛肉片粉',
-      price: 13.5,
-      spicy: false,
-      type: '汤粉',
-      recommend: 79
-    },
-    {
-      id: 2,
-      name: '原汤牛腩粉',
-      price: 16.0,
-      spicy: false,
-      type: '汤粉',
-      recommend: 65
-    }
-  ],
-  '原汤套餐': [
-    {
-      id: 3,
-      name: '原汤牛肉粉套餐',
-      price: 25.0,
-      spicy: false,
-      type: '套餐',
-      recommend: 88
-    }
-  ],
-  '干拌单点': [
-    {
-      id: 4,
-      name: '干拌牛肉粉',
-      price: 14.0,
-      spicy: true,
-      type: '干拌',
-      recommend: 72
-    }
-  ],
-  '干拌套餐': [
-    {
-      id: 5,
-      name: '干拌牛肉粉套餐',
-      price: 26.0,
-      spicy: true,
-      type: '套餐',
-      recommend: 56
-    }
-  ]
+
 };
 
 // ============ 计算属性 ============
@@ -140,6 +96,25 @@ const currentFoodList = computed(() => {
   // 如果有后端数据，尝试从分类中获取菜品
   if (CategoryList.value && CategoryList.value.length > 0) {
     const currentCategory = CategoryList.value[currentIndex.value];
+
+    if (currentCategory?.foodList && currentCategory.foodList.length > 0) {
+      return currentCategory.foodList;
+    }
+
+    if (AllDishes.value.length > 0) {
+      console.log(AllDishes.value.length);
+      const categoryId = currentIndex.value + 1;
+
+      console.log(categoryId)
+      console.log((AllDishes.value as any[]).filter(
+          dish => dish.category_id === categoryId
+      ));
+
+      return (AllDishes.value as any[]).filter(
+           dish => dish.category_id === categoryId
+      );
+    }
+
     return currentCategory?.foodList || currentCategory?.dishes || currentCategory?.foods || [];
   }
 
@@ -201,6 +176,17 @@ onMounted(() => {
       console.log("获取数据失败" + err);
     }
   });
+
+  // 请求菜品内容
+  uni.request({
+    url:'http://localhost:8081/api/dish/getAllDishes',
+    success:(res) => {
+      console.log("获取全部菜品：",res);
+      AllDishes.value = res.data.data;
+      console.log("{}",AllDishes);
+    }
+      }
+  )
 });
 </script>
 
