@@ -75,7 +75,7 @@
 
     <!-- 规格选择弹窗 -->
     <uni-popup ref="specPopup" type="bottom" :safe-area="false">
-      <view class="spec-dialog" v-if="selectedFood">
+      <view class="spec-dialog" v-if="selectedFood && on">
         <view class="dialog-header">
           <text class="dialog-title">选择规格</text>
           <text class="dialog-close" @click="closeSpecDialog">✕</text>
@@ -135,6 +135,9 @@ const AllDishes = ref<any[]>([])
 
 // 当前选中的菜单索引
 const currentIndex = ref(0)
+
+const on = ref<boolean>(false)
+
 
 // 规格弹窗相关
 const selectedFood = ref<any>(null)
@@ -224,6 +227,7 @@ function switchMenu(index: number) {
 
 // ============ 规格弹窗相关 ============
 function showSpecDialog(food: any) {
+  on.value = true;
   selectedFood.value = food
   currentSpec.value = '默认'
   dialogQuantity.value = 1
@@ -231,6 +235,7 @@ function showSpecDialog(food: any) {
 }
 
 function closeSpecDialog() {
+  on.value = false;
   specPopup.value?.close()
 }
 
