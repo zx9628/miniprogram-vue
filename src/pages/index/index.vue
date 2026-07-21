@@ -1,41 +1,35 @@
 <template>
-  <view class="content">
-    <image class="logo" src="/static/logo.png" />
-    <view class="text-area">
-      <text class="title">{{ title }}</text>
+  <view class="container">
+    <view class="header">首页</view>
+    <view class="content">
+      <text>欢迎来到移动商城首页！</text>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-const title = ref('Hello,我是yjc')
+import {onMounted, ref} from "vue";
+import {onLoad} from "@dcloudio/uni-app";
+import {getCoupon} from "@/http/coupon";
+const title = ref('')
+
+onMounted(async ()=>{
+    const res = await getCoupon({ id: 3 });
+
+    //存入本地缓存
+    uni.setStorageSync('couponList',res.data);
+    console.log('用户有的优惠卷：', res.data);
+})
+
+
+onLoad(()=>{
+
+
+})
 </script>
 
-<style>
-.content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo {
-  height: 200rpx;
-  width: 200rpx;
-  margin-top: 200rpx;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 50rpx;
-}
-
-.text-area {
-  display: flex;
-  justify-content: center;
-}
-
-.title {
-  font-size: 36rpx;
-  color: #8f8f94;
-}
+<style scoped>
+.container { padding: 20px; }
+.header { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #333; }
+.content { color: #666; font-size: 16px; }
 </style>
