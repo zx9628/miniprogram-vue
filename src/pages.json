@@ -7,15 +7,15 @@
       }
     },
     {
-      "path": "pages/cart/cart",
-      "style": {
-        "navigationBarTitleText": "点餐"
-      }
-    },
-    {
       "path": "pages/order/order",
       "style": {
         "navigationBarTitleText": "订单"
+      }
+    },
+    {
+      "path": "pages/orderFood/orderFood",
+      "style": {
+        "navigationBarTitleText": "点餐"
       }
     },
     {
@@ -65,11 +65,59 @@
       "style": {
         "navigationBarTitleText": "后台管理"
       }
+    },
+    {
+      "path": "pages/index/activity/activity",
+      "style": { "navigationBarTitleText": "暖心行动" }
+    },
+    {
+      "path": "pages/index/grid/groupMeal",
+      "style": { "navigationBarTitleText": "团餐" }
+    },
+    {
+      "path": "pages/index/grid/pointsMall",
+      "style": { "navigationBarTitleText": "积分商城" }
+    },
+    {
+      "path": "pages/index/grid/wheel",
+      "style": { "navigationBarTitleText": "积分大转盘" }
+    },
+    {
+      "path": "pages/index/join/join",
+      "style": { "navigationBarTitleText": "诚邀加盟" }
+    }
+  ],
+
+  "subPackages": [
+    {
+      "root": "subPackages",
+      "pages": [
+        {
+          "path": "member/memberCenter",
+          "style": { "navigationBarTitleText": "会员中心" }
+        },
+        {
+          "path": "member/recharge",
+          "style": { "navigationBarTitleText": "会员储值" }
+        },
+        {
+          "path": "member/points",
+          "style": { "navigationBarTitleText": "我的积分" }
+        },
+        {
+          "path": "member/coupons",
+          "style": { "navigationBarTitleText": "我的优惠券" }
+        },
+        {
+          "path": "member/qrcode",
+          "style": { "navigationBarTitleText": "会员码" }
+        }
+      ]
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "UniApp-Store",
+    "navigationBarTitleText": "uni-app",
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
   },
@@ -86,7 +134,7 @@
         "iconPath": "static/icon/home.png"
       },
       {
-        "pagePath": "pages/cart/cart",
+        "pagePath": "pages/orderFood/orderFood",
         "text": "点餐"
       },
       {
@@ -98,10 +146,6 @@
         "text": "我的",
         "selectedIconPath": "static/icon/my-selected.png",
         "iconPath": "static/icon/my.png"
-      },
-      {
-        "pagePath": "pages/index/admin",
-        "text": "管理端"
       }
     ]
   }
