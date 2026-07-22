@@ -36,7 +36,7 @@
         <scroll-view class="menu-scroll" scroll-y :show-scrollbar="false">
           <view class="menu-list">
             <view
-                v-for="menu in filteredMenus"
+                v-for="menu in menuList"
                 :key="menu.code"
                 class="menu-item"
                 :class="{ open: menu.open, active: isMenuActive(menu) }"
@@ -169,240 +169,168 @@ import OrderManage from "@/pages/index/admin/orderManage.vue";
 import ProdManage from "@/pages/index/admin/prodManage.vue";
 import request from "@/util/request"
 
-// ==================== 模拟用户与权限 ====================
-// 实际项目中应从登录接口获取
 const currentUser = reactive({
-  name: '店长李明',
-  role: '超级管理员',
-  // 用户拥有的权限标识列表（模拟超级管理员拥有全部权限）
-  permissions: [
-    // 'dashboard',
-    'order',
-    'order:list',
-    'order:refund_approve',
-    'order:kitchen',
-    'dine_in',
-    'table:manage',
-    'dine:order',
-    'menu',
-    'menu:category',
-    'menu:list',
-    'menu:edit',
-    'inventory',
-    'inventory:view',
-    'inventory:record',
-    'purchase:order',
-    'supplier:manage',
-    'marketing',
-    'coupon:manage',
-    'promotion:manage',
-    'member:level',
-    'review:manage',
-    'finance',
-    'report:sales',
-    'finance:transactions',
-    'report:profit',
-    'system',
-    'system:user',
-    'system:role',
-    'system:shop',
-    'system:log',
-  ],
+  name:'',
+  role:'',
+  permissions:[]
 })
+const menuList = ref([])
 
-// 判断是否拥有某权限
-const hasPermission = (permCode) => {
+const hasPermission = (permCode)=>{
   return currentUser.permissions.includes(permCode)
 }
 
-// ==================== 菜单配置 ====================
-// 完整菜单树，icon 使用 uni-icons 支持的 type 值
-const menuConfig = [
-  { name: '工作台', code: 'dashboard', icon: 'home-filled', route: 'dashboard' },
-  {
-    name: '订单管理',
-    code: 'order',
-    icon: 'list',
-    children: [
-      { name: '订单列表', code: 'order:list', route: 'order-list' },
-      { name: '退款审核', code: 'order:refund_approve', route: 'refund-approve' },
-      { name: '出餐管理', code: 'order:kitchen', route: 'kitchen' },
-    ],
-  },
-  {
-    name: '菜品管理',
-    code: 'menu',
-    icon: 'shop',
-    children: [
-      { name: '菜品分类', code: 'menu:category', route: 'menu-category' },
-      { name: '菜品列表', code: 'menu:list', route: 'menu-list' },
-      { name: '菜品编辑', code: 'menu:edit', route: 'menu-edit' },
-    ],
-  },
-  {
-    name: '营销会员',
-    code: 'marketing',
-    icon: 'heart',
-    children: [
-      { name: '优惠券管理', code: 'coupon:manage', route: 'coupon-manage' },
-      { name: '促销活动', code: 'promotion:manage', route: 'promotion-manage' },
-      { name: '会员等级', code: 'member:level', route: 'member-level' },
-      { name: '评价管理', code: 'review:manage', route: 'review-manage' },
-    ],
-  },
-  {
-    name: '数据财务',
-    code: 'finance',
-    icon: 'bars',
-    children: [
-      { name: '营业报表', code: 'report:sales', route: 'report-sales' },
-      { name: '交易流水', code: 'finance:transactions', route: 'finance-transactions' },
-      { name: '利润分析', code: 'report:profit', route: 'report-profit' },
-    ],
-  },
-  {
-    name: '系统管理',
-    code: 'system',
-    icon: 'gear',
-    children: [
-      { name: '员工管理', code: 'system:user', route: 'system-user' },
-      { name: '角色管理', code: 'system:role', route: 'system-role' },
-      { name: '店铺设置', code: 'system:shop', route: 'system-shop' },
-      { name: '操作日志', code: 'system:log', route: 'system-log' },
-    ],
-  },
-]
-
-// 根据权限递归过滤菜单
-const filterMenusByPermission = (menus) => {
-  return menus
-      .filter((menu) => {
-        if (menu.children && menu.children.length) {
-          const visibleChildren = menu.children.filter((child) => hasPermission(child.code))
-          if (visibleChildren.length > 0) {
-            // 保留有权限的子菜单
-            menu.children = visibleChildren
-            return true
-          }
-          return false
-        }
-        return hasPermission(menu.code)
-      })
-      .map((menu) => ({
-        ...menu,
-        open: false, // 初始化折叠状态
-      }))
+const getIcon=(code)=>{
+  const icons={
+    order:"list",
+    menu:"shop",
+    user:"person",
+    system:"gear",
+    dashboard:"home-filled",
+    finance:"bars"
+  }
+  return icons[code] || "list"
 }
 
-const filteredMenus = ref(filterMenusByPermission(menuConfig))
+const formatMenu=(menus)=>{
+  return menus.map(item=>({
+    ...item,
+    route:item.path || item.code,
+    icon:getIcon(item.code),
+    open:true,
+    children:item.children ? formatMenu(item.children) : []
+  }))
+}
 
-// ==================== 侧边栏折叠 ====================
-// 小程序中使用 uni.getStorageSync / uni.setStorageSync 持久化
-const getStoredCollapsed = () => {
-  try {
-    const val = uni.getStorageSync('sidebar_collapsed')
-    return val === true || val === 'true'
-  } catch (e) {
+const sidebarCollapsed = ref(false)
+
+const getStoredCollapsed=()=>{
+  try{
+    const val=uni.getStorageSync('sidebar_collapsed')
+    return val===true || val==='true'
+  }catch(e){
     return false
   }
 }
 
-const sidebarCollapsed = ref(getStoredCollapsed())
+sidebarCollapsed.value=getStoredCollapsed()
 
-const toggleSidebar = () => {
-  sidebarCollapsed.value = !sidebarCollapsed.value
-  uni.setStorageSync('sidebar_collapsed', sidebarCollapsed.value.toString())
+const toggleSidebar=()=>{
+  sidebarCollapsed.value=!sidebarCollapsed.value
+  uni.setStorageSync(
+      'sidebar_collapsed',
+      sidebarCollapsed.value.toString()
+  )
 }
 
-// ==================== 路由模拟 ====================
-const currentRoute = ref('dashboard')
+const currentRoute=ref('dashboard')
 
-const currentPageTitle = computed(() => {
-  const findTitle = (menus, route) => {
-    for (const menu of menus) {
-      if (menu.route === route) return menu.name
-      if (menu.children) {
-        const child = menu.children.find((c) => c.route === route)
-        if (child) return child.name
+const currentPageTitle=computed(()=>{
+  const findTitle=(menus,route)=>{
+    for(const menu of menus){
+      if(menu.route===route){
+        return menu.name
+      }
+      if(menu.children){
+        const child=findTitle(menu.children,route)
+        if(child){
+          return child
+        }
       }
     }
     return '未知页面'
   }
-  return findTitle(menuConfig, currentRoute.value)
+  return findTitle(menuList.value,currentRoute.value)
 })
 
-const navigateTo = (menuItem) => {
-  if (menuItem.route) {
-    currentRoute.value = menuItem.route
+const navigateTo=(menuItem)=>{
+  if(menuItem.route){
+    currentRoute.value=menuItem.route
   }
-  // 小程序端：导航后自动收起侧边栏（节省屏幕空间）
-  const systemInfo = uni.getSystemInfoSync()
-  // if (systemInfo.windowWidth < 768) {
-  //   sidebarCollapsed.value = true
-  //   uni.setStorageSync('sidebar_collapsed', 'true')
-  // }
 }
 
-// 一级菜单点击：展开/折叠子菜单，或直接跳转
-const handleMenuClick = (menu) => {
-  if (menu.children && menu.children.length) {
-    menu.open = !menu.open
-  } else {
+const handleMenuClick=(menu)=>{
+  if(menu.children && menu.children.length){
+    menu.open=!menu.open
+  }else{
     navigateTo(menu)
   }
 }
 
-// 判断一级菜单是否激活
-const isMenuActive = (menu) => {
-  if (menu.children && menu.children.length) {
-    return menu.children.some((child) => child.route === currentRoute.value)
+const isMenuActive=(menu)=>{
+  if(menu.children && menu.children.length){
+    return menu.children.some(
+        child=>child.route===currentRoute.value
+    )
   }
-  return menu.route === currentRoute.value
+  return menu.route===currentRoute.value
 }
 
-// ==================== 工作台数据 ====================
-const stats = reactive({
-  todayOrders: 128,
-  todayRevenue: 8642.5,
-  pendingRefunds: 3,
-  lowStock: 7,
+const stats=reactive({
+  todayOrders:128,
+  todayRevenue:8642.5,
+  pendingRefunds:3,
+  lowStock:7
 })
 
-// 退出登录
-const handleLogout = () => {
+const handleLogout=()=>{
   uni.showModal({
-    title: '提示',
-    content: '确定要退出登录吗？',
-    success: (res) => {
-      if (res.confirm) {
-        // 实际项目中清除 token 并跳转登录页
-        uni.showToast({ title: '已退出登录', icon: 'none' })
-        // uni.redirectTo({ url: '/pages/login/login' })
+    title:'提示',
+    content:'确定要退出登录吗？',
+    success:(res)=>{
+      if(res.confirm){
+        uni.showToast({
+          title:'已退出登录',
+          icon:'none'
+        })
       }
-    },
+    }
   })
 }
 
-// ==================== 初始化 ====================
-onMounted(() => {
+onMounted(()=>{
+
   request.post(
       "/api/login/admin",
       {
-        "username": "boss",
-        "password":"12345678wlb"
+        username:"boss",
+        password:"12345678wlb"
       }
-  ).then((res)=>{
-    console.log(res)
-    currentUser.name = res.data.username
-      }
-  )
+  ).then(res=>{
 
-  // 默认展开所有一级菜单（有子菜单的）
-  filteredMenus.value.forEach((menu) => {
-    if (menu.children && menu.children.length) {
-      menu.open = true
+    if(res.code===200){
+
+      const admin=res.data
+
+      console.log("管理员信息",admin)
+
+
+      currentUser.name=
+          admin.username
+
+
+      currentUser.role=
+          admin.rolename
+
+
+      currentUser.permissions=
+          admin.permissionList
+              ?.map(item=>item.code)
+              .filter(Boolean)
+          ||
+          []
+
+
+      menuList.value=
+          formatMenu(admin.menuTree || [])
+
+
+      console.log("动态菜单",menuList.value)
+
     }
+
   })
+
 })
 </script>
 

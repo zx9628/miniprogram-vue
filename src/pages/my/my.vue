@@ -12,7 +12,7 @@
       <view class="card user-card" @click="handleUserClick">
         <image class="avatar" src="/static/cow.png" mode="aspectFill" />
         <view class="user-info">
-          <text v-if="userInfo" class="username">{{ userInfo.phone || '微信用户' }}</text>
+          <text v-if="userInfo" class="username">{{ userInfo.username || '微信用户' }}</text>
           <text v-else class="username">注册/登录</text>
           <text class="sub-text">注册会员尊享更多专属特权</text>
         </view>
@@ -77,8 +77,8 @@
           <button class="wechat-login-btn" @click="wechatLogin">
             微信一键登录
           </button>
-          <view class="phone-login-area" @click="goPhoneLogin">
-            <text class="phone-login-text">手机号登录</text>
+          <view class="phone-login-area" @click="goAdminLogin">
+            <text class="phone-login-text">管理员登录</text>
           </view>
         </template>
 
@@ -126,11 +126,10 @@ const onGetPhoneNumber = (e: any) => {
     showLoginMask.value = false;
     return;
   }
-
   loadingPhone.value = true;
   uni.request({
-    url: 'https://zx.juntaitec.cn/wechat/login/bindPhone',   // 后端需提供此接口
-    // url: 'http://localhost:8081/api/login/bindPhone',
+    // url: 'https://zx.juntaitec.cn/wechat/login/bindPhone',   // 后端需提供此接口
+    url: 'http://localhost:8081/api/login/bindPhone',
     method: 'POST',
     header: { 'Content-Type': 'application/json' },
     data: {
@@ -144,7 +143,7 @@ const onGetPhoneNumber = (e: any) => {
         const phone = res.data.data;   // 假设接口直接返回手机号字符串
         const newUserInfo = {
           openid,
-          phone,
+          username: phone,
           // 其他字段可保留默认值或从后端再次获取
         };
         uni.setStorageSync('userInfo', newUserInfo);
@@ -173,29 +172,24 @@ const closeMask = () => {
 };
 // 遮罩层显示状态
 const showLoginMask = ref(false);
-
 const menuList = [
-  { name: '我的订单', icon: '📄', path: '/pages/order/order' },
+  { name: '我的订单', icon: '📄', path: '/pages/order/orderList' },
   { name: '隐私设置', icon: '🔒', path: '' },
   { name: '会员信息', icon: '💳', path: '' },
   { name: '账号绑定管理', icon: '🔗', path: '' },
   { name: '切换账号', icon: '↩️', path: '' }
 ];
-
 // 页面显示时检查登录状态
 onShow(() => {
   const stored = uni.getStorageSync('userInfo');
   userInfo.value = stored || null;
 });
-
 // 点击用户卡片
 const handleUserClick = () => {
   if (!userInfo.value) {
     showLoginMask.value = true; // 弹出遮罩层
   }
 };
-
-
 // 微信一键登录
 // 修改 wechatLogin 方法
 const wechatLogin = () => {
@@ -209,8 +203,8 @@ const wechatLogin = () => {
         return;
       }
       uni.request({
-        // url: 'http://localhost:8081/api/login/wechat',
-        url: 'https://zx.juntaitec.cn/wechat/login/wechat',
+        url: 'http://localhost:8081/api/login/wechat',
+        // url: 'https://zx.juntaitec.cn/wechat/login/wechat',
         method: 'POST',
         header: { 'Content-Type': 'application/json' },
         data: { code: loginRes.code },
@@ -219,11 +213,11 @@ const wechatLogin = () => {
           console.log(res)
           if (res.data.code === 200) {
             const userData = res.data.data;          // 假设返回 { openid, phone, ... }
-            const openid = userData;
+            const openid = userData.openId;
             uni.setStorageSync('openid', openid);
             console.log(openid)
             // 核心判断：是否有手机号
-            if (!userData.phone) {
+            if (!userData.phoneMasked) {
               // 没有手机号 → 切换到手机号授权界面
               showPhoneAuth.value = true;
             } else {
@@ -253,7 +247,7 @@ const wechatLogin = () => {
 
 
 // 跳转手机号登录页
-const goPhoneLogin = () => {
+const goAdminLogin = () => {
   showLoginMask.value = false; // 先关闭遮罩层
   uni.navigateTo({ url: '/pages/my/login' });
 };
@@ -298,7 +292,7 @@ const handleMenuClick = (item: any) => {
     return;
   }
 
-  const tabBarPages = ['/pages/index/index', '/pages/cart/cart', '/pages/order/order', '/pages/my/my'];
+  const tabBarPages = ['/pages/index/index', '/pages/order/orderList', '/pages/order/order', '/pages/my/my'];
 
   if (tabBarPages.includes(item.path)) {
     uni.switchTab({

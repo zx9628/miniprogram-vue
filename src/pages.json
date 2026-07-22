@@ -7,15 +7,15 @@
       }
     },
     {
-      "path": "pages/cart/cart",
-      "style": {
-        "navigationBarTitleText": "点餐"
-      }
-    },
-    {
       "path": "pages/order/order",
       "style": {
         "navigationBarTitleText": "订单"
+      }
+    },
+    {
+      "path": "pages/orderFood/orderFood",
+      "style": {
+        "navigationBarTitleText": "点餐"
       }
     },
     {
@@ -88,12 +88,10 @@
     }
   ],
 
-  // ⚠️ 重点修改区域：补全主包下的子页面 + 确认分包配置
   "subPackages": [
     {
       "root": "subPackages",
       "pages": [
-        // --- 1. 会员模块 (已存在) ---
         {
           "path": "member/memberCenter",
           "style": { "navigationBarTitleText": "会员中心" }
@@ -136,7 +134,7 @@
         "iconPath": "static/icon/home.png"
       },
       {
-        "pagePath": "pages/cart/cart",
+        "pagePath": "pages/orderFood/orderFood",
         "text": "点餐"
       },
       {
@@ -148,10 +146,6 @@
         "text": "我的",
         "selectedIconPath": "static/icon/my-selected.png",
         "iconPath": "static/icon/my.png"
-      },
-      {
-        "pagePath": "pages/index/admin",
-        "text": "管理端"
       }
     ]
   }

@@ -10,11 +10,13 @@
       <!-- 会员信息卡片 -->
       <view class="user-card">
         <view class="user-info">
+          <!-- 头像点击跳转 -->
           <image src="/static/images/avatar.png" class="avatar" mode="aspectFill" @click="goToMemberCenter"></image>
           <view class="info-text">
             <view class="greeting">
-              Hi {{ userInfo.username || "你好" }}
-              <text class="vip-tag" @click="goToMemberCenter">{{ userInfo.vipName || "普通会员" }}</text>
+              Hi 你好
+              <!-- 会员等级点击跳转 -->
+              <text class="vip-tag" @click="goToMemberCenter">六品王VIP卡·铁牛会员</text>
             </view>
             <view class="stats">
               <text @click="handleJump('balance')">余额 {{ userInfo.balance }}</text>
@@ -24,6 +26,7 @@
           </view>
         </view>
 
+        <!-- ✅ 修复：这里 @click 前面补上了一个空格 -->
         <view class="qr-code" @click="goToMemberCode">
           <image src="/static/images/qrcode-icon.png" mode="widthFix" style="width: 40rpx;"></image>
           <text>会员码</text>
@@ -69,7 +72,9 @@
   </view>
 </template>
 <script setup>
-import { onMounted, ref } from "vue";
+import {onMounted, ref} from "vue";
+
+const title = ref("")
 import request from "@/util/request";
 
 // 用户信息（后端赋值，不再写死）
@@ -80,6 +85,12 @@ const userInfo = ref({
   points: 0,
   couponNum: 0
 });
+onMounted(()=>{
+
+    }
+);
+
+// ✅ 注意：如果会员储值也移到了分包，记得把这里的 url 也改成 /subPackages/member/recharge
 const gridList = ref([
   { name: '会员储值', icon: '/static/images/grid-1.png', url: '/subPackages/member/recharge' },
   { name: '团餐', icon: '/static/images/grid-2.png', url: '/pages/index/grid/groupMeal' },
@@ -123,24 +134,38 @@ const getUserData = async () => {
 // 跳转逻辑（原有不变）
 const handleJump = (type) => {
   console.log('触发跳转类型:', type);
+
   switch (type) {
-    case 'balance':
-      uni.navigateTo({ url: '/subPackages/member/recharge' });
+    case 'balance': // 余额 -> 充值界面
+      uni.navigateTo({
+        url: '/subPackages/member/recharge' // ✅ 更新分包路径
+      });
       break;
-    case 'dineIn':
-      uni.switchTab({ url: '/pages/index/order' });
+
+    case 'dineIn': // 堂食 -> 底部点餐界面 (假设是TabBar页)
+      uni.switchTab({
+        url: '/pages/order/order'
+      });
       break;
-    case 'points':
-      uni.navigateTo({ url: '/subPackages/member/points' });
+
+    case 'points': // 积分
+      uni.navigateTo({
+        url: '/subPackages/member/points' // ✅ 更新分包路径
+      });
       break;
-    case 'coupons':
-      uni.navigateTo({ url: '/subPackages/member/coupons' });
+
+    case 'coupons': // 优惠券
+      uni.navigateTo({
+        url: '/subPackages/member/coupons' // ✅ 更新分包路径
+      });
       break;
+
     default:
       break;
   }
 };
 
+// 通用跳转方法 (金刚区)
 const handleGridClick = (item) => {
   if (item.url) {
     uni.navigateTo({
@@ -153,20 +178,30 @@ const handleGridClick = (item) => {
   }
 };
 
+// ✅ 更新分包路径
 const goToMemberCode = () => {
-  uni.navigateTo({ url: '/subPackages/member/qrcode' });
+  uni.navigateTo({
+    url: '/subPackages/member/qrcode'
+  });
 };
 
+// ✅ 更新分包路径
 const goToMemberCenter = () => {
-  uni.navigateTo({ url: '/subPackages/member/memberCenter' });
+  uni.navigateTo({
+    url: '/subPackages/member/memberCenter'
+  });
 };
 
 const goToActivity = () => {
-  uni.navigateTo({ url: '/pages/index/activity/activity' });
+  uni.navigateTo({
+    url: '/pages/index/activity/activity'
+  });
 };
 
 const goToJoin = () => {
-  uni.navigateTo({ url: '/pages/index/join/join' });
+  uni.navigateTo({
+    url: '/pages/index/join/join'
+  });
 };
 </script>
 

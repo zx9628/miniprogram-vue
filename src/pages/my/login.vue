@@ -2,8 +2,8 @@
   <view class="login-container">
     <!-- 头部区域 -->
     <view class="header-section">
-      <text class="main-title">欢迎登录</text>
-      <text class="sub-title">使用手机号和密码登录</text>
+      <text class="main-title">管理员登录</text>
+      <text class="sub-title">使用用户名和密码登录</text>
     </view>
 
     <!-- 表单区域 -->
@@ -11,11 +11,11 @@
       <view class="input-item">
         <input
             class="uni-input"
-            type="number"
-            v-model="formData.phone"
-            placeholder="请输入手机号"
+            type="text"
+            v-model="formData.username"
+            placeholder="请输入用户名"
             placeholder-class="placeholder-style"
-            maxlength="11"
+            maxlength="20"
         />
       </view>
 
@@ -45,58 +45,60 @@
 
 <script setup>
 import { reactive } from 'vue';
-// 引入封装好的请求工具
-import request from '@/util/request'
 
 const formData = reactive({
-  phone: '',
-  password: ''
+  username: 'boss',
+  password: '12345678wlb'
 });
 
 // 点击登录
-const handleLogin = async () => {
-  // 表单校验
-  if (!formData.phone) {
-    uni.showToast({ title: '请输入手机号', icon: 'none' });
-    return;
-  }
-  if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
-    uni.showToast({ title: '手机号格式不正确', icon: 'none' });
+const handleLogin = () => {
+  if (!formData.username) {
+    uni.showToast({ title: '请输入用户名', icon: 'none' });
     return;
   }
   if (!formData.password) {
     uni.showToast({ title: '请输入密码', icon: 'none' });
     return;
   }
-
   uni.showLoading({ title: '登录中...' });
-  try {
-    // 请求本地SpringBoot后端接口
-    const res = await request("/api/login/login", "POST", {
-      phone: formData.phone,
+  uni.request({
+    url: 'http://localhost:8081/api/login/admin',
+    method: 'POST',
+    header: {
+      'Content-Type': 'application/json'
+    },
+    data: {
+      username: formData.username,
       password: formData.password
-    })
-    uni.hideLoading()
-    if (res.code === 200) {
-      // 核心：存储JWT token，首页接口自动携带
-      uni.setStorageSync('token', res.data.token)
-      // 可选：存储用户基础信息
-      uni.setStorageSync('userInfo', res.data.userInfo)
-
-      uni.showToast({ title: '登录成功' });
-      setTimeout(() => {
-        // 跳普通用户首页 pages/index/index，admin不用
-        uni.switchTab({ url: '/pages/index/index' });
-      }, 1200);
-    } else {
-      uni.showToast({ title: res.message || '登录失败', icon: 'none' });
-      formData.phone = ''
-      formData.password = ''
+    },
+    success: (res) => {
+      uni.hideLoading();
+      console.log('后端返回完整数据:', JSON.stringify(res.data));
+      if (res.data.code === 200) {
+        const adminData = res.data.data;
+        console.log('登录成功，准备存储的用户信息:', adminData);
+        uni.setStorageSync('adminInfo', adminData);
+        uni.showToast({ title: '登录成功' });
+        setTimeout(() => {
+          // 【修改】若非tabBar页面请使用reLaunch或redirectTo
+          // reLaunch会关闭所有页面并打开新页面，适合登录成功场景
+          uni.reLaunch({ url: '/pages/index/admin' });
+        }, 1500);
+      } else {
+        uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
+        formData.username = '';
+        formData.password = '';
+      }
+    },
+    fail: (err) => {
+      uni.hideLoading();
+      console.error('登录请求失败:', err);
+      uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+      formData.username = '';
+      formData.password = '';
     }
-  } catch (err) {
-    uni.hideLoading()
-    uni.showToast({ title: '连接后端失败，请检查IDEA服务是否启动', icon: 'none' })
-  }
+  });
 };
 
 // 跳转注册页
