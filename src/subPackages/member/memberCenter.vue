@@ -50,8 +50,6 @@ const handleJump = (title: string) => {
             <text class="level-name">{{ userInfo.levelName }}</text>
             <text class="card-no">{{ userInfo.cardNo }}</text>
           </view>
-          <!-- 二维码图标 -->
-          <text class="qr-icon">📱</text>
         </view>
 
         <!-- 卡片中部：资产数据 -->
@@ -67,10 +65,6 @@ const handleJump = (title: string) => {
           <view class="asset-item" @click="handleJump('优惠券')">
             <text class="num">{{ userInfo.coupons }}</text>
             <text class="label">优惠券</text>
-          </view>
-          <view class="asset-item" @click="handleJump('礼品卡')">
-            <text class="num">{{ userInfo.giftCards }}</text>
-            <text class="label">礼品卡</text>
           </view>
         </view>
       </view>
@@ -176,9 +170,7 @@ const handleJump = (title: string) => {
   opacity: 0.8;
 }
 
-.qr-icon {
-  font-size: 48rpx;
-}
+
 
 .assets-row {
   display: flex;

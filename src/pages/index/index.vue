@@ -25,24 +25,17 @@
             </view>
           </view>
         </view>
-
-        <!-- ✅ 修复：这里 @click 前面补上了一个空格 -->
-        <view class="qr-code" @click="goToMemberCode">
-          <image src="/static/images/qrcode-icon.png" mode="widthFix" style="width: 40rpx;"></image>
-          <text>会员码</text>
-        </view>
       </view>
 
       <!-- 核心功能区 (堂食/会员) -->
       <view class="core-actions">
         <view class="action-item large" @click="handleJump('dineIn')">
-          <image src="/static/images/icon-eat.png" class="action-icon" mode="widthFix"></image>
+          <text class="action-icon">🍽️</text>
           <text class="action-title">堂食/自提</text>
           <text class="action-desc">手机点餐免排队</text>
         </view>
-
         <view class="action-item large" @click="goToMemberCenter">
-          <image src="/static/images/icon-member.png" class="action-icon" mode="widthFix"></image>
+          <text class="action-icon">💳</text>
           <text class="action-title">会员中心</text>
           <text class="action-desc">储值优惠</text>
         </view>
@@ -51,19 +44,9 @@
       <!-- 金刚区 (四个小图标) -->
       <view class="grid-menu">
         <view class="grid-item" v-for="(item, index) in gridList" :key="index" @click="handleGridClick(item)">
-          <image :src="item.icon" class="grid-icon" mode="widthFix"></image>
+          <text class="grid-icon">{{ item.icon }}</text>
           <text>{{ item.name }}</text>
         </view>
-      </view>
-
-      <!-- 营销活动 Banner (暖心行动) -->
-      <view class="promo-section">
-        <image src="/static/images/banner-promo.png" mode="widthFix" class="promo-img" @click="goToActivity"></image>
-      </view>
-
-      <!-- 底部广告 (诚邀加盟) -->
-      <view class="bottom-ad">
-        <image src="/static/images/ad-join.png" mode="widthFix" class="ad-img" @click="goToJoin"></image>
       </view>
 
       <!-- 占位符 -->
@@ -85,17 +68,13 @@ const userInfo = ref({
   points: 0,
   couponNum: 0
 });
-onMounted(()=>{
 
-    }
-);
 
-// ✅ 注意：如果会员储值也移到了分包，记得把这里的 url 也改成 /subPackages/member/recharge
 const gridList = ref([
-  { name: '会员储值', icon: '/static/images/grid-1.png', url: '/subPackages/member/recharge' },
-  { name: '团餐', icon: '/static/images/grid-2.png', url: '/pages/index/grid/groupMeal' },
-  { name: '积分商城', icon: '/static/images/grid-3.png', url: '/pages/index/grid/pointsMall' },
-  { name: '积分大转盘', icon: '/static/images/grid-4.png', url: '/pages/index/grid/wheel' }
+  { name: '会员储值', icon: '💳', url: '/subPackages/member/recharge' },
+  { name: '团餐', icon: '🍱', url: '/pages/index/grid/groupMeal' },
+  { name: '积分商城', icon: '🎁', url: '/pages/index/grid/pointsMall' },
+  { name: '积分大转盘', icon: '🎡', url: '/pages/index/grid/wheel' }
 ]);
 
 // 页面加载
@@ -103,7 +82,7 @@ onMounted(async () => {
   // 1. 判断是否登录，无token直接跳登录
   const token = uni.getStorageSync("token");
   if (!token) {
-    uni.redirectTo({ url: "/pages/my/login" });
+    await uni.redirectTo({url: "/pages/my/login"});
     return;
   }
   // 2. 请求后端获取当前登录用户信息接口
@@ -122,7 +101,6 @@ const getUserData = async () => {
       userInfo.value.couponNum = res.data.couponNum;
     } else if (res.code === 401) {
       uni.clearStorageSync("token");
-      // 这里同步改成 /pages/my/login
       uni.redirectTo({ url: "/pages/my/login" });
     }
   } catch (err) {
@@ -131,18 +109,18 @@ const getUserData = async () => {
   }
 };
 
-// 跳转逻辑（原有不变）
+// 跳转逻辑
 const handleJump = (type) => {
   console.log('触发跳转类型:', type);
 
   switch (type) {
     case 'balance': // 余额 -> 充值界面
       uni.navigateTo({
-        url: '/subPackages/member/recharge' // ✅ 更新分包路径
+        url: '/subPackages/member/recharge'
       });
       break;
 
-    case 'dineIn': // 堂食 -> 底部点餐界面 (假设是TabBar页)
+    case 'dineIn': // 堂食 -> 底部点餐Tab
       uni.switchTab({
         url: '/pages/order/order'
       });
@@ -150,13 +128,13 @@ const handleJump = (type) => {
 
     case 'points': // 积分
       uni.navigateTo({
-        url: '/subPackages/member/points' // ✅ 更新分包路径
+        url: '/subPackages/member/points'
       });
       break;
 
     case 'coupons': // 优惠券
       uni.navigateTo({
-        url: '/subPackages/member/coupons' // ✅ 更新分包路径
+        url: '/subPackages/member/coupons'
       });
       break;
 
@@ -165,7 +143,7 @@ const handleJump = (type) => {
   }
 };
 
-// 通用跳转方法 (金刚区)
+// 金刚区跳转
 const handleGridClick = (item) => {
   if (item.url) {
     uni.navigateTo({
@@ -178,35 +156,15 @@ const handleGridClick = (item) => {
   }
 };
 
-// ✅ 更新分包路径
-const goToMemberCode = () => {
-  uni.navigateTo({
-    url: '/subPackages/member/qrcode'
-  });
-};
-
-// ✅ 更新分包路径
 const goToMemberCenter = () => {
   uni.navigateTo({
     url: '/subPackages/member/memberCenter'
   });
 };
 
-const goToActivity = () => {
-  uni.navigateTo({
-    url: '/pages/index/activity/activity'
-  });
-};
-
-const goToJoin = () => {
-  uni.navigateTo({
-    url: '/pages/index/join/join'
-  });
-};
 </script>
 
 <style lang="scss" scoped>
-/* 样式保持不变 */
 $theme-pink: #f8dce4;
 $theme-red: #e63a46;
 $text-dark: #333;
@@ -253,53 +211,93 @@ $text-gray: #999;
     display: flex;
     align-items: center;
     .avatar {
-      width: 80rpx; height: 80rpx; border-radius: 50%; background-color: #eee; margin-right: 20rpx;
+      width: 80rpx;
+      height: 80rpx;
+      border-radius: 50%;
+      background-color: #eee;
+      margin-right: 20rpx;
     }
     .info-text { display: flex; flex-direction: column; }
     .greeting {
-      font-size: 28rpx; color: $text-dark; margin-bottom: 10rpx;
+      font-size: 28rpx;
+      color: $text-dark;
+      margin-bottom: 10rpx;
       .vip-tag {
-        background: #ffd700; color: #5a3e00; font-size: 20rpx; padding: 2rpx 8rpx; border-radius: 6rpx; margin-left: 10rpx;
+        background: #ffd700;
+        color: #5a3e00;
+        font-size: 20rpx;
+        padding: 2rpx 8rpx;
+        border-radius: 6rpx;
+        margin-left: 10rpx;
       }
     }
     .stats {
-      font-size: 24rpx; color: $text-gray;
+      font-size: 24rpx;
+      color: $text-gray;
       text {
         margin-right: 20rpx;
         &:active { color: $theme-red; }
       }
     }
   }
-
-  .qr-code {
-    text-align: center; font-size: 22rpx; color: $text-dark;
-    image { display: block; margin: 0 auto 6rpx; }
-    &:active { opacity: 0.7; }
-  }
 }
 
 .core-actions {
-  display: flex; justify-content: space-between; margin-bottom: 24rpx;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
   .action-item {
-    width: 48%; background: #fff; border-radius: 20rpx; padding: 30rpx 0; display: flex; flex-direction: column; align-items: center; box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.03);
-    &:active { background-color: #fafafa; transform: scale(0.98); transition: all 0.2s; }
-
-    .action-icon { width: 120rpx; height: 120rpx; margin-bottom: 16rpx; }
-    .action-title { font-size: 32rpx; font-weight: bold; color: $text-dark; margin-bottom: 8rpx; }
-    .action-desc { font-size: 22rpx; color: $text-gray; }
+    width: 48%;
+    background: #fff;
+    border-radius: 20rpx;
+    padding: 30rpx 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.03);
+    &:active {
+      background-color: #fafafa;
+      transform: scale(0.98);
+      transition: all 0.2s;
+    }
+    .action-icon {
+      font-size: 72rpx;
+      line-height: 1;
+      margin-bottom: 16rpx;
+    }
+    .action-title {
+      font-size: 32rpx;
+      font-weight: bold;
+      color: $text-dark;
+      margin-bottom: 8rpx;
+    }
+    .action-desc {
+      font-size: 22rpx;
+      color: $text-gray;
+    }
   }
 }
 
 .grid-menu {
-  background: #fff; border-radius: 20rpx; padding: 30rpx 0; display: flex; justify-content: space-around; margin-bottom: 24rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx 0;
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 24rpx;
   .grid-item {
-    display: flex; flex-direction: column; align-items: center; font-size: 24rpx; color: $text-dark;
-    .grid-icon { width: 60rpx; height: 60rpx; margin-bottom: 12rpx; }
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 24rpx;
+    color: $text-dark;
     transition: opacity 0.2s;
     &:active { opacity: 0.6; }
+    .grid-icon {
+      font-size: 52rpx;
+      line-height: 1;
+      margin-bottom: 12rpx;
+    }
   }
 }
-
-.promo-section { margin-bottom: 24rpx; .promo-img { width: 100%; display: block; border-radius: 20rpx; } }
-.bottom-ad { border-radius: 20rpx; overflow: hidden; margin-bottom: 20rpx; .ad-img { width: 100%; display: block; } }
 </style>
