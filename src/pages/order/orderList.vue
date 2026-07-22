@@ -88,7 +88,7 @@
 
       <!-- 空状态 -->
       <view v-else-if="!loading" class="empty-state">
-        <image src="/static/empty-order.png" mode="aspectFit" class="empty-img" />
+        <image src="" mode="aspectFit" class="empty-img" />
         <text class="empty-text">暂无相关订单</text>
       </view>
 

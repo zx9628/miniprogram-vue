@@ -17,8 +17,11 @@ jobs:
       - name: 设置 Node.js
         uses: actions/setup-node@v5  # 🚀 从 v4 升级到 v5
         with:
-          node-version: '24'
+          node-version: '18'
           cache: 'npm'
+
+      - name: 配置国内镜像源
+        run: npm config set registry https://registry.npmmirror.com
 
       - name: 安装依赖
         run: npm install miniprogram-ci --save-dev --legacy-peer-deps
