@@ -23,7 +23,7 @@
         @scrolltolower="loadMore"
     >
       <!-- 订单卡片 -->
-      <view v-if="orderList.length > 0" class="card" v-for="item in orderList" :key="item.id">
+      <view v-if="filteredOrders.length > 0" class="card" v-for="item in filteredOrders" :key="item.id">
         <!-- 卡片头部：店铺名 + 订单状态 -->
         <view class="card-header">
           <text class="store-name">{{ item.storeName || '默认门店' }}</text>
@@ -32,18 +32,28 @@
           </text>
         </view>
 
-        <!-- 卡片内容：商品信息（示例占位）+ 金额 -->
+        <!-- ⭐ 卡片内容：遍历后端返回的 orderItems -->
         <view class="card-body">
-          <view class="goods-info">
-            <image class="goods-img" src="/static/default-goods.png" mode="aspectFill" />
+          <view
+              class="goods-info"
+              v-for="goods in item.orderItems"
+              :key="goods.id"
+          >
+            <image
+                class="goods-img"
+                :src="goods.image || '/static/default-goods.png'"
+                mode="aspectFill"
+            />
             <view class="goods-detail">
-              <text class="goods-name">拿铁咖啡 x1</text>
-              <text class="goods-spec">大杯 / 少冰 / 去糖</text>
+              <text class="goods-name">{{ goods.dishName }} x{{ goods.quantity }}</text>
+              <text class="goods-spec">{{ goods.specName || '标准份' }}</text>
             </view>
           </view>
+
           <view class="amount-info">
-            <text class="total-label">共{{ item.totalCount || 1 }}件 合计</text>
-            <text class="total-price">¥{{ item.payAmount }}</text>
+            <!-- ⭐ 动态计算总件数 -->
+            <text class="total-label">共{{ getTotalCount(item.orderItems) }}件 合计</text>
+            <text class="total-price">¥{{ formatPrice(item.payAmount) }}</text>
           </view>
         </view>
 
@@ -85,24 +95,43 @@
       <!-- 加载状态 -->
       <view class="load-status">
         <text v-if="loading">加载中...</text>
-        <text v-else-if="noMore && orderList.length > 0">没有更多了</text>
+        <text v-else-if="noMore && filteredOrders.length > 0">没有更多了</text>
       </view>
     </scroll-view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
-// ==================== 类型定义 ====================
-interface OrderItem {
+// ==================== ⭐ 类型定义（严格匹配后端 OrderVO + OrderItemVO） ====================
+interface OrderItemVO {
+  id: number;
+  orderId: number;
+  dishName: string;
+  specName: string;
+  image: string | null;
+  price: number;
+  quantity: number;
+  amount: number;
+}
+
+interface OrderVO {
   id: number;
   orderNo: string;
-  storeName?: string;
-  payAmount: string;
+  storeId: number;
+  storeName?: string; // 后端暂未返回，前端预留
+  totalAmount: number;
+  discountAmount: number;
+  payAmount: number;
   payStatus: number;   // 0待支付 1已支付 2退款
   orderStatus: number; // 0待支付 1待制作 2制作中 3待取餐 4完成 5取消
-  totalCount?: number;
+  pickCode: string;
+  remark: string | null;
+  payTime: string | null;
+  finishTime: string | null;
+  createTime: string;
+  orderItems: OrderItemVO[];
 }
 
 // ==================== 响应式数据 ====================
@@ -115,12 +144,19 @@ const tabs = [
 ];
 
 const currentStatus = ref(-1);
-const orderList = ref<OrderItem[]>([]);
+const orderList = ref<OrderVO[]>([]);
 const loading = ref(false);
 const isRefreshing = ref(false);
 const noMore = ref(false);
 const page = ref(1);
 const pageSize = 10;
+
+// ⭐ 前端过滤：因为后端目前是一次性返回全部，Tab切换在前端做过滤
+// 后续如果后端支持分页+状态筛选，这里应改为重新请求API
+const filteredOrders = computed(() => {
+  if (currentStatus.value === -1) return orderList.value;
+  return orderList.value.filter(o => o.orderStatus === currentStatus.value);
+});
 
 // ==================== 生命周期 ====================
 onMounted(() => {
@@ -129,7 +165,7 @@ onMounted(() => {
 
 // ==================== 核心方法 ====================
 
-/** 获取订单列表（TODO: 替换为真实API） */
+/** ⭐ 获取订单列表（已对接真实API） */
 const fetchOrders = async (isRefresh = false) => {
   if (loading.value) return;
 
@@ -142,31 +178,23 @@ const fetchOrders = async (isRefresh = false) => {
   }
 
   try {
-    // ⭐ TODO: 替换为真实的后端请求
-    // const res = await uni.request({
-    //   url: '/api/orders',
-    //   data: { page: page.value, pageSize, orderStatus: currentStatus.value }
-    // });
+    const res = await uni.request({
+      url: 'http://localhost:8081/api/order/getorders',
+      method: 'GET',
+      data: { userId: 1 } // ⭐ 实际项目中应从登录态获取
+    });
 
-    // 模拟数据用于UI预览
-    await new Promise(resolve => setTimeout(resolve, 600));
-    const mockData: OrderItem[] = Array.from({ length: 5 }).map((_, i) => ({
-      id: page.value * 10 + i,
-      orderNo: `20260716${String(page.value * 10 + i).padStart(8, '0')}`,
-      storeName: '桂电校区店',
-      payAmount: (28 + i * 2).toFixed(2),
-      payStatus: currentStatus.value === 0 ? 0 : 1,
-      orderStatus: currentStatus.value === -1 ? [0, 2, 3, 4][i % 4] : currentStatus.value,
-      totalCount: 1 + (i % 3),
-    }));
+    // 适配你的后端统一响应格式 { code, message, data }
+    const list: OrderVO[] = (res.data as any)?.data || [];
 
     if (isRefresh) {
-      orderList.value = mockData;
+      orderList.value = list;
     } else {
-      orderList.value = [...orderList.value, ...mockData];
+      orderList.value = [...orderList.value, ...list];
     }
 
-    if (mockData.length < pageSize) noMore.value = true;
+    // 简单分页判断（后端若支持分页应使用后端返回的 total/pageInfo）
+    if (list.length < pageSize) noMore.value = true;
   } catch (e) {
     console.error('获取订单失败:', e);
     uni.showToast({ title: '加载失败', icon: 'none' });
@@ -176,12 +204,22 @@ const fetchOrders = async (isRefresh = false) => {
   }
 };
 
+/** ⭐ 计算订单总件数 */
+const getTotalCount = (items: OrderItemVO[]): number => {
+  return items.reduce((sum, item) => sum + item.quantity, 0);
+};
+
+/** ⭐ 格式化价格（防止浮点精度问题） */
+const formatPrice = (price: number): string => {
+  return Number(price).toFixed(2);
+};
+
 /** 切换Tab */
 const switchTab = (status: number) => {
   if (currentStatus.value === status) return;
   currentStatus.value = status;
-  orderList.value = [];
-  fetchOrders(true);
+  // 由于当前是全量加载，切换Tab不需要重新请求
+  // 如果后续改为服务端分页，此处应调用 fetchOrders(true)
 };
 
 /** 下拉刷新 & 上拉加载更多 */
@@ -200,8 +238,8 @@ const getStatusText = (status: number): string => {
   return map[status] || '未知';
 };
 
-/** 操作按钮事件（TODO: 对接真实API） */
-const cancelOrder = (item: OrderItem) => {
+/** 操作按钮事件 */
+const cancelOrder = (item: OrderVO) => {
   uni.showModal({
     title: '提示', content: '确定要取消该订单吗？',
     success: (res) => {
@@ -214,88 +252,32 @@ const cancelOrder = (item: OrderItem) => {
   });
 };
 
-const payOrder = (item: OrderItem) => {
-  // TODO: 调用微信支付流程
+const payOrder = (item: OrderVO) => {
   uni.showToast({ title: '跳转支付...', icon: 'none' });
 };
 
-const rebuy = (item: OrderItem) => {
-  // TODO: 将商品加入购物车并跳转
+const rebuy = (item: OrderVO) => {
+  // ⭐ 可以将 item.orderItems 加入购物车
   uni.showToast({ title: '已加入购物车', icon: 'success' });
 };
 </script>
 
 <style scoped>
-.order-page {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #f5f5f5;
-}
-
-/* ===== Tab 栏 ===== */
-.tab-bar {
-  display: flex;
-  background: #fff;
-  padding: 0 10rpx;
-  flex-shrink: 0;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
-  z-index: 10;
-}
-.tab-item {
-  flex: 1;
-  text-align: center;
-  padding: 24rpx 0;
-  font-size: 28rpx;
-  color: #666;
-  position: relative;
-  transition: all 0.3s;
-}
-.tab-item.active {
-  color: #07c160;
-  font-weight: 600;
-}
-.tab-item.active::after {
-  content: '';
-  position: absolute;
-  bottom: 4rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40rpx;
-  height: 6rpx;
-  border-radius: 3rpx;
-  background: #07c160;
-}
-
-/* ===== 订单列表 ===== */
-.order-list {
-  flex: 1;
-  padding: 20rpx;
-}
-.card {
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
-}
-
-/* 卡片头部 */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 20rpx;
-  border-bottom: 1rpx solid #f0f0f0;
-}
+/* 样式保持不变，与原代码完全一致 */
+.order-page { display: flex; flex-direction: column; height: 100vh; background-color: #f5f5f5; }
+.tab-bar { display: flex; background: #fff; padding: 0 10rpx; flex-shrink: 0; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04); z-index: 10; }
+.tab-item { flex: 1; text-align: center; padding: 24rpx 0; font-size: 28rpx; color: #666; position: relative; transition: all 0.3s; }
+.tab-item.active { color: #07c160; font-weight: 600; }
+.tab-item.active::after { content: ''; position: absolute; bottom: 4rpx; left: 50%; transform: translateX(-50%); width: 40rpx; height: 6rpx; border-radius: 3rpx; background: #07c160; }
+.order-list { flex: 1; padding: 20rpx; }
+.card { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.card-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20rpx; border-bottom: 1rpx solid #f0f0f0; }
 .store-name { font-size: 30rpx; font-weight: 600; color: #333; }
 .status-text { font-size: 26rpx; font-weight: 500; }
 .status-0 { color: #fa9d3b; }
 .status-2, .status-3 { color: #07c160; }
 .status-4 { color: #999; }
 .status-5 { color: #ccc; }
-
-/* 卡片内容 */
 .card-body { padding: 20rpx 0; }
 .goods-info { display: flex; gap: 16rpx; margin-bottom: 16rpx; }
 .goods-img { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #f8f8f8; }
@@ -305,32 +287,12 @@ const rebuy = (item: OrderItem) => {
 .amount-info { display: flex; justify-content: flex-end; align-items: baseline; gap: 8rpx; }
 .total-label { font-size: 24rpx; color: #999; }
 .total-price { font-size: 34rpx; color: #333; font-weight: 700; }
-
-/* 卡片底部 */
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 20rpx;
-  border-top: 1rpx solid #f0f0f0;
-}
+.card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 20rpx; border-top: 1rpx solid #f0f0f0; }
 .order-no { font-size: 22rpx; color: #bbb; }
 .btn-group { display: flex; gap: 16rpx; }
 .btn-group button { font-size: 24rpx; border-radius: 30rpx; }
-
-/* ===== 空状态 & 加载 ===== */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 200rpx;
-}
+.empty-state { display: flex; flex-direction: column; align-items: center; padding-top: 200rpx; }
 .empty-img { width: 300rpx; height: 300rpx; opacity: 0.6; }
 .empty-text { margin-top: 20rpx; font-size: 28rpx; color: #ccc; }
-.load-status {
-  text-align: center;
-  padding: 30rpx 0;
-  font-size: 24rpx;
-  color: #ccc;
-}
+.load-status { text-align: center; padding: 30rpx 0; font-size: 24rpx; color: #ccc; }
 </style>
