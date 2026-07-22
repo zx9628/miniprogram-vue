@@ -36,10 +36,10 @@
       <view
           class="cart-item"
           v-for="(item, index) in cartStore.items"
-          :key="`${item.id}-${item.spec}`"
+          :key="`${item.dishId}-${item.specName}`"
       >
         <!-- 复选框 -->
-        <view class="checkbox-wrap" @click="cartStore.toggleSelected(item.id, item.spec)">
+        <view class="checkbox-wrap" @click="cartStore.toggleSelected(item.dishId, item.specName)">
           <view class="checkbox" :class="{ checked: item.selected }">
             <text v-if="item.selected">✓</text>
           </view>
@@ -51,7 +51,7 @@
         <!-- 商品信息 -->
         <view class="item-info">
           <text class="item-name">{{ item.name }}</text>
-          <text class="item-spec">{{ item.spec }}</text>
+          <text class="item-spec">{{ item.specName }}</text>
           <view class="item-price-row">
             <text class="item-price">￥{{ item.price.toFixed(2) }}</text>
             <text class="item-stock" v-if="item.quantity >= item.stock * 0.8">
@@ -66,7 +66,7 @@
             <button
                 class="qty-btn"
                 :class="{ disabled: item.quantity <= 1 }"
-                @click="cartStore.updateQuantity(item.id, item.spec, -1)"
+                @click="cartStore.updateQuantity(item.dishId, item.specName, -1)"
                 :disabled="item.quantity <= 1"
             >
               −
@@ -75,13 +75,13 @@
             <button
                 class="qty-btn"
                 :class="{ disabled: item.quantity >= item.stock }"
-                @click="cartStore.updateQuantity(item.id, item.spec, 1)"
+                @click="cartStore.updateQuantity(item.dishId, item.specName, 1)"
                 :disabled="item.quantity >= item.stock"
             >
               +
             </button>
           </view>
-          <button v-else class="delete-btn" @click="deleteItem(item.id, item.spec)">
+          <button v-else class="delete-btn" @click="deleteItem(item.dishId, item.specName)">
             ✕
           </button>
         </view>
@@ -100,9 +100,9 @@
       <button
           class="checkout-btn"
           :class="{ disabled: cartStore.selectedItems.length === 0 }"
-          @click="checkout"
+          @click="createOrder()"
       >
-        结算 ({{ cartStore.selectedCount }})
+        生成订单
       </button>
     </view>
   </view>
@@ -125,6 +125,24 @@ onShow(() => {
 
 // ===== 方法 =====
 
+// 生成订单
+function createOrder() {
+  console.log(cartStore.selectedItems)
+  uni.request({
+    url:`http://localhost:8081/api/order/createOrders`,
+    method:'POST',
+    header:{
+      'custom-header':'application/json'
+    },
+    data: cartStore.selectedItems,
+    success:(res) => {
+      console.log(res.data)
+      if(res.statusCode === 200) {
+        console.log(res);
+      }
+    }
+  })
+}
 // 返回上一页
 function goBack() {
   uni.switchTab({ url: '/pages/orderFood/orderFood' })
@@ -136,13 +154,13 @@ function toggleEditMode() {
 }
 
 // 删除商品
-function deleteItem(id, spec) {
+function deleteItem(dishId, specName) {
   uni.showModal({
     title: '提示',
     content: '确定要删除该商品吗？',
     success: (res) => {
       if (res.confirm) {
-        cartStore.removeItem(id, spec)
+        cartStore.removeItem(dishId, specName)
         uni.showToast({ title: '已删除', icon: 'success' })
       }
     }
@@ -160,31 +178,6 @@ function clearCart() {
         uni.showToast({ title: '已清空', icon: 'success' })
       }
     }
-  })
-}
-
-// 结算
-function checkout() {
-  if (cartStore.selectedItems.length === 0) {
-    uni.showToast({ title: '请选择商品', icon: 'none' })
-    return
-  }
-
-  // 库存校验
-  for (const item of cartStore.selectedItems) {
-    if (item.quantity > item.stock) {
-      uni.showToast({
-        title: `${item.name} 库存不足`,
-        icon: 'none'
-      })
-      return
-    }
-  }
-
-  // 跳转到确认订单页
-  const data = encodeURIComponent(JSON.stringify(cartStore.selectedItems))
-  uni.navigateTo({
-    url: `/pages/order/confirm?data=${data}`
   })
 }
 
