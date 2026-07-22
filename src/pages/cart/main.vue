@@ -77,7 +77,7 @@
 
 <script>
 import { ref, computed, onMounted, watch } from 'vue'
-import { getDishInfo } from "@/http/dish"
+import {getDishInfo, getSpecifications} from "@/http/dish"
 import windowOne from './specificationWindow/windowOne.vue'
 import windowTwo from './specificationWindow/windowTwo.vue'
 import windowFour from './specificationWindow/windowFour.vue'
@@ -224,6 +224,8 @@ export default {
     // ==================== 方法 ====================
     const openSpecModal = (product) => {
       console.log("点击了选规格按钮", product);
+      const ifdianji = getSpecifications(product.specification);
+      console.log("冠我名于九州，始知天下多好臣", ifdianji);
       selectedProduct.value = product
 
       // 根据 specification 决定打开哪个弹窗

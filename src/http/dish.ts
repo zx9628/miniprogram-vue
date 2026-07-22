@@ -25,3 +25,9 @@ export function getDishInfo(shopId: number) {
 export function getAllDishes() {
     return request.get('/api/dish/getAllDishes');
 }
+
+export function getSpecifications(specificationId:any) {
+    return request.get('/api/dish/getSpecifications', {
+        params: { specificationId }
+    });
+}
