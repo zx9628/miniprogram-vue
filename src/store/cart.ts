@@ -128,7 +128,7 @@ export const useCartStore = defineStore('cart', () => {
                 quantity: quantity,
                 selected: true,
                 stock: food.stock || 999,
-                type: food.type || '菜品'
+                type: food.type || '菜品',
             })
         }
 
@@ -223,6 +223,43 @@ export const useCartStore = defineStore('cart', () => {
         }
     }
 
+    function createOrder(storeId:number,userId:number,mark:string){
+
+        const orderData = {
+            userId:userId,
+            storeId:storeId,
+            totalAmount:totalPrice.value.toFixed(2),
+            payAmount:totalPrice.value.toFixed(2),
+            mark:mark,
+
+            selectedItems: selectedItems.value.map(item=>({
+            dishId: item.dishId,
+            specId: item.specId,
+            specName: item.specName,
+            quantity: item.quantity,
+            name: item.name,
+            price: item.price
+        }))
+        }
+
+        console.log("转换成的 orderData：",orderData);
+
+        uni.request({
+            url:`http://localhost:8081/api/order/createOrders`,
+            method:'POST',
+            header:{
+                'Content-Type':'application/json'
+            },
+            data:orderData,
+            success:(res) => {
+                console.log(res.data)
+                if(res.statusCode === 200) {
+                    console.log(res);
+                }
+            }
+        })
+    }
+
     // 同步到后端（防抖）
     let syncTimer: any = null
     function syncToServer() {
@@ -268,7 +305,7 @@ export const useCartStore = defineStore('cart', () => {
         allSelected,
 
         // 计算属性
-        selectedItems,
+        selectedItems:{},
         totalCount,
         totalPrice,
         selectedCount,
@@ -285,6 +322,7 @@ export const useCartStore = defineStore('cart', () => {
         getSelectedItems,
         isInCart,
         getItemQuantity,
-        updateBadge
+        updateBadge,
+        createOrder
     }
 })

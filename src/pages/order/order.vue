@@ -13,7 +13,7 @@
 
     <!-- 空状态 -->
     <view class="empty-cart" v-if="cartStore.items.length === 0">
-      <image src="/static/images/empty-cart.png" mode="aspectFit"></image>
+<!--      <image src="/static/images/empty-cart.png" mode="aspectFit"></image>-->
       <text class="empty-text">🛒 购物车空空如也</text>
       <text class="empty-hint">快去点餐吧，美食在等你</text>
       <button class="go-shop-btn" @click="goHome">去点餐</button>
@@ -46,7 +46,7 @@
         </view>
 
         <!-- 商品图片 -->
-        <image class="item-image" :src="item.image" mode="aspectFill"></image>
+<!--        <image class="item-image" :src="item.image" mode="aspectFill"></image>-->
 
         <!-- 商品信息 -->
         <view class="item-info">
@@ -99,7 +99,7 @@
       </view>
       <button
           class="checkout-btn"
-          :class="{ disabled: cartStore.selectedItems.length === 0 }"
+          :class="{ disabled: !cartStore.items.some(items => items.selected)  }"
           @click="createOrder()"
       >
         生成订单
@@ -109,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import {onMounted, ref} from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useCartStore } from '@/store/cart'
 
@@ -127,21 +127,7 @@ onShow(() => {
 
 // 生成订单
 function createOrder() {
-  console.log(cartStore.selectedItems)
-  uni.request({
-    url:`http://localhost:8081/api/order/createOrders`,
-    method:'POST',
-    header:{
-      'custom-header':'application/json'
-    },
-    data: cartStore.selectedItems,
-    success:(res) => {
-      console.log(res.data)
-      if(res.statusCode === 200) {
-        console.log(res);
-      }
-    }
-  })
+  cartStore.createOrder(1,1,'好吃')
 }
 // 返回上一页
 function goBack() {
@@ -185,6 +171,7 @@ function clearCart() {
 function goHome() {
   uni.switchTab({ url: '/pages/orderFood/orderFood' })
 }
+
 </script>
 
 <style scoped>
@@ -331,15 +318,6 @@ function goHome() {
 .checkbox-wrap {
   margin-right: 20rpx;
 }
-
-.item-image {
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: 12rpx;
-  background: #F5F5F5;
-  flex-shrink: 0;
-}
-
 .item-info {
   flex: 1;
   padding: 0 20rpx;
