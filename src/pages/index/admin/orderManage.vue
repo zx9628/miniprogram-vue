@@ -258,6 +258,7 @@ const fetchOrders = async (isRefresh = false) => {
       data: { page: page.value, pageSize }
     });
 
+    console.log(res)
     const list: OrderVO[] = (res.data as any)?.data || [];
 
     if (isRefresh) {
