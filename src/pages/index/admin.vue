@@ -154,6 +154,7 @@
           <view v-else class="page-placeholder">
             <order-manage v-if="currentPageTitle === '订单列表'"></order-manage>
             <prod-manage v-if="currentPageTitle === '菜品编辑'"></prod-manage>
+            <user-manage v-if="currentRoute === '/pages/index/admin/userManage'"></user-manage>
 <!--            <text class="page-title">{{ currentPageTitle }}</text>-->
 <!--            <text class="page-desc">此处为【{{ currentPageTitle }}】功能页面，内容待实现。</text>-->
           </view>
@@ -168,6 +169,7 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import OrderManage from "@/pages/index/admin/orderManage.vue";
 import ProdManage from "@/pages/index/admin/prodManage.vue";
 import request from "@/util/request"
+import UserManage from "@/pages/index/admin/userManage.vue";
 
 const currentUser = reactive({
   name:'',
