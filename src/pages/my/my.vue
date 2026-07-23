@@ -194,6 +194,8 @@ const handleUserClick = () => {
 // 修改 wechatLogin 方法
 const wechatLogin = () => {
   uni.showLoading({ title: '登录中...' });
+
+
   uni.login({
     provider: 'weixin',
     success: (loginRes) => {
