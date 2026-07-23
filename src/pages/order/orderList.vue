@@ -181,7 +181,7 @@ const fetchOrders = async (isRefresh = false) => {
     const res = await uni.request({
       url: 'http://localhost:8081/api/order/getorders',
       method: 'GET',
-      data: { userId: 1 } // ⭐ 实际项目中应从登录态获取
+      data: { userId: 1 }
     });
 
     // 适配你的后端统一响应格式 { code, message, data }
@@ -245,6 +245,9 @@ const cancelOrder = (item: OrderVO) => {
     success: (res) => {
       if (res.confirm) {
         // TODO: 调用取消订单API
+
+
+
         item.orderStatus = 5;
         uni.showToast({ title: '订单已取消' });
       }
@@ -252,8 +255,65 @@ const cancelOrder = (item: OrderVO) => {
   });
 };
 
-const payOrder = (item: OrderVO) => {
-  uni.showToast({ title: '跳转支付...', icon: 'none' });
+// 1. 定义后端返回的支付参数类型（根据你后端的实际字段）
+interface WxPayParams {
+  timeStamp: string;
+  nonceStr: string;
+  package: string;
+  signType: 'RSA' | 'MD5' | 'HMAC-SHA256';
+  paySign: string;
+}
+
+
+
+const payOrder = async (item: OrderVO) => {
+  console.log(item);
+  uni.showLoading({ title: '正在创建订单...' });
+
+  try {
+    // 3. 请求时显式指定泛型类型
+    const res = await uni.request({
+      url: 'http://localhost:8081/api/order/pay',
+      method: 'POST',
+      data: { orderNo: item.orderNo }
+    });
+    console.log(res)
+    uni.hideLoading();
+
+    if (res.data.code === 200) {
+      const payParams = res.data.data;
+
+      // 4. 构造支付参数并显式断言类型，解决 No overload matches 报错
+      const paymentOptions: UniApp.RequestPaymentOptions = {
+        provider: 'wxpay',
+        timeStamp: payParams.timeStamp,
+        nonceStr: payParams.nonceStr,
+        package: payParams.package,
+        signType: payParams.signType,
+        paySign: payParams.paySign,
+        success(payRes) {
+          console.log('支付成功', payRes);
+          uni.showToast({ title: '支付成功', icon: 'success' });
+        },
+        fail(err) {
+          console.error('支付失败或取消', err);
+          if (err.errMsg?.includes('cancel')) {
+            uni.showToast({ title: '已取消支付', icon: 'none' });
+          } else {
+            uni.showToast({ title: '支付失败', icon: 'none' });
+          }
+        }
+      };
+
+      uni.requestPayment(paymentOptions);
+    } else {
+      uni.showToast({ title: res.data.message || '创建支付失败', icon: 'none' });
+    }
+  } catch (e) {
+    uni.hideLoading();
+    console.error('请求支付接口异常:', e);
+    uni.showToast({ title: '网络异常', icon: 'none' });
+  }
 };
 
 const rebuy = (item: OrderVO) => {

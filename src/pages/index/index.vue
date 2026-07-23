@@ -56,15 +56,7 @@
         </view>
       </view>
 
-      <!-- 营销活动 Banner (暖心行动) -->
-      <view class="promo-section">
-        <image src="/static/images/banner-promo.png" mode="widthFix" class="promo-img" @click="goToActivity"></image>
-      </view>
 
-      <!-- 底部广告 (诚邀加盟) -->
-      <view class="bottom-ad">
-        <image src="/static/images/ad-join.png" mode="widthFix" class="ad-img" @click="goToJoin"></image>
-      </view>
 
       <!-- 占位符 -->
       <view style="height: 100rpx;"></view>
