@@ -40,7 +40,6 @@
                 <text class="tag type-tag">{{ food.type || currentMenu.label }}</text>
               </view>
               <text class="food-price">￥{{ food.price }}/份起</text>
-              <text class="food-recommend" v-if="food.recommend">🔥 {{ food.recommend }}人推荐</text>
             </view>
             <view class="food-action">
               <!-- 判断是否已在购物车中 -->
@@ -81,7 +80,6 @@
           <text class="dialog-close" @click="closeSpecDialog">✕</text>
         </view>
         <view class="dialog-body">
-          <image class="food-preview" :src="selectedFood.image || '/static/images/default-food.png'" mode="aspectFill"></image>
           <text class="food-name-dialog">{{ selectedFood.name }}</text>
           <text class="food-price-dialog">￥{{ selectedFood.price }}</text>
 
@@ -90,12 +88,12 @@
             <view class="spec-options">
               <view
                   class="spec-option"
-                  v-for="(spec, idx) in specOptions"
+                  v-for="(spec, idx) in selectedFood.specs"
                   :key="idx"
                   :class="{ active: currentSpec === spec }"
                   @click="currentSpec = spec"
               >
-                {{ spec }}
+                {{ spec.name }}
               </view>
             </view>
           </view>
@@ -144,9 +142,6 @@ const selectedFood = ref<any>(null)
 const currentSpec = ref('默认')
 const dialogQuantity = ref(1)
 const specPopup = ref<any>(null)
-
-// 规格选项
-const specOptions = ['默认', '微辣', '中辣', '特辣']
 
 // 默认菜单（当后端数据未加载时显示）
 const defaultMenuList = [
