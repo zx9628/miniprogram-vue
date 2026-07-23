@@ -54,8 +54,8 @@ const saveInfo = () => {
     url: 'http://172.20.10.2:8083/api/user/update',
     method: 'PUT',
     data: {
-      id: userInfo.id,
-      username: userInfo.nickname,
+      userId: userInfo.id,
+      nickname: userInfo.nickname,
       gender: userInfo.gender,
       birthday: userInfo.birthday,
       avatar: userInfo.avatar
@@ -66,6 +66,7 @@ const saveInfo = () => {
         // 获取后端返回的最新用户信息
         const serverData = res.data.data;
         Object.assign(userInfo, serverData);
+        userInfo.id = serverData.userId;
         if (serverData.username) {
           userInfo.nickname = serverData.username;
         }
@@ -96,7 +97,8 @@ onLoad(() => {
   const storedUser = uni.getStorageSync('userInfo');
   if (storedUser) {
     Object.assign(userInfo, storedUser);
-    userInfo.nickname = storedUser.username || '';
+    userInfo.id = storedUser.userId || storedUser.id;
+    userInfo.nickname = storedUser.nickname || storedUser.username || '';
   } else {
     uni.showToast({ title: '请先登录', icon: 'none' });
   }
