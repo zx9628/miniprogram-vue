@@ -17,7 +17,7 @@ jobs:
       - name: 设置 Node.js
         uses: actions/setup-node@v5  # 🚀 从 v4 升级到 v5
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
 
       - name: 配置国内镜像源
