@@ -289,67 +289,72 @@ export function createOrder(
                 uni.hideLoading()
                 console.log('下单响应:', res)
 
-                if (res.statusCode === 200) {
-                    const result = res.data
-                    if (result.code === 200 || result.success) {
-                        // 生成本地订单
-                        const orderId = 'ORD' + Date.now() + Math.random().toString(36).substring(2, 6).toUpperCase()
-                        const order: Order = {
-                            id: orderId,
-                            userId: finalUserId,
-                            storeId: finalStoreId,
-                            storeName: String(storeName || ''),
-                            items: selectedItems.map(item => ({
-                                dishId: Number(item.dishId),
-                                name: String(item.name),
-                                price: Number(item.price),
-                                specName: String(item.specName || '默认'),
-                                specId: Number(item.specId || 0),
-                                quantity: Number(item.quantity)
-                            })),
-                            totalAmount: totalAmount,
-                            payAmount: totalAmount,
-                            mark: String(mark || ''),
-                            status: 'pending',
-                            createTime: new Date().toISOString(),
-                            updateTime: new Date().toISOString()
-                        }
+                if(res.statusCode === 200){
+                    uni.showToast({ title: '下单成功！', icon: 'success' })
+                    clearCart()
 
-                        const orders = getOrders()
-                        orders.unshift(order)
-                        saveOrders(orders)
-                        clearCart()
-
-                        uni.showToast({ title: '下单成功！', icon: 'success' })
-                        resolve(order)
-
-                        setTimeout(() => {
-                            uni.switchTab({ url: '/pages/orderFood/orderFood' })
-                        }, 1500)
-                    } else {
-                        uni.showToast({
-                            title: result.message || result.msg || '下单失败',
-                            icon: 'none'
-                        })
-                        resolve(null)
-                    }
-                } else {
-                    console.error('请求失败:', res.statusCode, res.data)
-                    uni.showToast({
-                        title: `下单失败 (${res.statusCode})`,
-                        icon: 'none'
-                    })
-                    resolve(null)
                 }
-            },
-            fail: (err) => {
-                uni.hideLoading()
-                console.error('下单请求失败:', err)
-                uni.showToast({
-                    title: '网络异常，请重试',
-                    icon: 'none'
-                })
-                resolve(null)
+            //     if (res.statusCode === 200) {
+            //         const result = res.data
+            //         if (result.code === 200 || result.success) {
+            //             // 生成本地订单
+            //             const orderId = 'ORD' + Date.now() + Math.random().toString(36).substring(2, 6).toUpperCase()
+            //             const order: Order = {
+            //                 id: orderId,
+            //                 userId: finalUserId,
+            //                 storeId: finalStoreId,
+            //                 storeName: String(storeName || ''),
+            //                 items: selectedItems.map(item => ({
+            //                     dishId: Number(item.dishId),
+            //                     name: String(item.name),
+            //                     price: Number(item.price),
+            //                     specName: String(item.specName || '默认'),
+            //                     specId: Number(item.specId || 0),
+            //                     quantity: Number(item.quantity)
+            //                 })),
+            //                 totalAmount: totalAmount,
+            //                 payAmount: totalAmount,
+            //                 mark: String(mark || ''),
+            //                 status: 'pending',
+            //                 createTime: new Date().toISOString(),
+            //                 updateTime: new Date().toISOString()
+            //             }
+            //
+            //             const orders = getOrders()
+            //             orders.unshift(order)
+            //             saveOrders(orders)
+            //             clearCart()
+            //
+            //             uni.showToast({ title: '下单成功！', icon: 'success' })
+            //             resolve(order)
+            //
+            //             setTimeout(() => {
+            //                 uni.switchTab({ url: '/pages/order/orderList' })
+            //             }, 3500)
+            //         } else {
+            //             uni.showToast({
+            //                 title: result.message || result.msg || '下单失败',
+            //                 icon: 'none'
+            //             })
+            //             resolve(null)
+            //         }
+            //     } else {
+            //         console.error('请求失败:', res.statusCode, res.data)
+            //         uni.showToast({
+            //             title: `下单失败 (${res.statusCode})`,
+            //             icon: 'none'
+            //         })
+            //         resolve(null)
+            //     }
+            // },
+            // fail: (err) => {
+            //     uni.hideLoading()
+            //     console.error('下单请求失败:', err)
+            //     uni.showToast({
+            //         title: '网络异常，请重试',
+            //         icon: 'none'
+            //     })
+            //     resolve(null)
             }
         })
     })

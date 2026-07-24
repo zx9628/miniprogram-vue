@@ -56,7 +56,7 @@
           <text class="badge">{{ totalCount }}</text>
         </view>
         <view class="cart-price">
-          <text class="price">￥{{ totalPrice.toFixed(2) }}</text>
+          <text class="price">￥{{ totalPrice }}</text>
           <text class="count">共 {{ totalCount }} 件</text>
         </view>
       </view>
@@ -71,7 +71,7 @@
         </view>
         <view class="dialog-body">
           <text class="food-name-dialog">{{ selectedFood.name }}</text>
-          <text class="food-price-dialog">￥{{ selectedSpecPrice.toFixed(2) }}</text>
+          <text class="food-price-dialog">￥{{ selectedSpecPrice }}</text>
 
           <view class="spec-section" v-if="selectedFood.specs && selectedFood.specs.length > 0">
             <text class="spec-label">规格 <text class="required">*</text></text>
@@ -110,7 +110,7 @@
               :class="{ disabled: !canAddToCart }"
               :disabled="!canAddToCart"
           >
-            {{ canAddToCart ? `加入购物车 ¥${(selectedSpecPrice * dialogQuantity).toFixed(2)}` : '请选择规格' }}
+            {{ canAddToCart ? `加入购物车 ¥${(selectedSpecPrice * dialogQuantity)}` : '请选择规格' }}
           </button>
         </view>
       </view>
