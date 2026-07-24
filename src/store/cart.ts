@@ -134,6 +134,7 @@ export function getTotalCount(items: CartItem[]): number {
     return items.reduce((sum, item) => sum + item.quantity, 0)
 }
 
+// 获得已勾选的商品信息
 export function getSelectedItems(items: CartItem[]): CartItem[] {
     return items.filter(item => item.selected)
 }
@@ -161,10 +162,6 @@ export function updateCartQuantity(dishId: number, specName: string, delta: numb
     const newQuantity = item.quantity + delta
     if (newQuantity <= 0) {
         return removeFromCart(dishId, specName)
-    }
-    if (newQuantity > item.stock) {
-        uni.showToast({ title: '库存不足', icon: 'none' })
-        return false
     }
 
     item.quantity = newQuantity
@@ -292,7 +289,9 @@ export function createOrder(
                 if(res.statusCode === 200){
                     uni.showToast({ title: '下单成功！', icon: 'success' })
                     clearCart()
-
+                    setTimeout(()=>{
+                        uni.switchTab({url:'/pages/order/orderList'});
+                    },3500)
                 }
             //     if (res.statusCode === 200) {
             //         const result = res.data
