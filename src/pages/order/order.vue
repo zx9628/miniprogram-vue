@@ -147,9 +147,6 @@ function handleCreateOrder() {
   let userInfo = uni.getStorageSync('userInfo')
   let storeInfo = uni.getStorageSync('storeInfo')
 
-  console.log('原始 userInfo:', userInfo)
-  console.log('原始 storeInfo:', storeInfo)
-
   let userId = 1
   let storeId = 1
   let storeName = '默认店铺'

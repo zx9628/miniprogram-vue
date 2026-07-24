@@ -176,12 +176,13 @@ const fetchOrders = async (isRefresh = false) => {
   } else {
     loading.value = true;
   }
-
+  let userData = uni.getStorageSync("userInfo")
+  let userid = userData.userId
   try {
     const res = await uni.request({
       url: 'http://localhost:8081/api/order/getorders',
       method: 'GET',
-      data: { userId: 1 }
+      data: { userId: userid }
     });
 
     // 适配你的后端统一响应格式 { code, message, data }
@@ -270,15 +271,20 @@ const payOrder = async (item: OrderVO) => {
   console.log(item);
   uni.showLoading({ title: '正在创建订单...' });
 
+
+
   try {
     // 3. 请求时显式指定泛型类型
     const res = await uni.request({
       url: 'http://localhost:8081/api/order/pay',
       method: 'POST',
-      data: { orderNo: item.orderNo }
+      data: { orderNo: item.orderNo}
     });
     console.log(res)
     uni.hideLoading();
+
+
+
 
     if (res.data.code === 200) {
       const payParams = res.data.data;

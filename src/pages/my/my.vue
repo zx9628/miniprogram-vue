@@ -108,11 +108,7 @@ import {onMounted, reactive, ref} from 'vue';
 import { onShow } from "@dcloudio/uni-app";
 
 // 用户信息
-const userInfo = ref({
-  userId: 3,
-  username: 11,
-  points: 100
-});
+const userInfo = ref();
 // 手机号
 const showPhoneAuth = ref(false);   // 是否显示手机号授权界面
 const loadingPhone = ref(false);    // 手机号绑定加载状态
@@ -198,8 +194,6 @@ const handleUserClick = () => {
 // 修改 wechatLogin 方法
 const wechatLogin = () => {
   uni.showLoading({ title: '登录中...' });
-
-
   uni.login({
     provider: 'weixin',
     success: (loginRes) => {
