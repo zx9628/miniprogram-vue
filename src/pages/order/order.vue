@@ -9,9 +9,8 @@
     </view>
 
     <view class="empty-cart" v-if="cartItems.length === 0">
-      <text class="empty-text">🛒 购物车空空如也</text>
-      <text class="empty-hint">快去点餐吧，美食在等你</text>
-      <button class="go-shop-btn" @click="goHome">去点餐</button>
+      <text class="empty-text">购物车空空如也</text>
+      <button class="go-shop-btn" @click="goBack">去点餐</button>
     </view>
 
     <view class="cart-list" v-else>
@@ -27,7 +26,7 @@
 
       <view
           class="cart-item"
-          v-for="(item, index) in cartItems"
+          v-for="(item) in cartItems"
           :key="`${item.dishId}-${item.specName}`"
       >
         <view class="checkbox-wrap" @click="handleToggleSelected(item.dishId, item.specName)">
@@ -41,7 +40,6 @@
           <text class="item-spec">{{ item.specName || '默认' }}</text>
           <view class="item-price-row">
             <text class="item-price">￥{{ item.price.toFixed(2) }}</text>
-            <text class="item-stock" v-if="item.quantity >= item.stock * 0.8">库存紧张</text>
           </view>
         </view>
 
@@ -56,9 +54,7 @@
             <text class="qty-num">{{ item.quantity }}</text>
             <button
                 class="qty-btn"
-                :class="{ disabled: item.quantity >= item.stock }"
                 @click="handleUpdateQuantity(item.dishId, item.specName, 1)"
-                :disabled="item.quantity >= item.stock"
             >+</button>
           </view>
           <button v-else class="delete-btn" @click="handleDeleteItem(item.dishId, item.specName)">✕</button>
@@ -91,17 +87,14 @@ import * as CartUtils from '@/store/cart'
 const cartItems = ref<CartUtils.CartItem[]>([])
 const editMode = ref(false)
 
-// ============ 计算属性 ============
 const allSelected = computed(() => CartUtils.isAllSelected(cartItems.value))
 const totalPrice = computed(() => CartUtils.getTotalPrice(cartItems.value))
 const selectedCount = computed(() => CartUtils.getSelectedCount(cartItems.value))
 
-// ============ 加载数据 ============
 function loadCart() {
   cartItems.value = CartUtils.getCart()
 }
 
-// ============ 操作方法 ============
 function handleToggleSelected(dishId: number, specName: string) {
   CartUtils.toggleSelected(Number(dishId), String(specName))
   loadCart()
@@ -192,11 +185,6 @@ function toggleEditMode() {
 function goBack() {
   uni.switchTab({ url: '/pages/orderFood/orderFood' })
 }
-
-function goHome() {
-  uni.switchTab({ url: '/pages/orderFood/orderFood' })
-}
-
 onShow(() => {
   loadCart()
   editMode.value = false
@@ -260,13 +248,6 @@ onShow(() => {
   color: #333333;
   margin-top: 30rpx;
 }
-
-.empty-hint {
-  font-size: 26rpx;
-  color: #999999;
-  margin-top: 12rpx;
-}
-
 .go-shop-btn {
   margin-top: 40rpx;
   background: #FF6B35;
@@ -370,15 +351,6 @@ onShow(() => {
   color: #FF6B35;
   font-weight: bold;
 }
-
-.item-stock {
-  font-size: 20rpx;
-  color: #FF3B30;
-  background: #FFF0EA;
-  padding: 2rpx 12rpx;
-  border-radius: 20rpx;
-}
-
 .item-action {
   flex-shrink: 0;
 }

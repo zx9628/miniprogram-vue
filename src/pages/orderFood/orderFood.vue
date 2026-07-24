@@ -277,7 +277,6 @@ function confirmAddToCart() {
   }
 }
 
-// ============ 跳转购物车 ============
 function goToCart() {
   uni.switchTab({ url: '/pages/order/order' })
 }
@@ -335,42 +334,32 @@ onMounted(() => {
   min-width: 100rpx;
   transition: all 0.3s ease;
 }
-
 .spec-option .spec-name {
   font-size: 26rpx;
   color: #666666;
 }
-
 .spec-option .spec-price {
   font-size: 22rpx;
   color: #FF6B35;
   margin-top: 4rpx;
 }
-
 .spec-option.active {
   border-color: #FF6B35;
   background: #FFF5F0;
 }
-
 .spec-option.active .spec-name {
   color: #FF6B35;
   font-weight: bold;
 }
-
 .spec-option.active .spec-price {
   color: #FF6B35;
 }
-</style>
-
-<style scoped>
-/* 原有样式保持不变，添加规格默认样式 */
 .order-page {
   display: flex;
   flex-direction: column;
   height: 100vh;
   background: #F5F5F5;
 }
-
 .shop_information {
   background: #FFFFFF;
   padding: 20rpx 30rpx;
@@ -381,62 +370,52 @@ onMounted(() => {
   flex-direction: column;
   justify-content: center;
 }
-
 .store-name {
   font-size: 36rpx;
   font-weight: bold;
   color: #333333;
   margin-bottom: 8rpx;
 }
-
 .store-address {
   font-size: 26rpx;
   color: #666666;
 }
-
 .main-content {
   display: flex;
   flex: 1;
   overflow: hidden;
   padding-bottom: 120rpx;
 }
-
 .menu-sidebar {
   width: 160rpx;
   background: #FFFFFF;
   flex-shrink: 0;
   height: 100%;
 }
-
 .menu-item {
   padding: 32rpx 20rpx;
   text-align: center;
   border-left: 6rpx solid transparent;
   transition: all 0.3s ease;
 }
-
 .menu-item.active {
   border-left-color: #FF6B35;
   background: #FFF5F0;
 }
-
 .menu-label {
   font-size: 26rpx;
   color: #666666;
 }
-
 .menu-item.active .menu-label {
   color: #FF6B35;
   font-weight: bold;
 }
-
 .content-area {
   flex: 1;
   padding: 20rpx 24rpx;
   background: #F5F5F5;
   height: 100%;
 }
-
 .category-title {
   font-size: 32rpx;
   font-weight: bold;
@@ -445,14 +424,12 @@ onMounted(() => {
   border-bottom: 2rpx solid #FFE8E0;
   margin-bottom: 20rpx;
 }
-
 .food-list {
   display: flex;
   flex-direction: column;
   gap: 16rpx;
   padding-bottom: 40rpx;
 }
-
 .food-item {
   background: #FFFFFF;
   border-radius: 16rpx;
@@ -462,12 +439,10 @@ onMounted(() => {
   align-items: center;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
 }
-
 .food-info {
   flex: 1;
   min-width: 0;
 }
-
 .food-name {
   font-size: 30rpx;
   font-weight: bold;
@@ -475,14 +450,12 @@ onMounted(() => {
   display: block;
   margin-bottom: 8rpx;
 }
-
 .food-tags {
   display: flex;
   gap: 12rpx;
   margin-bottom: 8rpx;
   flex-wrap: wrap;
 }
-
 .tag {
   font-size: 20rpx;
   color: #999999;
@@ -490,30 +463,25 @@ onMounted(() => {
   padding: 2rpx 14rpx;
   border-radius: 20rpx;
 }
-
 .tag.type-tag {
   color: #FF6B35;
   background: #FFF0EA;
 }
-
 .food-price {
   font-size: 34rpx;
   color: #FF6B35;
   font-weight: bold;
   display: block;
 }
-
 .food-action {
   flex-shrink: 0;
   margin-left: 20rpx;
 }
-
 .quantity-control {
   display: flex;
   align-items: center;
   gap: 12rpx;
 }
-
 .qty-btn {
   width: 56rpx;
   height: 56rpx;
@@ -527,11 +495,9 @@ onMounted(() => {
   justify-content: center;
   line-height: 1;
 }
-
 .qty-btn:active {
   opacity: 0.7;
 }
-
 .qty-num {
   font-size: 30rpx;
   font-weight: bold;
@@ -539,7 +505,6 @@ onMounted(() => {
   min-width: 40rpx;
   text-align: center;
 }
-
 .btn-select {
   background: #FF6B35;
   color: #FFFFFF;
@@ -549,15 +514,12 @@ onMounted(() => {
   font-size: 26rpx;
   white-space: nowrap;
 }
-
 .btn-select:active {
   opacity: 0.8;
 }
-
 .btn-select::after {
   border: none;
 }
-
 .cart-footer {
   position: fixed;
   bottom: 0;
@@ -572,13 +534,11 @@ onMounted(() => {
   z-index: 100;
   border-radius: 20rpx 20rpx 0 0;
 }
-
 .cart-info {
   display: flex;
   align-items: center;
   gap: 16rpx;
 }
-
 .cart-icon-wrap {
   position: relative;
 }
@@ -586,7 +546,6 @@ onMounted(() => {
 .cart-icon {
   font-size: 44rpx;
 }
-
 .badge {
   position: absolute;
   top: -12rpx;
@@ -601,23 +560,19 @@ onMounted(() => {
   line-height: 32rpx;
   padding: 0 6rpx;
 }
-
 .cart-price {
   display: flex;
   flex-direction: column;
 }
-
 .cart-price .price {
   font-size: 34rpx;
   font-weight: bold;
   color: #FF6B35;
 }
-
 .cart-price .count {
   font-size: 22rpx;
   color: #999999;
 }
-
 .checkout-btn {
   background: #FF6B35;
   color: #FFFFFF;
@@ -631,70 +586,59 @@ onMounted(() => {
   opacity: 0.8;
 }
 
-/* 规格弹窗 */
 .spec-dialog {
   background: #FFFFFF;
   border-radius: 32rpx 32rpx 0 0;
   padding: 30rpx 32rpx;
   padding-bottom: calc(env(safe-area-inset-bottom) + 30rpx);
 }
-
 .dialog-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24rpx;
 }
-
 .dialog-title {
   font-size: 34rpx;
   font-weight: bold;
   color: #333333;
 }
-
 .dialog-close {
   font-size: 36rpx;
   color: #999999;
   padding: 8rpx;
 }
-
 .dialog-body {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
 .food-name-dialog {
   font-size: 32rpx;
   font-weight: bold;
   color: #333333;
 }
-
 .food-price-dialog {
   font-size: 36rpx;
   color: #FF6B35;
   font-weight: bold;
   margin: 8rpx 0 24rpx;
 }
-
 .spec-section {
   width: 100%;
   margin-bottom: 24rpx;
 }
-
 .spec-label {
   font-size: 28rpx;
   color: #666666;
   display: block;
   margin-bottom: 12rpx;
 }
-
 .spec-options {
   display: flex;
   gap: 16rpx;
   flex-wrap: wrap;
 }
-
 .spec-option {
   padding: 12rpx 28rpx;
   border: 2rpx solid #E5E5E5;
@@ -702,39 +646,32 @@ onMounted(() => {
   font-size: 26rpx;
   color: #666666;
 }
-
 .spec-option.active {
   border-color: #FF6B35;
   color: #FF6B35;
   background: #FFF5F0;
 }
-
 .spec-default {
   font-size: 28rpx;
   color: #999999;
   padding: 12rpx 0;
 }
-
 .required {
   color: #FF3B30;
 }
-
 .quantity-section {
   width: 100%;
   margin-top: 8rpx;
 }
-
 .quantity-control-dialog {
   display: flex;
   align-items: center;
   gap: 20rpx;
 }
-
 .dialog-footer {
   margin-top: 32rpx;
   width: 100%;
 }
-
 .btn-add-cart {
   width: 100%;
   background: #FF6B35;
@@ -745,7 +682,6 @@ onMounted(() => {
   font-size: 32rpx;
   font-weight: 500;
 }
-
 .btn-add-cart.disabled,
 .btn-add-cart:disabled {
   background: #E0E0E0;
@@ -753,7 +689,6 @@ onMounted(() => {
   cursor: not-allowed;
   pointer-events: none;
 }
-
 .btn-add-cart:active {
   opacity: 0.8;
 }
