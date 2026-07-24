@@ -117,7 +117,7 @@ interface UserInfo {
   points: number;
   balance: string;
   birthday: string;
-  couponCount?: number; // 可选，如果后端返回
+  couponCount?: number; // 前端本地维护的字段
 }
 
 const userInfo = ref<UserInfo | null>(null);
@@ -149,19 +149,21 @@ const fetchUserInfo = (userId: number) => {
       if (res.data.code === 200 && res.data.data) {
         const data = res.data.data;
 
-        // 合并数据，保留 couponCount（如果后端返回的话）
+        // 保留原有的 couponCount（如果存在）
+        const existingCouponCount = userInfo.value?.couponCount || 0;
+
+        // 更新用户信息，只更新后端返回的字段，保留前端维护的字段
         const updatedInfo = {
-          ...userInfo.value,
-          ...data,
-          // 确保字段名一致
-          userId: data.userId || userInfo.value?.userId,
+          userId: data.userId || userInfo.value?.userId || 0,
+          openId: data.openId || userInfo.value?.openId || '',
           nickname: data.nickname || '微信用户',
           avatar: data.avatar || '/static/cow.png',
-          points: data.points || 0,
-          balance: data.balance || '0.00',
           phoneMasked: data.phoneMasked || '',
-          gender: data.gender || 0,
-          birthday: data.birthday || ''
+          gender: data.gender !== undefined ? data.gender : 0,
+          points: data.points !== undefined ? data.points : 0,
+          balance: data.balance || '0.00',
+          birthday: data.birthday || '',
+          couponCount: existingCouponCount // 保留原有的优惠券数量
         };
 
         userInfo.value = updatedInfo;
@@ -183,15 +185,36 @@ onShow(() => {
   const stored = uni.getStorageSync('userInfo');
   console.log('缓存中的用户信息:', stored);
 
-  if (stored) {
-    // 先设置缓存数据
-    userInfo.value = stored;
+  if (stored && typeof stored === 'object') {
+    // 兼容多种字段名
+    const userId = stored.userId || stored.id;
+
+    if (!userId) {
+      console.warn('缓存的用户信息缺少 userId，清除缓存');
+      uni.removeStorageSync('userInfo');
+      userInfo.value = null;
+      return;
+    }
+
+    // 确保数据结构完整
+    const userData = {
+      userId: Number(userId),
+      openId: stored.openId || stored.openid || '',
+      nickname: stored.nickname || '微信用户',
+      avatar: stored.avatar || '/static/cow.png',
+      phoneMasked: stored.phoneMasked || '',
+      gender: stored.gender !== undefined ? Number(stored.gender) : 0,
+      points: Number(stored.points) || 0,
+      balance: stored.balance || '0.00',
+      birthday: stored.birthday || '',
+      couponCount: Number(stored.couponCount) || 0
+    };
+
+    userInfo.value = userData;
 
     // 如果有 userId，从后端获取最新数据
-    if (stored.userId) {
-      fetchUserInfo(stored.userId);
-    } else {
-      console.warn('缓存的用户信息缺少 userId');
+    if (userId) {
+      fetchUserInfo(Number(userId));
     }
   } else {
     userInfo.value = null;
@@ -230,17 +253,31 @@ const wechatLogin = () => {
           if (res.data.code === 200) {
             const userData = res.data.data;
 
+            // 确保数据结构完整
+            const formattedData = {
+              userId: Number(userData.userId || userData.id || 0),
+              openId: userData.openId || userData.openid || '',
+              nickname: userData.nickname || '微信用户',
+              avatar: userData.avatar || '/static/cow.png',
+              phoneMasked: userData.phoneMasked || '',
+              gender: userData.gender !== undefined ? Number(userData.gender) : 0,
+              points: Number(userData.points) || 0,
+              balance: userData.balance || '0.00',
+              birthday: userData.birthday || '',
+              couponCount: 0
+            };
+
             // 保存用户信息到缓存
-            uni.setStorageSync('userInfo', userData);
-            if (userData.openId) {
-              uni.setStorageSync('openid', userData.openId);
+            uni.setStorageSync('userInfo', formattedData);
+            if (formattedData.openId) {
+              uni.setStorageSync('openid', formattedData.openId);
             }
 
             // 更新页面
-            userInfo.value = userData;
+            userInfo.value = formattedData;
 
             // 判断是否有手机号
-            if (!userData.phoneMasked) {
+            if (!formattedData.phoneMasked) {
               showPhoneAuth.value = true;
             } else {
               showLoginMask.value = false;
@@ -295,8 +332,20 @@ const onGetPhoneNumber = (e: any) => {
       if (res.data.code === 200) {
         // 绑定成功，重新获取用户信息
         const updatedUser = res.data.data;
-        uni.setStorageSync('userInfo', updatedUser);
-        userInfo.value = updatedUser;
+        const formattedData = {
+          userId: Number(updatedUser.userId || updatedUser.id || 0),
+          openId: updatedUser.openId || updatedUser.openid || '',
+          nickname: updatedUser.nickname || '微信用户',
+          avatar: updatedUser.avatar || '/static/cow.png',
+          phoneMasked: updatedUser.phoneMasked || '',
+          gender: updatedUser.gender !== undefined ? Number(updatedUser.gender) : 0,
+          points: Number(updatedUser.points) || 0,
+          balance: updatedUser.balance || '0.00',
+          birthday: updatedUser.birthday || '',
+          couponCount: userInfo.value?.couponCount || 0
+        };
+        uni.setStorageSync('userInfo', formattedData);
+        userInfo.value = formattedData;
         showLoginMask.value = false;
         showPhoneAuth.value = false;
         uni.showToast({ title: '绑定成功' });

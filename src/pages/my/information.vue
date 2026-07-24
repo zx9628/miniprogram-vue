@@ -35,8 +35,6 @@ const chooseAvatar = () => {
     sizeType: ['compressed'],
     sourceType: ['album', 'camera'],
     success: (res) => {
-      // 注意：这里只是临时显示，实际保存需要先上传到服务器
-      // 这里简化处理，直接使用临时路径
       userInfo.avatar = res.tempFilePaths[0];
       uni.showToast({ title: '请点击保存上传头像', icon: 'none' });
     }
@@ -62,31 +60,35 @@ const onBirthdayChange = (e: any) => {
   userInfo.birthday = e.detail.value;
 };
 
+// 保存用户信息
 const saveInfo = () => {
   if (!userInfo.nickname?.trim()) {
     uni.showToast({ title: '请输入姓名', icon: 'none' });
     return;
   }
 
-  if (!userInfo.userId) {
+  // 从缓存获取最新的 userId（兼容多种字段名）
+  const cached = uni.getStorageSync('userInfo');
+  const userId = userInfo.userId || cached?.userId || cached?.id;
+
+  if (!userId) {
     uni.showToast({ title: '用户ID丢失，请重新登录', icon: 'none' });
     return;
   }
 
   uni.showLoading({ title: '保存中...' });
 
-  // 构造请求数据，只发送有值的字段
+  // 构造请求数据
   const requestData: any = {
-    userId: userInfo.userId
+    userId: Number(userId)
   };
 
   if (userInfo.nickname) requestData.nickname = userInfo.nickname;
   if (userInfo.gender !== undefined && userInfo.gender !== null) {
-    requestData.gender = userInfo.gender;
+    requestData.gender = Number(userInfo.gender);
   }
   if (userInfo.birthday) requestData.birthday = userInfo.birthday;
   if (userInfo.avatar && userInfo.avatar.startsWith('http')) {
-    // 如果是网络地址才发送，临时路径不上传
     requestData.avatar = userInfo.avatar;
   }
 
@@ -105,21 +107,34 @@ const saveInfo = () => {
 
       if (res.data.code === 200 && res.data.data) {
         const data = res.data.data;
-        // 更新页面数据
+        // 更新页面数据（兼容字段名）
         Object.assign(userInfo, {
-          userId: data.userId || userInfo.userId,
-          openId: data.openId || userInfo.openId,
+          userId: data.userId || data.id || userInfo.userId,
+          openId: data.openId || data.openid || userInfo.openId,
           nickname: data.nickname || userInfo.nickname,
           avatar: data.avatar || userInfo.avatar,
           phoneMasked: data.phoneMasked || userInfo.phoneMasked,
-          gender: data.gender !== undefined ? data.gender : userInfo.gender,
-          points: data.points || userInfo.points,
+          gender: data.gender !== undefined ? Number(data.gender) : userInfo.gender,
+          points: Number(data.points) || userInfo.points,
           balance: data.balance || userInfo.balance,
           birthday: data.birthday || userInfo.birthday
         });
 
-        // 同步到缓存
-        uni.setStorageSync('userInfo', userInfo);
+        // 同步到缓存（统一字段名）
+        const cacheData = {
+          userId: userInfo.userId,
+          openId: userInfo.openId,
+          nickname: userInfo.nickname,
+          avatar: userInfo.avatar,
+          phoneMasked: userInfo.phoneMasked,
+          gender: userInfo.gender,
+          points: userInfo.points,
+          balance: userInfo.balance,
+          birthday: userInfo.birthday
+        };
+        uni.setStorageSync('userInfo', cacheData);
+        console.log('更新缓存:', JSON.stringify(cacheData));
+
         uni.showToast({ title: '保存成功' });
         setTimeout(() => uni.navigateBack(), 1000);
       } else {
@@ -143,21 +158,44 @@ const loadUserInfo = () => {
   const storedUser = uni.getStorageSync('userInfo');
   console.log('缓存中的userInfo:', JSON.stringify(storedUser));
 
-  if (storedUser) {
+  if (storedUser && typeof storedUser === 'object') {
+    // 兼容多种字段名
+    const userId = storedUser.userId || storedUser.id;
+
+    if (!userId) {
+      console.error('缓存中无有效 userId');
+      uni.showModal({
+        title: '提示',
+        content: '登录信息已过期，请重新登录',
+        showCancel: false,
+        success: () => {
+          uni.reLaunch({ url: '/pages/login/login' });
+        }
+      });
+      return;
+    }
+
     // 合并缓存数据
     Object.assign(userInfo, {
-      userId: storedUser.userId || storedUser.id || 0,
-      openId: storedUser.openId || '',
+      userId: Number(userId),
+      openId: storedUser.openId || storedUser.openid || '',
       nickname: storedUser.nickname || storedUser.username || '微信用户',
       avatar: storedUser.avatar || '/static/cow.png',
       phoneMasked: storedUser.phoneMasked || storedUser.phone || '',
-      gender: storedUser.gender !== undefined ? storedUser.gender : 0,
-      points: storedUser.points || 0,
+      gender: storedUser.gender !== undefined ? Number(storedUser.gender) : 0,
+      points: Number(storedUser.points) || 0,
       balance: storedUser.balance || '0.00',
       birthday: storedUser.birthday || ''
     });
   } else {
-    uni.showToast({ title: '请先登录', icon: 'none' });
+    uni.showModal({
+      title: '提示',
+      content: '请先登录',
+      showCancel: false,
+      success: () => {
+        uni.reLaunch({ url: '/pages/login/login' });
+      }
+    });
     return;
   }
 
@@ -178,28 +216,41 @@ const loadUserInfo = () => {
 
       if (res.data.code === 200 && res.data.data) {
         const data = res.data.data;
-        // 更新数据
+        // 更新数据（兼容字段名）
         Object.assign(userInfo, {
-          userId: data.userId || userInfo.userId,
-          openId: data.openId || '',
+          userId: data.userId || data.id || userInfo.userId,
+          openId: data.openId || data.openid || '',
           nickname: data.nickname || '微信用户',
           avatar: data.avatar || '/static/cow.png',
           phoneMasked: data.phoneMasked || '',
-          gender: data.gender !== undefined ? data.gender : 0,
-          points: data.points || 0,
+          gender: data.gender !== undefined ? Number(data.gender) : 0,
+          points: Number(data.points) || 0,
           balance: data.balance || '0.00',
           birthday: data.birthday || ''
         });
 
-        // 同步到缓存
-        uni.setStorageSync('userInfo', userInfo);
+        // 同步到缓存（统一字段名）
+        const cacheData = {
+          userId: userInfo.userId,
+          openId: userInfo.openId,
+          nickname: userInfo.nickname,
+          avatar: userInfo.avatar,
+          phoneMasked: userInfo.phoneMasked,
+          gender: userInfo.gender,
+          points: userInfo.points,
+          balance: userInfo.balance,
+          birthday: userInfo.birthday
+        };
+        uni.setStorageSync('userInfo', cacheData);
+        console.log('更新缓存:', JSON.stringify(cacheData));
       } else {
         console.warn('获取用户信息失败:', res.data.msg);
+        // 即使获取失败，也保留缓存中的数据
       }
     },
     fail: (err) => {
       console.error('获取用户信息请求失败:', err);
-      uni.showToast({ title: '获取用户信息失败', icon: 'none' });
+      // 网络错误时不提示，使用缓存数据
     }
   });
 };
