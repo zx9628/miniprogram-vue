@@ -13,7 +13,7 @@
 
     <!-- 空状态 -->
     <view class="empty-cart" v-if="cartStore.items.length === 0">
-      <image src="/static/images/empty-cart.png" mode="aspectFit"></image>
+<!--      <image src="/static/images/empty-cart.png" mode="aspectFit"></image>-->
       <text class="empty-text">🛒 购物车空空如也</text>
       <text class="empty-hint">快去点餐吧，美食在等你</text>
       <button class="go-shop-btn" @click="goHome">去点餐</button>
@@ -36,22 +36,22 @@
       <view
           class="cart-item"
           v-for="(item, index) in cartStore.items"
-          :key="`${item.id}-${item.spec}`"
+          :key="`${item.dishId}-${item.specName}`"
       >
         <!-- 复选框 -->
-        <view class="checkbox-wrap" @click="cartStore.toggleSelected(item.id, item.spec)">
+        <view class="checkbox-wrap" @click="cartStore.toggleSelected(item.dishId, item.specName)">
           <view class="checkbox" :class="{ checked: item.selected }">
             <text v-if="item.selected">✓</text>
           </view>
         </view>
 
         <!-- 商品图片 -->
-        <image class="item-image" :src="item.image" mode="aspectFill"></image>
+<!--        <image class="item-image" :src="item.image" mode="aspectFill"></image>-->
 
         <!-- 商品信息 -->
         <view class="item-info">
           <text class="item-name">{{ item.name }}</text>
-          <text class="item-spec">{{ item.spec }}</text>
+          <text class="item-spec">{{ item.specName }}</text>
           <view class="item-price-row">
             <text class="item-price">￥{{ item.price.toFixed(2) }}</text>
             <text class="item-stock" v-if="item.quantity >= item.stock * 0.8">
@@ -66,7 +66,7 @@
             <button
                 class="qty-btn"
                 :class="{ disabled: item.quantity <= 1 }"
-                @click="cartStore.updateQuantity(item.id, item.spec, -1)"
+                @click="cartStore.updateQuantity(item.dishId, item.specName, -1)"
                 :disabled="item.quantity <= 1"
             >
               −
@@ -75,13 +75,13 @@
             <button
                 class="qty-btn"
                 :class="{ disabled: item.quantity >= item.stock }"
-                @click="cartStore.updateQuantity(item.id, item.spec, 1)"
+                @click="cartStore.updateQuantity(item.dishId, item.specName, 1)"
                 :disabled="item.quantity >= item.stock"
             >
               +
             </button>
           </view>
-          <button v-else class="delete-btn" @click="deleteItem(item.id, item.spec)">
+          <button v-else class="delete-btn" @click="deleteItem(item.dishId, item.specName)">
             ✕
           </button>
         </view>
@@ -99,17 +99,17 @@
       </view>
       <button
           class="checkout-btn"
-          :class="{ disabled: cartStore.selectedItems.length === 0 }"
-          @click="checkout"
+          :class="{ disabled: !cartStore.items.some(items => items.selected)  }"
+          @click="createOrder()"
       >
-        结算 ({{ cartStore.selectedCount }})
+        生成订单
       </button>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import {onMounted, ref} from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useCartStore } from '@/store/cart'
 
@@ -125,6 +125,10 @@ onShow(() => {
 
 // ===== 方法 =====
 
+// 生成订单
+function createOrder() {
+  cartStore.createOrder(1,1,'好吃')
+}
 // 返回上一页
 function goBack() {
   uni.switchTab({ url: '/pages/orderFood/orderFood' })
@@ -136,13 +140,13 @@ function toggleEditMode() {
 }
 
 // 删除商品
-function deleteItem(id, spec) {
+function deleteItem(dishId, specName) {
   uni.showModal({
     title: '提示',
     content: '确定要删除该商品吗？',
     success: (res) => {
       if (res.confirm) {
-        cartStore.removeItem(id, spec)
+        cartStore.removeItem(dishId, specName)
         uni.showToast({ title: '已删除', icon: 'success' })
       }
     }
@@ -163,35 +167,11 @@ function clearCart() {
   })
 }
 
-// 结算
-function checkout() {
-  if (cartStore.selectedItems.length === 0) {
-    uni.showToast({ title: '请选择商品', icon: 'none' })
-    return
-  }
-
-  // 库存校验
-  for (const item of cartStore.selectedItems) {
-    if (item.quantity > item.stock) {
-      uni.showToast({
-        title: `${item.name} 库存不足`,
-        icon: 'none'
-      })
-      return
-    }
-  }
-
-  // 跳转到确认订单页
-  const data = encodeURIComponent(JSON.stringify(cartStore.selectedItems))
-  uni.navigateTo({
-    url: `/pages/order/confirm?data=${data}`
-  })
-}
-
 // 跳转首页
 function goHome() {
   uni.switchTab({ url: '/pages/orderFood/orderFood' })
 }
+
 </script>
 
 <style scoped>
@@ -338,15 +318,6 @@ function goHome() {
 .checkbox-wrap {
   margin-right: 20rpx;
 }
-
-.item-image {
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: 12rpx;
-  background: #F5F5F5;
-  flex-shrink: 0;
-}
-
 .item-info {
   flex: 1;
   padding: 0 20rpx;

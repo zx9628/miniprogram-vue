@@ -211,7 +211,7 @@ function getCartQuantity(foodId: number) {
 function updateCartQuantity(food: any, delta: number) {
   const existing = cartStore.items.find((i: any) => i.id === food.id)
   if (existing) {
-    cartStore.updateQuantity(food.id, existing.spec, delta)
+    cartStore.updateQuantity(food.id, existing.specName, delta)
   } else {
     cartStore.addItem(food, 1, '默认')
   }

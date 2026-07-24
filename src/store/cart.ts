@@ -14,16 +14,24 @@ export interface FoodItem {
 }
 
 export interface CartItem {
-    id: number
+    dishId: number
     name: string
     price: number
     image: string
-    spec: string
+    specName: string
+    specId:number
     quantity: number
     selected: boolean
     stock: number
     type: string
 }
+
+const specMap: Record<string, number> = {
+    '默认': 1,
+    '微辣': 2,
+    '中辣': 3,
+    '特辣': 4,
+};
 
 export const useCartStore = defineStore('cart', () => {
     // ===== 状态 =====
@@ -93,9 +101,9 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     // 添加商品到购物车
-    function addItem(food: FoodItem, quantity: number = 1, spec: string = '默认') {
+    function addItem(food: FoodItem, quantity: number = 1, specName: string = '默认') {
         const existing = items.value.find(
-            item => item.id === food.id && item.spec === spec
+            item => item.dishId === food.id && item.specName === specName
         )
 
         if (existing) {
@@ -107,17 +115,20 @@ export const useCartStore = defineStore('cart', () => {
             }
             existing.quantity = newQuantity
         } else {
+            const specId = specMap[specName] || 0
+
             // 新增商品
             items.value.push({
-                id: food.id,
+                dishId: food.id,
                 name: food.name,
                 price: food.price,
                 image: food.image || '/static/images/default-food.png',
-                spec: spec,
+                specName: specName,
+                specId:specId,
                 quantity: quantity,
                 selected: true,
                 stock: food.stock || 999,
-                type: food.type || '菜品'
+                type: food.type || '菜品',
             })
         }
 
@@ -129,21 +140,23 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     // 修改商品数量
-    function updateQuantity(id: number, spec: string, delta: number) {
+    function updateQuantity(id: number, specName: string, delta: number) {
         const item = items.value.find(
-            i => i.id === id && i.spec === spec
+            i => i.dishId === id && i.specName === specName
         )
         if (!item) return false
 
         const newQuantity = item.quantity + delta
         if (newQuantity <= 0) {
             // 数量为0则删除
-            return removeItem(id, spec)
+            return removeItem(id, specName)
         }
         if (newQuantity > item.stock) {
             uni.showToast({ title: '库存不足', icon: 'none' })
             return false
         }
+
+
 
         item.quantity = newQuantity
         updateAllSelectedState()
@@ -154,9 +167,9 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     // 删除商品
-    function removeItem(id: number, spec: string) {
+    function removeItem(id: number, specName: string) {
         const index = items.value.findIndex(
-            i => i.id === id && i.spec === spec
+            i => i.dishId === id && i.specName === specName
         )
         if (index === -1) return false
 
@@ -169,9 +182,9 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     // 切换单个商品选中状态
-    function toggleSelected(id: number, spec: string) {
+    function toggleSelected(id: number, specName: string) {
         const item = items.value.find(
-            i => i.id === id && i.spec === spec
+            i => i.dishId === id && i.specName === specName
         )
         if (!item) return
 
@@ -210,6 +223,43 @@ export const useCartStore = defineStore('cart', () => {
         }
     }
 
+    function createOrder(storeId:number,userId:number,mark:string){
+
+        const orderData = {
+            userId:userId,
+            storeId:storeId,
+            totalAmount:totalPrice.value.toFixed(2),
+            payAmount:totalPrice.value.toFixed(2),
+            mark:mark,
+
+            selectedItems: selectedItems.value.map(item=>({
+            dishId: item.dishId,
+            specId: item.specId,
+            specName: item.specName,
+            quantity: item.quantity,
+            name: item.name,
+            price: item.price
+        }))
+        }
+
+        console.log("转换成的 orderData：",orderData);
+
+        uni.request({
+            url:`http://localhost:8081/api/order/createOrders`,
+            method:'POST',
+            header:{
+                'Content-Type':'application/json'
+            },
+            data:orderData,
+            success:(res) => {
+                console.log(res.data)
+                if(res.statusCode === 200) {
+                    console.log(res);
+                }
+            }
+        })
+    }
+
     // 同步到后端（防抖）
     let syncTimer: any = null
     function syncToServer() {
@@ -239,13 +289,13 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     // 判断商品是否在购物车中
-    function isInCart(id: number, spec: string = '默认') {
-        return items.value.some(item => item.id === id && item.spec === spec)
+    function isInCart(id: number, specName: string = '默认') {
+        return items.value.some(item => item.dishId === id && item.specName === specName)
     }
 
     // 获取商品在购物车中的数量
-    function getItemQuantity(id: number, spec: string = '默认') {
-        const item = items.value.find(i => i.id === id && i.spec === spec)
+    function getItemQuantity(id: number, specName: string = '默认') {
+        const item = items.value.find(i => i.dishId === id && i.specName === specName)
         return item ? item.quantity : 0
     }
 
@@ -255,7 +305,7 @@ export const useCartStore = defineStore('cart', () => {
         allSelected,
 
         // 计算属性
-        selectedItems,
+        selectedItems:{},
         totalCount,
         totalPrice,
         selectedCount,
@@ -272,6 +322,7 @@ export const useCartStore = defineStore('cart', () => {
         getSelectedItems,
         isInCart,
         getItemQuantity,
-        updateBadge
+        updateBadge,
+        createOrder
     }
 })

@@ -9,6 +9,12 @@
     {
       "path": "pages/order/order",
       "style": {
+        "navigationBarTitleText": "购物车"
+      }
+    },
+    {
+      "path": "pages/order/orderList",
+      "style": {
         "navigationBarTitleText": "订单"
       }
     },
@@ -151,6 +157,10 @@
       },
       {
         "pagePath": "pages/order/order",
+        "text": "购物车"
+      },
+      {
+        "pagePath": "pages/order/orderList",
         "text": "订单"
       },
       {
