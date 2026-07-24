@@ -153,7 +153,7 @@
             </view>
           </view>
 
-          <!-- 其他页面占位 -->
+          <!-- 其他页面占位 s-->
           <view v-else class="page-placeholder">
             <order-manage v-if="currentPageTitle === '订单列表'"></order-manage>
             <prod-manage v-if="currentPageTitle === '菜品编辑'"></prod-manage>
