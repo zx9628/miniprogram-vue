@@ -91,7 +91,7 @@ const userInfo = ref({
 const loadUserInfo = () => {
   try {
     const stored = uni.getStorageSync('userInfo');
-    console.log('首页读取缓存:', stored);
+    console.log('首页读取读取缓存:', stored);
 
     if (stored && typeof stored === 'object' && stored.userId) {
       userInfo.value = {
