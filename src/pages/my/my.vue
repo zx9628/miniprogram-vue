@@ -264,7 +264,7 @@ const wechatLogin = () => {
               points: Number(userData.points) || 0,
               balance: userData.balance || '0.00',
               birthday: userData.birthday || '',
-              couponCount: 0
+              couponCount: Number(userData.couponCount) || 0
             };
 
             // 保存用户信息到缓存

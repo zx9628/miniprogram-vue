@@ -11,17 +11,17 @@
       <view class="user-card">
         <view class="user-info">
           <!-- 头像点击跳转 -->
-          <image :src="userInfo?.avatar || '/static/images/avatar.png'" class="avatar" mode="aspectFill" @click="goToMemberCenter"></image>
+          <image :src="userInfo.avatar || '/static/cow.png'" class="avatar" mode="aspectFill" @click="goToMemberCenter"></image>
           <view class="info-text">
             <view class="greeting">
-              <text>Hi {{ userInfo?.nickname || '你好' }}</text>
+              Hi {{ userInfo.nickname || '你好' }}
               <!-- 会员等级点击跳转 -->
               <text class="vip-tag" @click="goToMemberCenter">六品王VIP卡·铁牛会员</text>
             </view>
             <view class="stats">
-              <text @click="handleJump('balance')">余额 {{ userInfo?.balance || 0 }}</text>
-              <text @click="handleJump('points')">积分 {{ userInfo?.points || 0 }}</text>
-              <text @click="handleJump('coupons')">优惠券 {{ userInfo?.couponCount || 0 }}</text>
+              <text @click="handleJump('balance')">余额 {{ userInfo.balance || '0.00' }}</text>
+              <text @click="handleJump('points')">积分 {{ userInfo.points || 0 }}</text>
+              <text @click="handleJump('coupons')">优惠券 {{ userInfo.couponCount || 0 }}</text>
             </view>
           </view>
         </view>
@@ -72,14 +72,54 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
-import request from "@/util/request";
 
-const title = ref("");
-const userInfo = ref(null);
+// ========== 定义用户数据 ==========
+const userInfo = ref({
+  userId: 0,
+  nickname: '你好',
+  avatar: '/static/cow.png',
+  balance: '0.00',
+  points: 0,
+  couponCount: 0,
+  phoneMasked: '',
+  openId: ''
+});
 
-// 金刚区菜单
+// ========== 从缓存加载用户信息 ==========
+const loadUserInfo = () => {
+  try {
+    const stored = uni.getStorageSync('userInfo');
+    console.log('首页读取缓存:', stored);
+
+    if (stored && typeof stored === 'object' && stored.userId) {
+      userInfo.value = {
+        userId: stored.userId || 0,
+        nickname: stored.nickname || '你好',
+        avatar: stored.avatar || '/static/cow.png',
+        balance: stored.balance || '0.00',
+        points: Number(stored.points) || 0,
+        couponCount: Number(stored.couponCount) || 0,
+        phoneMasked: stored.phoneMasked || '',
+        openId: stored.openId || ''
+      };
+
+      console.log('首页用户信息已更新:', userInfo.value);
+    } else {
+      console.log('未找到有效的用户缓存数据');
+    }
+  } catch (error) {
+    console.error('加载用户信息失败:', error);
+  }
+};
+
+// ========== 页面每次显示时加载 ==========
+onShow(() => {
+  loadUserInfo();
+});
+
+// ========== 金刚区菜单 ==========
 const gridList = ref([
   { name: '会员储值', icon: '/static/images/grid-1.png', url: '/subPackages/member/recharge' },
   { name: '团餐', icon: '/static/images/grid-2.png', url: '/pages/index/grid/groupMeal' },
@@ -87,92 +127,59 @@ const gridList = ref([
   { name: '积分大转盘', icon: '/static/images/grid-4.png', url: '/pages/index/grid/wheel' }
 ]);
 
-// ========== 获取用户信息 ==========
-const fetchUserInfo = (userId) => {
-  if (!userId) {
-    console.warn('用户ID为空，无法获取用户信息');
-    return;
-  }
-
-  uni.request({
-    url: `http://localhost:8081/api/user/get/${userId}`,
-    method: 'GET',
-    success: (res) => {
-      console.log('首页获取用户信息响应:', res.data);
-
-      if (res.data.code === 200 && res.data.data) {
-        const data = res.data.data;
-        const updated = {
-          ...userInfo.value,
-          userId: data.userId || userInfo.value?.userId || 0,
-          openId: data.openId || userInfo.value?.openId || '',
-          nickname: data.nickname || '微信用户',
-          avatar: data.avatar || '/static/images/avatar.png',
-          phoneMasked: data.phoneMasked || '',
-          gender: data.gender !== undefined ? data.gender : 0,
-          points: data.points !== undefined ? data.points : 0,
-          balance: data.balance || '0.00',
-          birthday: data.birthday || '',
-          couponCount: userInfo.value?.couponCount || 0
-        };
-
-        userInfo.value = updated;
-        // 更新缓存
-        uni.setStorageSync('userInfo', updated);
-        console.log('首页用户信息已更新:', updated);
-      }
-    },
-    fail: (err) => {
-      console.error('获取用户信息失败:', err);
-    }
-  });
-};
-
-// ========== 页面显示时加载用户信息 ==========
-onShow(() => {
-  console.log('首页 onShow 触发');
-  const stored = uni.getStorageSync('userInfo');
-  console.log('首页缓存数据:', stored);
-
-  if (stored && typeof stored === 'object' && stored.userId) {
-    userInfo.value = stored;
-    // 请求最新数据（积分、余额会变化）
-    fetchUserInfo(Number(stored.userId));
-  } else {
-    userInfo.value = null;
-  }
-});
-
-onMounted(() => {
-  // 保留原有的 onMounted 逻辑
-});
-
-// ========== 跳转方法 ==========
+// ========== 跳转处理 ==========
 const handleJump = (type) => {
   console.log('触发跳转类型:', type);
 
+  // 先检查是否登录
+  if (!userInfo.value.userId) {
+    uni.showToast({
+      title: '请先登录',
+      icon: 'none',
+      success: () => {
+        setTimeout(() => {
+          uni.navigateTo({ url: '/pages/my/my' });
+        }, 500);
+      }
+    });
+    return;
+  }
+
   switch (type) {
     case 'balance':
+      // ✅ 跳转到余额页面
       uni.navigateTo({
-        url: '/subPackages/member/recharge'
+        url: '/pages/my/balance',
+        fail: (err) => {
+          console.error('跳转失败:', err);
+          uni.showToast({ title: '页面正在开发中', icon: 'none' });
+        }
       });
       break;
 
     case 'dineIn':
-      uni.switchTab({
-        url: '/pages/order/order'
-      });
+      uni.switchTab({ url: '/pages/order/order' });
       break;
 
     case 'points':
+      // ✅ 跳转到积分页面
       uni.navigateTo({
-        url: '/subPackages/member/points'
+        url: '/pages/my/points',
+        fail: (err) => {
+          console.error('跳转失败:', err);
+          uni.showToast({ title: '页面正在开发中', icon: 'none' });
+        }
       });
       break;
 
     case 'coupons':
+      // ✅ 跳转到优惠券页面
       uni.navigateTo({
-        url: '/subPackages/member/coupons'
+        url: '/pages/my/coupon',
+        fail: (err) => {
+          console.error('跳转失败:', err);
+          uni.showToast({ title: '页面正在开发中', icon: 'none' });
+        }
       });
       break;
 
@@ -181,41 +188,72 @@ const handleJump = (type) => {
   }
 };
 
-// 通用跳转方法 (金刚区)
+// ========== 金刚区点击 ==========
 const handleGridClick = (item) => {
+  // 如果是会员储值，需要检查登录状态
+  if (item.name === '会员储值' && !userInfo.value.userId) {
+    uni.showToast({
+      title: '请先登录',
+      icon: 'none',
+      success: () => {
+        setTimeout(() => {
+          uni.navigateTo({ url: '/pages/my/my' });
+        }, 500);
+      }
+    });
+    return;
+  }
+
   if (item.url) {
     uni.navigateTo({
       url: item.url,
       fail: (err) => {
-        console.error('跳转失败，请检查路径:', item.url, err);
+        console.error('跳转失败:', err);
         uni.showToast({ title: '页面正在开发中', icon: 'none' });
       }
     });
   }
 };
 
+// ========== 页面跳转方法 ==========
 const goToMemberCode = () => {
-  uni.navigateTo({
-    url: '/subPackages/member/qrcode'
-  });
+  if (!userInfo.value.userId) {
+    uni.showToast({
+      title: '请先登录',
+      icon: 'none',
+      success: () => {
+        setTimeout(() => {
+          uni.navigateTo({ url: '/pages/my/my' });
+        }, 500);
+      }
+    });
+    return;
+  }
+  uni.navigateTo({ url: '/subPackages/member/qrcode' });
 };
 
 const goToMemberCenter = () => {
-  uni.navigateTo({
-    url: '/subPackages/member/memberCenter'
-  });
+  if (!userInfo.value.userId) {
+    uni.showToast({
+      title: '请先登录',
+      icon: 'none',
+      success: () => {
+        setTimeout(() => {
+          uni.navigateTo({ url: '/pages/my/my' });
+        }, 500);
+      }
+    });
+    return;
+  }
+  uni.navigateTo({ url: '/subPackages/member/memberCenter' });
 };
 
 const goToActivity = () => {
-  uni.navigateTo({
-    url: '/pages/index/activity/activity'
-  });
+  uni.navigateTo({ url: '/pages/index/activity/activity' });
 };
 
 const goToJoin = () => {
-  uni.navigateTo({
-    url: '/pages/index/join/join'
-  });
+  uni.navigateTo({ url: '/pages/index/join/join' });
 };
 </script>
 
@@ -266,54 +304,163 @@ $text-gray: #999;
   .user-info {
     display: flex;
     align-items: center;
+    flex: 1;
+
     .avatar {
-      width: 80rpx; height: 80rpx; border-radius: 50%; background-color: #eee; margin-right: 20rpx;
+      width: 80rpx;
+      height: 80rpx;
+      border-radius: 50%;
+      background-color: #eee;
+      margin-right: 20rpx;
+      flex-shrink: 0;
     }
-    .info-text { display: flex; flex-direction: column; }
+
+    .info-text {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+    }
+
     .greeting {
-      font-size: 28rpx; color: $text-dark; margin-bottom: 10rpx;
+      font-size: 28rpx;
+      color: $text-dark;
+      margin-bottom: 10rpx;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+
       .vip-tag {
-        background: #ffd700; color: #5a3e00; font-size: 20rpx; padding: 2rpx 8rpx; border-radius: 6rpx; margin-left: 10rpx;
+        background: #ffd700;
+        color: #5a3e00;
+        font-size: 20rpx;
+        padding: 2rpx 8rpx;
+        border-radius: 6rpx;
+        margin-left: 10rpx;
+        white-space: nowrap;
       }
     }
+
     .stats {
-      font-size: 24rpx; color: $text-gray;
+      font-size: 24rpx;
+      color: $text-gray;
+      display: flex;
+      flex-wrap: wrap;
+
       text {
         margin-right: 20rpx;
-        &:active { color: $theme-red; }
+        padding: 4rpx 0;
+
+        &:active {
+          color: $theme-red;
+        }
       }
     }
   }
 
   .qr-code {
-    text-align: center; font-size: 22rpx; color: $text-dark;
-    image { display: block; margin: 0 auto 6rpx; }
-    &:active { opacity: 0.7; }
+    text-align: center;
+    font-size: 22rpx;
+    color: $text-dark;
+    flex-shrink: 0;
+    margin-left: 20rpx;
+
+    image {
+      display: block;
+      margin: 0 auto 6rpx;
+    }
+
+    &:active {
+      opacity: 0.7;
+    }
   }
 }
 
 .core-actions {
-  display: flex; justify-content: space-between; margin-bottom: 24rpx;
-  .action-item {
-    width: 48%; background: #fff; border-radius: 20rpx; padding: 30rpx 0; display: flex; flex-direction: column; align-items: center; box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.03);
-    &:active { background-color: #fafafa; transform: scale(0.98); transition: all 0.2s; }
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
 
-    .action-icon { width: 120rpx; height: 120rpx; margin-bottom: 16rpx; }
-    .action-title { font-size: 32rpx; font-weight: bold; color: $text-dark; margin-bottom: 8rpx; }
-    .action-desc { font-size: 22rpx; color: $text-gray; }
+  .action-item {
+    width: 48%;
+    background: #fff;
+    border-radius: 20rpx;
+    padding: 30rpx 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.03);
+
+    &:active {
+      background-color: #fafafa;
+      transform: scale(0.98);
+      transition: all 0.2s;
+    }
+
+    .action-icon {
+      width: 120rpx;
+      height: 120rpx;
+      margin-bottom: 16rpx;
+    }
+
+    .action-title {
+      font-size: 32rpx;
+      font-weight: bold;
+      color: $text-dark;
+      margin-bottom: 8rpx;
+    }
+
+    .action-desc {
+      font-size: 22rpx;
+      color: $text-gray;
+    }
   }
 }
 
 .grid-menu {
-  background: #fff; border-radius: 20rpx; padding: 30rpx 0; display: flex; justify-content: space-around; margin-bottom: 24rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx 0;
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 24rpx;
+
   .grid-item {
-    display: flex; flex-direction: column; align-items: center; font-size: 24rpx; color: $text-dark;
-    .grid-icon { width: 60rpx; height: 60rpx; margin-bottom: 12rpx; }
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 24rpx;
+    color: $text-dark;
+
+    .grid-icon {
+      width: 60rpx;
+      height: 60rpx;
+      margin-bottom: 12rpx;
+    }
+
     transition: opacity 0.2s;
     &:active { opacity: 0.6; }
   }
 }
 
-.promo-section { margin-bottom: 24rpx; .promo-img { width: 100%; display: block; border-radius: 20rpx; } }
-.bottom-ad { border-radius: 20rpx; overflow: hidden; margin-bottom: 20rpx; .ad-img { width: 100%; display: block; } }
+.promo-section {
+  margin-bottom: 24rpx;
+
+  .promo-img {
+    width: 100%;
+    display: block;
+    border-radius: 20rpx;
+  }
+}
+
+.bottom-ad {
+  border-radius: 20rpx;
+  overflow: hidden;
+  margin-bottom: 20rpx;
+
+  .ad-img {
+    width: 100%;
+    display: block;
+  }
+}
 </style>
