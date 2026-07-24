@@ -1,3 +1,4 @@
+<!-- pages/orderFood/orderFood.vue -->
 <template>
   <view class="order-page">
     <!-- 顶部店铺信息 -->
@@ -6,7 +7,7 @@
       <view class="store-address">{{ ShopAddress }}</view>
     </view>
 
-    <!-- 主内容区域：左侧菜单 + 右侧菜品 -->
+    <!-- 主内容区域 -->
     <view class="main-content">
       <!-- 左侧菜单 -->
       <scroll-view class="menu-sidebar" scroll-y>
@@ -25,7 +26,6 @@
       <scroll-view class="content-area" scroll-y>
         <view class="category-title">{{ currentMenu.label }}</view>
 
-        <!-- 菜品列表 -->
         <view class="food-list">
           <view
               class="food-item"
@@ -39,10 +39,10 @@
                 <text class="tag" v-if="food.spicy === true">辣</text>
                 <text class="tag type-tag">{{ food.type || currentMenu.label }}</text>
               </view>
-              <text class="food-price">￥{{ food.price }}/份起</text>
+              <!-- ✅ 显示最低价格 -->
+              <text class="food-price">￥{{ getMinPrice(food) }}/份起</text>
             </view>
             <view class="food-action">
-              <!-- 判断是否已在购物车中 -->
               <view v-if="getCartQuantity(food.id) > 0" class="quantity-control">
                 <button class="qty-btn" @click="updateCartQuantity(food, -1)">−</button>
                 <text class="qty-num">{{ getCartQuantity(food.id) }}</text>
@@ -56,46 +56,54 @@
     </view>
 
     <!-- 底部购物车浮层 -->
-    <view class="cart-footer" v-if="cartStore.totalCount > 0" @click="goToCart">
+    <view class="cart-footer" v-if="totalCount > 0" @click="goToCart">
       <view class="cart-info">
         <view class="cart-icon-wrap">
           <text class="cart-icon">🛒</text>
-          <text class="badge">{{ cartStore.totalCount }}</text>
+          <text class="badge">{{ totalCount }}</text>
         </view>
         <view class="cart-price">
-          <text class="price">￥{{ cartStore.totalPrice.toFixed(2) }}</text>
-          <text class="count">共 {{ cartStore.totalCount }} 件</text>
+          <text class="price">￥{{ totalPrice.toFixed(2) }}</text>
+          <text class="count">共 {{ totalCount }} 件</text>
         </view>
       </view>
-      <view class="checkout-btn">
-        去结算
-      </view>
+      <view class="checkout-btn" @click="goToCart">去结算</view>
     </view>
 
     <!-- 规格选择弹窗 -->
-    <uni-popup ref="specPopup" type="bottom" :safe-area="false">
-      <view class="spec-dialog" v-if="selectedFood && on">
+    <uni-popup ref="specPopupRef" type="bottom" :safe-area="false">
+      <view class="spec-dialog" v-if="selectedFood">
         <view class="dialog-header">
           <text class="dialog-title">选择规格</text>
           <text class="dialog-close" @click="closeSpecDialog">✕</text>
         </view>
         <view class="dialog-body">
           <text class="food-name-dialog">{{ selectedFood.name }}</text>
-          <text class="food-price-dialog">￥{{ selectedFood.price }}</text>
+          <!-- ✅ 显示当前选中规格的价格 -->
+          <text class="food-price-dialog">￥{{ selectedSpecPrice.toFixed(2) }}</text>
 
-          <view class="spec-section">
-            <text class="spec-label">规格</text>
+          <!-- 有规格时显示规格选择 -->
+          <view class="spec-section" v-if="selectedFood.specs && selectedFood.specs.length > 0">
+            <text class="spec-label">规格 <text class="required">*</text></text>
             <view class="spec-options">
               <view
                   class="spec-option"
                   v-for="(spec, idx) in selectedFood.specs"
                   :key="idx"
-                  :class="{ active: currentSpec === spec }"
-                  @click="currentSpec = spec"
+                  :class="{ active: selectedSpecIndex === idx }"
+                  @click="selectedSpecIndex = idx"
               >
-                {{ spec.name }}
+                <!-- ✅ 显示规格名称和价格 -->
+                <text class="spec-name">{{ spec.name }}</text>
+                <text class="spec-price">￥{{ spec.price || selectedFood.price }}</text>
               </view>
             </view>
+          </view>
+
+          <!-- 没有规格时显示提示 -->
+          <view class="spec-section" v-else>
+            <text class="spec-label">规格</text>
+            <text class="spec-default">默认规格</text>
           </view>
 
           <view class="quantity-section">
@@ -108,7 +116,14 @@
           </view>
         </view>
         <view class="dialog-footer">
-          <button class="btn-add-cart" @click="confirmAddToCart">加入购物车</button>
+          <button
+              class="btn-add-cart"
+              @click="confirmAddToCart"
+              :class="{ disabled: !canAddToCart }"
+              :disabled="!canAddToCart"
+          >
+            {{ canAddToCart ? `加入购物车 ¥${(selectedSpecPrice * dialogQuantity).toFixed(2)}` : '请选择规格' }}
+          </button>
         </view>
       </view>
     </uni-popup>
@@ -117,44 +132,26 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useCartStore } from '@/store/cart'
 import { onShow } from '@dcloudio/uni-app'
+import * as CartUtils from '@/store/cart'
 
 // ============ 数据定义 ============
-const cartStore = useCartStore()
-
-// 店铺信息
 const ShopName = ref<string>('')
 const ShopAddress = ref<string>('')
-
-// 分类和菜品数据
 const CategoryList = ref<any[]>([])
 const AllDishes = ref<any[]>([])
-
-// 当前选中的菜单索引
 const currentIndex = ref(0)
-
-const on = ref<boolean>(false)
-
 
 // 规格弹窗相关
 const selectedFood = ref<any>(null)
-const currentSpec = ref('默认')
+const selectedSpecIndex = ref<number>(-1)
 const dialogQuantity = ref(1)
-const specPopup = ref<any>(null)
+const specPopupRef = ref<any>(null)
 
-// 默认菜单（当后端数据未加载时显示）
-const defaultMenuList = [
-
-]
-
-// 默认菜品数据（当后端数据未加载时显示）
-const defaultFoodData: Record<string, any[]> = {
-
-}
+// 购物车数据
+const cartItems = ref<CartUtils.CartItem[]>([])
 
 // ============ 计算属性 ============
-// 左侧菜单列表（优先使用后端数据）
 const menuList = computed(() => {
   if (CategoryList.value && CategoryList.value.length > 0) {
     return CategoryList.value.map(item => ({
@@ -162,7 +159,7 @@ const menuList = computed(() => {
       id: item.id
     }))
   }
-  return defaultMenuList
+  return [{ label: '全部', id: 0 }]
 })
 
 const currentMenu = computed(() => {
@@ -170,73 +167,135 @@ const currentMenu = computed(() => {
 })
 
 const currentFoodList = computed(() => {
-  // 如果有后端分类数据
   if (CategoryList.value && CategoryList.value.length > 0) {
     const currentCategory = CategoryList.value[currentIndex.value]
-
-    // 如果分类下直接有 foodList
     if (currentCategory?.foodList && currentCategory.foodList.length > 0) {
       return currentCategory.foodList
     }
-
-    // 否则从 AllDishes 中按 category_id 筛选
     if (AllDishes.value.length > 0) {
       const categoryId = currentCategory?.id || (currentIndex.value + 1)
-      return AllDishes.value.filter(
-          dish => dish.category_id === categoryId
-      )
+      return AllDishes.value.filter(dish => dish.category_id === categoryId)
     }
-
-    return currentCategory?.foodList || currentCategory?.dishes || currentCategory?.foods || []
+    return []
   }
-
-  // 使用默认数据
-  const menuLabel = currentMenu.value.label
-  return defaultFoodData[menuLabel] || []
+  return AllDishes.value
 })
 
-// ============ 购物车相关方法 ============
-// 获取商品在购物车中的数量
-function getCartQuantity(foodId: number) {
-  const item = cartStore.items.find((i: any) => i.id === foodId)
-  return item ? item.quantity : 0
+const totalCount = computed(() => CartUtils.getTotalCount(cartItems.value))
+const totalPrice = computed(() => CartUtils.getTotalPrice(cartItems.value))
+
+// ✅ 获取当前选中规格的价格
+const selectedSpecPrice = computed(() => {
+  if (!selectedFood.value) return 0
+
+  // 如果有规格且选中了
+  if (selectedFood.value.specs && selectedFood.value.specs.length > 0 && selectedSpecIndex.value >= 0) {
+    const spec = selectedFood.value.specs[selectedSpecIndex.value]
+    // 如果规格有自己的价格，使用规格价格，否则使用菜品价格
+    return spec.price || selectedFood.value.price || 0
+  }
+
+  // 没有规格或未选中，使用菜品价格
+  return selectedFood.value.price || 0
+})
+
+const canAddToCart = computed(() => {
+  if (!selectedFood.value) return false
+  if (selectedFood.value.specs && selectedFood.value.specs.length > 0) {
+    return selectedSpecIndex.value >= 0
+  }
+  return true
+})
+
+// ============ 辅助方法 ============
+// ✅ 获取菜品最低价格（用于列表显示）
+function getMinPrice(food: any): number {
+  if (!food) return 0
+  if (food.specs && food.specs.length > 0) {
+    // 找出所有规格中最低的价格
+    const prices = food.specs.map((s: any) => s.price || food.price || 0)
+    return Math.min(...prices)
+  }
+  return food.price || 0
 }
 
-// 直接在列表中修改数量（快速加/减）
+// ============ 购物车方法 ============
+function loadCart() {
+  cartItems.value = CartUtils.getCart()
+}
+
+function getCartQuantity(foodId: number) {
+  return CartUtils.getItemQuantity(foodId)
+}
+
 function updateCartQuantity(food: any, delta: number) {
-  const existing = cartStore.items.find((i: any) => i.id === food.id)
+  const existing = cartItems.value.find((i: any) => i.dishId === food.id)
+
   if (existing) {
-    cartStore.updateQuantity(food.id, existing.specName, delta)
+    CartUtils.updateCartQuantity(food.id, existing.specName, delta)
   } else {
-    cartStore.addItem(food, 1, '默认')
+    // ✅ 没有规格时，使用默认价格
+    const defaultPrice = food.price || 0
+    CartUtils.addToCart(food, 1, 0, '默认', defaultPrice)
   }
+  loadCart()
 }
 
 // ============ 菜单切换 ============
 function switchMenu(index: number) {
   if (currentIndex.value !== index) {
     currentIndex.value = index
-    console.log('切换到:', menuList.value[index].label)
   }
 }
 
 // ============ 规格弹窗相关 ============
 function showSpecDialog(food: any) {
-  on.value = true;
   selectedFood.value = food
-  currentSpec.value = '默认'
+  selectedSpecIndex.value = -1
   dialogQuantity.value = 1
-  specPopup.value?.open()
+  specPopupRef.value?.open()
 }
 
 function closeSpecDialog() {
-  on.value = false;
-  specPopup.value?.close()
+  specPopupRef.value?.close()
 }
 
 function confirmAddToCart() {
-  if (selectedFood.value) {
-    cartStore.addItem(selectedFood.value, dialogQuantity.value, currentSpec.value)
+  if (!canAddToCart.value) {
+    uni.showToast({ title: '请选择规格', icon: 'none' })
+    return
+  }
+
+  const food = selectedFood.value
+  let specName = '默认'
+  let specId = 0
+  let specPrice = food.price || 0  // ✅ 默认使用菜品价格
+
+  if (food.specs && food.specs.length > 0 && selectedSpecIndex.value >= 0) {
+    const spec = food.specs[selectedSpecIndex.value]
+    specName = spec.name || '默认'
+    specId = typeof spec.id === 'number' ? spec.id : Number(spec.id) || (selectedSpecIndex.value + 1)
+    // ✅ 使用规格的价格
+    specPrice = spec.price || food.price || 0
+  }
+
+  console.log('========== 添加购物车 ==========')
+  console.log('food:', food.name)
+  console.log('specId:', specId)
+  console.log('specName:', specName)
+  console.log('specPrice:', specPrice)  // ✅ 打印规格价格
+
+  // ✅ 传递规格价格
+  const success = CartUtils.addToCart(
+      food,
+      dialogQuantity.value,
+      specId,
+      specName,
+      specPrice  // ✅ 传递规格价格
+  )
+
+  if (success) {
+    loadCart()
     uni.showToast({ title: '已加入购物车', icon: 'success' })
     closeSpecDialog()
   }
@@ -249,66 +308,90 @@ function goToCart() {
 
 // ============ 生命周期 ============
 onShow(() => {
-  cartStore.initCart()
+  loadCart()
 })
 
 onMounted(() => {
-  console.log('=== Body 组件已加载 ===')
-  cartStore.initCart()
+  loadCart()
 
-  // 1. 请求店铺信息
+  // 获取店铺信息
   uni.request({
     url: 'http://localhost:8081/api/store/getStoreName',
     success: (res: any) => {
-      if (res.statusCode === 200) {
-        console.log('获取店铺信息成功：', res.data.data[0])
-        ShopName.value = res.data.data[0].name
-        ShopAddress.value = res.data.data[0].address || ''
-      } else {
-        console.log('获取店铺信息失败', res.statusCode)
+      if (res.statusCode === 200 && res.data.data) {
+        ShopName.value = res.data.data[0]?.name || ''
+        ShopAddress.value = res.data.data[0]?.address || ''
       }
-    },
-    fail: (err) => {
-      console.log('获取店铺信息错误：', err)
     }
   })
 
-  // 2. 请求菜品分类
+  // 获取分类
   uni.request({
     url: 'http://localhost:8081/api/category/getAllCategories',
     success: (res: any) => {
-      console.log('获取分类数据响应：', res)
-      if (res.statusCode === 200) {
-        console.log('获取分类数据成功：', res.data.data)
+      if (res.statusCode === 200 && res.data.data) {
         CategoryList.value = res.data.data
         currentIndex.value = 0
-      } else {
-        console.log('获取菜品类型失败')
       }
-    },
-    fail: (err) => {
-      console.log('获取分类数据失败：' + err)
     }
   })
 
-  // 3. 请求所有菜品
+  // 获取所有菜品
   uni.request({
     url: 'http://localhost:8081/api/dish/getAllDishes',
     success: (res: any) => {
-      console.log('获取全部菜品：', res)
-      if (res.statusCode === 200) {
-        AllDishes.value = res.data.data || []
+      if (res.statusCode === 200 && res.data.data) {
+        AllDishes.value = res.data.data
         console.log('AllDishes:', AllDishes.value)
       }
-    },
-    fail: (err) => {
-      console.log('获取菜品失败：' + err)
     }
   })
 })
 </script>
 
 <style scoped>
+/* ... 原有样式保持不变，添加规格选项的样式 ... */
+
+/* ✅ 规格选项显示名称和价格 */
+.spec-option {
+  padding: 12rpx 28rpx;
+  border: 2rpx solid #E5E5E5;
+  border-radius: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100rpx;
+  transition: all 0.3s ease;
+}
+
+.spec-option .spec-name {
+  font-size: 26rpx;
+  color: #666666;
+}
+
+.spec-option .spec-price {
+  font-size: 22rpx;
+  color: #FF6B35;
+  margin-top: 4rpx;
+}
+
+.spec-option.active {
+  border-color: #FF6B35;
+  background: #FFF5F0;
+}
+
+.spec-option.active .spec-name {
+  color: #FF6B35;
+  font-weight: bold;
+}
+
+.spec-option.active .spec-price {
+  color: #FF6B35;
+}
+</style>
+
+<style scoped>
+/* 原有样式保持不变，添加规格默认样式 */
 .order-page {
   display: flex;
   flex-direction: column;
@@ -316,7 +399,6 @@ onMounted(() => {
   background: #F5F5F5;
 }
 
-/* ===== 顶部店铺信息 ===== */
 .shop_information {
   background: #FFFFFF;
   padding: 20rpx 30rpx;
@@ -340,7 +422,6 @@ onMounted(() => {
   color: #666666;
 }
 
-/* ===== 主内容区域 ===== */
 .main-content {
   display: flex;
   flex: 1;
@@ -348,7 +429,6 @@ onMounted(() => {
   padding-bottom: 120rpx;
 }
 
-/* ===== 左侧菜单 ===== */
 .menu-sidebar {
   width: 160rpx;
   background: #FFFFFF;
@@ -378,7 +458,6 @@ onMounted(() => {
   font-weight: bold;
 }
 
-/* ===== 右侧内容 ===== */
 .content-area {
   flex: 1;
   padding: 20rpx 24rpx;
@@ -395,7 +474,6 @@ onMounted(() => {
   margin-bottom: 20rpx;
 }
 
-/* ===== 菜品列表 ===== */
 .food-list {
   display: flex;
   flex-direction: column;
@@ -451,12 +529,6 @@ onMounted(() => {
   color: #FF6B35;
   font-weight: bold;
   display: block;
-  margin-bottom: 4rpx;
-}
-
-.food-recommend {
-  font-size: 22rpx;
-  color: #FF6B35;
 }
 
 .food-action {
@@ -464,7 +536,6 @@ onMounted(() => {
   margin-left: 20rpx;
 }
 
-/* ===== 数量控制（在列表中） ===== */
 .quantity-control {
   display: flex;
   align-items: center;
@@ -515,7 +586,6 @@ onMounted(() => {
   border: none;
 }
 
-/* ===== 底部购物车浮层 ===== */
 .cart-footer {
   position: fixed;
   bottom: 0;
@@ -589,7 +659,7 @@ onMounted(() => {
   opacity: 0.8;
 }
 
-/* ===== 规格选择弹窗 ===== */
+/* 规格弹窗 */
 .spec-dialog {
   background: #FFFFFF;
   border-radius: 32rpx 32rpx 0 0;
@@ -620,13 +690,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.food-preview {
-  width: 180rpx;
-  height: 180rpx;
-  border-radius: 16rpx;
-  margin-bottom: 16rpx;
 }
 
 .food-name-dialog {
@@ -674,6 +737,16 @@ onMounted(() => {
   background: #FFF5F0;
 }
 
+.spec-default {
+  font-size: 28rpx;
+  color: #999999;
+  padding: 12rpx 0;
+}
+
+.required {
+  color: #FF3B30;
+}
+
 .quantity-section {
   width: 100%;
   margin-top: 8rpx;
@@ -687,6 +760,7 @@ onMounted(() => {
 
 .dialog-footer {
   margin-top: 32rpx;
+  width: 100%;
 }
 
 .btn-add-cart {
@@ -698,6 +772,14 @@ onMounted(() => {
   padding: 24rpx 0;
   font-size: 32rpx;
   font-weight: 500;
+}
+
+.btn-add-cart.disabled,
+.btn-add-cart:disabled {
+  background: #E0E0E0;
+  color: #999999;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .btn-add-cart:active {
