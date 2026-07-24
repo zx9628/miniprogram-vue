@@ -253,7 +253,8 @@ const fetchOrders = async (isRefresh = false) => {
 
   try {
     const res = await uni.request({
-      url: 'http://localhost:8081/api/order/getAllorders',
+      url: 'https://zx.juntaitec.cn/wechat/order/getAllorders',
+      //url: 'http://localhost:8081/api/order/getAllorders',
       method: 'GET',
       data: { page: page.value, pageSize }
     });
@@ -311,7 +312,8 @@ const updateStatus = (item: OrderVO, newStatus: number) => {
       try {
         uni.showLoading({ title: '操作中...' });
         await uni.request({
-          url: 'http://localhost:8081/api/order/updateStatus',
+          url: 'https://zx.juntaitec.cn/wechat/order/updateStatus',
+          // url: 'http://localhost:8081/api/order/updateStatus',
           method: 'PUT',
           data: { orderId: item.id, status: newStatus }
         });
@@ -339,7 +341,8 @@ const adminCancel = (item: OrderVO) => {
       try {
         uni.showLoading({ title: '取消中...' });
         await uni.request({
-          url: 'http://localhost:8081/api/order/cancel',
+          //url: 'http://localhost:8081/api/order/cancel',
+          url: 'https://zx.juntaitec.cn/wechat/order/cancel',
           method: 'PUT',
           data: { orderId: item.id, reason: '管理员手动取消' }
         });

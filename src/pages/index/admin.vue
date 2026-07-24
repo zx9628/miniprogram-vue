@@ -300,7 +300,7 @@ const handleLogout=()=>{
 
 onMounted(()=>{
   request.post(
-      "/api/login/admin",
+      "/wechat/login/admin",
       {
         username:"boss",
         password:"12345678wlb"

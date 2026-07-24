@@ -276,6 +276,7 @@ export function createOrder(
         uni.showLoading({ title: '正在下单...', mask: true })
 
         uni.request({
+            //url:'https://zx.juntaitec.cn/wechat/order/createOrders'
             url: 'http://localhost:8081/api/order/createOrders',
             method: 'POST',
             header: {

@@ -130,19 +130,24 @@
       {
         "pagePath": "pages/index/index",
         "text": "首页",
-        "iconPath": "static/icon/home.png"
+        "iconPath": "static/icon/home.png",
+        "selectedIconPath": "static/icon/home-selected.png"
       },
       {
         "pagePath": "pages/orderFood/orderFood",
-        "text": "点餐"
+        "text": "点餐",
+        "iconPath": "static/icon/order.png",
+        "selectedIconPath": "static/icon/order-selected.png"
       },
       {
         "pagePath": "pages/order/order",
-        "text": "购物车"
+        "text": "购物车",
+        "iconPath": "static/icon/cart.png"
       },
       {
         "pagePath": "pages/order/orderList",
-        "text": "订单列表"
+        "text": "订单列表",
+        "iconPath": "static/icon/orderList.png"
       },
       {
         "pagePath": "pages/my/my",
