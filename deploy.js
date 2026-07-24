@@ -2,7 +2,7 @@ const ci = require('miniprogram-ci');
 const path = require('path');
 
 // 动态配置
-const appid = process.env.WX_APPID || 'wxcfa592ba7403e3e3';
+const appid = process.env.WX_APPID || 'wxdccb3d908e950565';
 const pkg = require('./package.json');
 
 // 基础版本号从 package.json 拿，末尾增加 CI 的构建号
