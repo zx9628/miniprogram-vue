@@ -24,7 +24,7 @@
           <text class="stat-value">{{ userInfo.couponCount || 0 }}</text>
           <text class="stat-label">优惠券</text>
         </view>
-        <view class="stat-item" @click="goToPage('/pages/my/balance')">
+        <view class="stat-item" @click="goToPage('/subPackages/member/recharge')">
           <text class="stat-value">{{ userInfo.balance || '0.00' }}</text>
           <text class="stat-label">余额(元)</text>
         </view>
@@ -104,51 +104,153 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, reactive, ref} from 'vue';
-import { onShow } from "@dcloudio/uni-app";
+import { ref } from "vue";
+import { onShow, onUnload } from "@dcloudio/uni-app";
 
 // 用户信息
 const userInfo = ref();
 // 手机号
-const showPhoneAuth = ref(false);   // 是否显示手机号授权界面
-const loadingPhone = ref(false);    // 手机号绑定加载状态
-// 手机号授权按钮回调
+const showPhoneAuth = ref(false);
+const loadingPhone = ref(false);
+// 遮罩层显示状态
+const showLoginMask = ref(false);
+
+const menuList = [
+  { name: '我的订单', icon: '📄', path: '/pages/order/orderList' },
+  { name: '隐私设置', icon: '🔒', path: '/pages/my/privacy' },
+  { name: '会员信息', icon: '💳', path: '' },
+  { name: '账号绑定管理', icon: '🔗', path: '' },
+  { name: '切换账号', icon: '↩️', path: '' }
+];
+
+// ========== 从后端获取完整的用户信息 ==========
+const fetchFullUserInfo = (userId: number) => {
+  console.log('===== 获取用户信息, userId:', userId, '=====');
+
+  uni.request({
+    //url: 'http://localhost:8081/api/user/get/' + userId,
+    url: 'https://zx.juntaitec.cn/wechat/user/get/' + userId,
+    method: 'GET',
+    header: {
+      'Content-Type': 'application/json'
+    },
+    success: (res: any) => {
+      console.log('获取用户信息响应:', res.data);
+
+      // ========== 兼容 code 判断 ==========
+      if (res.data.code === 200) {
+        const fullData = res.data.data;
+        console.log('用户数据:', fullData);
+
+        const mergedInfo = {
+          ...userInfo.value,
+          ...fullData,
+          userId: fullData.userId || userId,
+          balance: fullData.balance ?? 0,
+          points: fullData.points ?? 0,
+          couponCount: fullData.couponCount ?? 0
+        };
+
+        uni.setStorageSync('userInfo', mergedInfo);
+        uni.setStorageSync('user_balance', mergedInfo.balance);
+        userInfo.value = mergedInfo;
+        uni.$emit('userInfoUpdated', mergedInfo);
+
+        console.log('✅ 用户信息更新成功:', mergedInfo);
+      } else {
+        // 使用 res.data.message 而不是 msg
+        console.error('❌ 获取用户信息失败:', res.data.message || res.data.msg || '未知错误');
+      }
+    },
+    fail: (err: any) => {
+      console.error('❌ 请求失败:', err);
+    }
+  });
+};
+
+// ========== 加载用户信息 ==========
+const loadUserInfo = () => {
+  const stored = uni.getStorageSync('userInfo');
+  const userId = uni.getStorageSync('userId');
+
+  if (stored) {
+    userInfo.value = stored;
+    // 如果有 userId，从后端获取最新数据
+    if (userId) {
+      fetchFullUserInfo(userId);
+    }
+  } else {
+    userInfo.value = null;
+  }
+};
+
+// 页面显示时检查登录状态
+onShow(() => {
+  loadUserInfo();
+});
+
+// ========== 监听余额更新事件 ==========
+const setupListeners = () => {
+  uni.$on('balanceUpdated', (newBalance: number) => {
+    console.log('我的页面收到余额更新:', newBalance);
+    if (userInfo.value) {
+      userInfo.value.balance = newBalance;
+      uni.setStorageSync('userInfo', userInfo.value);
+      uni.setStorageSync('user_balance', newBalance);
+      userInfo.value = { ...userInfo.value };
+    }
+  });
+};
+
+onUnload(() => {
+  uni.$off('balanceUpdated');
+});
+
+setupListeners();
+
+// ========== 手机号授权回调 ==========
 const onGetPhoneNumber = (e: any) => {
-  console.log(e)
+  console.log(e);
   if (e.detail.errMsg !== 'getPhoneNumber:ok') {
     uni.showToast({ title: '授权已取消', icon: 'none' });
     return;
   }
-  const phoneCode = e.detail.code;   // 新版动态 code
+
+  const phoneCode = e.detail.code;
   const openid = uni.getStorageSync('openid');
+
   if (!openid) {
     uni.showToast({ title: '登录信息缺失，请重新登录', icon: 'none' });
     showLoginMask.value = false;
     return;
   }
+
   loadingPhone.value = true;
   uni.request({
-    url: 'https://zx.juntaitec.cn/wechat/login/bindPhone',   // 后端需提供此接口
-    // url: 'http://localhost:8081/api/login/bindPhone',
+    url: 'https://zx.juntaitec.cn/wechat/login/bindPhone',
     method: 'POST',
     header: { 'Content-Type': 'application/json' },
     data: {
       openid: openid,
       code: phoneCode
     },
-    success: (res) => {
+    success: (res: any) => {
       loadingPhone.value = false;
       if (res.data.code === 200) {
-        // 绑定成功，更新用户信息
-        const phone = res.data.data;   // 假设接口直接返回手机号字符串
+        const phone = res.data.data;
         const newUserInfo = {
           openid,
           username: phone,
-          // 其他字段可保留默认值或从后端再次获取
+          balance: 0,
+          points: 0,
+          couponCount: 0
         };
+
         uni.setStorageSync('userInfo', newUserInfo);
         userInfo.value = newUserInfo;
-        showLoginMask.value = false;   // 关闭遮罩
+        uni.$emit('userInfoUpdated', newUserInfo);
+
+        showLoginMask.value = false;
         showPhoneAuth.value = false;
         uni.showToast({ title: '绑定成功' });
       } else {
@@ -162,36 +264,22 @@ const onGetPhoneNumber = (e: any) => {
   });
 };
 
-// 修改关闭遮罩方法：如果在手机号授权步骤关闭，仅关闭遮罩，不清除登录状态（但用户未绑定手机号）
+// ========== 关闭遮罩 ==========
 const closeMask = () => {
   if (showPhoneAuth.value) {
-    // 用户跳过手机号绑定，直接关闭，但已拿到 openid，可让用户稍后绑定
     showPhoneAuth.value = false;
   }
   showLoginMask.value = false;
 };
-// 遮罩层显示状态
-const showLoginMask = ref(false);
-const menuList = [
-  { name: '我的订单', icon: '📄', path: '/pages/order/orderList' },
-  { name: '隐私设置', icon: '🔒', path: '' },
-  { name: '会员信息', icon: '💳', path: '' },
-  { name: '账号绑定管理', icon: '🔗', path: '' },
-  { name: '切换账号', icon: '↩️', path: '' }
-];
-// 页面显示时检查登录状态
-onShow(() => {
-  const stored = uni.getStorageSync('userInfo');
-  userInfo.value = stored || null;
-});
-// 点击用户卡片
+
+// ========== 点击用户卡片 ==========
 const handleUserClick = () => {
   if (!userInfo.value) {
-    showLoginMask.value = true; // 弹出遮罩层
+    showLoginMask.value = true;
   }
 };
-// 微信一键登录
-// 修改 wechatLogin 方法
+
+// ========== 微信一键登录 ==========
 const wechatLogin = () => {
   uni.showLoading({ title: '登录中...' });
   uni.login({
@@ -203,30 +291,46 @@ const wechatLogin = () => {
         return;
       }
       uni.request({
-        // url: 'http://localhost:8081/api/login/wechat',
         url: 'https://zx.juntaitec.cn/wechat/login/wechat',
         method: 'POST',
         header: { 'Content-Type': 'application/json' },
         data: { code: loginRes.code },
-        success: (res) => {
+        success: (res: any) => {
           uni.hideLoading();
-          console.log(res)
-          if (res.data.code === 200) {
-            const userData = res.data.data;            // 假设返回 { openid, phone, ... }
+          console.log('登录接口返回:', res.data);
 
+          if (res.data.code === 200) {
+            const userData = res.data.data;
             const openid = userData.openId;
+            const userId = userData.userId;
+
             uni.setStorageSync('openid', openid);
-            console.log(openid)
-            // 核心判断：是否有手机号
+            if (userId) {
+              uni.setStorageSync('userId', userId);
+            }
+
             if (!userData.phoneMasked) {
-              // 没有手机号 → 切换到手机号授权界面
               showPhoneAuth.value = true;
             } else {
-              // 已有手机号 → 直接完成登录
-              uni.setStorageSync('userInfo', userData);
-              userInfo.value = userData;
+              // 保存基本信息到缓存
+              const completeUserData = {
+                ...userData,
+                userId: userId,
+                balance: userData.balance ?? 0,
+                points: userData.points ?? 0,
+                couponCount: userData.couponCount ?? 0
+              };
+
+              uni.setStorageSync('userInfo', completeUserData);
+              userInfo.value = completeUserData;
+              uni.$emit('userInfoUpdated', completeUserData);
               showLoginMask.value = false;
               uni.showToast({ title: '登录成功' });
+
+              // ========== 从后端获取最新完整数据 ==========
+              if (userId) {
+                fetchFullUserInfo(userId);
+              }
             }
           } else {
             uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
@@ -246,22 +350,22 @@ const wechatLogin = () => {
   });
 };
 
-// 跳转手机号登录页
+// ========== 跳转管理员登录 ==========
 const goAdminLogin = () => {
-  showLoginMask.value = false; // 先关闭遮罩层
+  showLoginMask.value = false;
   uni.navigateTo({ url: '/pages/my/login' });
 };
 
-// 跳转页面
+// ========== 跳转页面 ==========
 const goToPage = (path: string) => {
   if (!userInfo.value) {
-    showLoginMask.value = true; // 未登录弹遮罩层
+    showLoginMask.value = true;
     return;
   }
   uni.navigateTo({ url: path });
 };
 
-// 菜单点击处理
+// ========== 菜单点击处理 ==========
 const handleMenuClick = (item: any) => {
   if (item.name === '切换账号') {
     if (userInfo.value) {
@@ -271,7 +375,9 @@ const handleMenuClick = (item: any) => {
         success: (res) => {
           if (res.confirm) {
             uni.removeStorageSync('userInfo');
+            uni.removeStorageSync('userId');
             userInfo.value = null;
+            uni.$emit('userInfoUpdated', null);
             uni.showToast({ title: '已退出登录' });
           }
         }
@@ -306,12 +412,7 @@ const handleMenuClick = (item: any) => {
     });
   }
 };
-
-onMounted(() => {
-  console.log('已存入缓存:', userInfo.value);
-});
 </script>
-
 
 <style scoped>
 /* 页面整体背景 */

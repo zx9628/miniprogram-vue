@@ -95,7 +95,8 @@ const saveInfo = () => {
   console.log('发送数据:', JSON.stringify(requestData));
 
   uni.request({
-    url: 'http://localhost:8081/api/user/update',
+    //url: 'http://localhost:8081/api/user/update',
+    url: 'https://zx.juntaitec.cn/wechat/user/update',
     method: 'PUT',
     header: {
       'Content-Type': 'application/json'
@@ -209,7 +210,8 @@ const loadUserInfo = () => {
   console.log('请求用户信息, userId:', userId);
 
   uni.request({
-    url: `http://localhost:8081/api/user/get/${userId}`,
+    //url: `http://localhost:8081/api/user/get/${userId}`,
+    url: `https://zx.juntaitec.cn/wechat/user/get/${userId}`,
     method: 'GET',
     success: (res: any) => {
       console.log('获取用户信息响应:', JSON.stringify(res.data));

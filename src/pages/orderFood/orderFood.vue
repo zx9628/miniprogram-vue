@@ -286,7 +286,8 @@ onMounted(() => {
 
   // 获取店铺信息
   uni.request({
-    url: 'http://localhost:8081/api/store/getStoreName',
+    //url: 'http://localhost:8081/api/store/getStoreName',
+    url: 'https://zx.juntaitec.cn/wechat/store/getStoreName',
     success: (res: any) => {
       if (res.statusCode === 200 && res.data.data) {
         ShopName.value = res.data.data[0]?.name || ''
@@ -297,7 +298,8 @@ onMounted(() => {
 
   // 获取分类
   uni.request({
-    url: 'http://localhost:8081/api/category/getAllCategories',
+    //url: 'http://localhost:8081/api/category/getAllCategories',
+    url: 'https://zx.juntaitec.cn/wechat/category/getAllCategories',
     success: (res: any) => {
       if (res.statusCode === 200 && res.data.data) {
         CategoryList.value = res.data.data
@@ -308,7 +310,8 @@ onMounted(() => {
 
   // 获取所有菜品
   uni.request({
-    url: 'http://localhost:8081/api/dish/getAllDishes',
+    //url: 'http://localhost:8081/api/dish/getAllDishes',
+    url: 'https://zx.juntaitec.cn/wechat/dish/getAllDishes',
     success: (res: any) => {
       if (res.statusCode === 200 && res.data.data) {
         AllDishes.value = res.data.data

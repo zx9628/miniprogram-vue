@@ -63,7 +63,8 @@ const handleLogin = () => {
   }
   uni.showLoading({ title: '登录中...' });
   uni.request({
-    url: 'http://localhost:8081/api/login/admin',
+    //url: 'http://localhost:8081/api/login/admin',
+    url: 'https://zx.juntaitec.cn/wechat/login/admin',
     method: 'POST',
     header: {
       'Content-Type': 'application/json'

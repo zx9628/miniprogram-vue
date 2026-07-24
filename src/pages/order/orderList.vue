@@ -180,7 +180,8 @@ const fetchOrders = async (isRefresh = false) => {
   let userid = userData.userId
   try {
     const res = await uni.request({
-      url: 'http://localhost:8081/api/order/getorders',
+      //url: 'http://localhost:8081/api/order/getorders',
+      url: 'https://zx.juntaitec.cn/wechat/order/getorders',
       method: 'GET',
       data: { userId: userid }
     });
@@ -243,12 +244,25 @@ const getStatusText = (status: number): string => {
 const cancelOrder = (item: OrderVO) => {
   uni.showModal({
     title: '提示', content: '确定要取消该订单吗？',
-    success: (res) => {
+    success: async (res) => {
+      if (!res.confirm) return;
       if (res.confirm) {
         // TODO: 调用取消订单API
-
-
-
+        try {
+          uni.showLoading({ title: '取消中...' });
+          await uni.request({
+            //url: 'http://localhost:8081/api/order/cancel',
+            url: 'https://zx.juntaitec.cn/wechat/order/cancel',
+            method: 'PUT',
+            data: { orderId: item.id, reason: '用户手动取消' }
+          });
+          uni.hideLoading();
+          item.orderStatus = 5;
+          uni.showToast({ title: '已取消', icon: 'success' });
+        } catch (e) {
+          uni.hideLoading();
+          uni.showToast({ title: '取消失败', icon: 'none' });
+        }
         item.orderStatus = 5;
         uni.showToast({ title: '订单已取消' });
       }
@@ -276,7 +290,8 @@ const payOrder = async (item: OrderVO) => {
   try {
     // 3. 请求时显式指定泛型类型
     const res = await uni.request({
-      url: 'http://localhost:8081/api/order/pay',
+      //url: 'http://localhost:8081/api/order/pay',
+      url: 'https://zx.juntaitec.cn/wechat/order/pay',
       method: 'POST',
       data: { orderNo: item.orderNo}
     });
