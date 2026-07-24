@@ -10,11 +10,10 @@
     <view class="main-content">
       <!-- 用户信息卡片 -->
       <view class="card user-card" @click="handleUserClick">
-        <image class="avatar" src="/static/cow.png" mode="aspectFill" />
+        <image class="avatar" :src="userInfo?.avatar || '/static/cow.png'" mode="aspectFill" />
         <view class="user-info">
-          <text v-if="userInfo" class="username">{{ userInfo.username || '微信用户' }}</text>
-          <text v-else class="username">注册/登录</text>
-          <text class="sub-text">注册会员尊享更多专属特权</text>
+          <text class="username">{{ userInfo?.nickname || '微信用户' }}</text>
+          <text class="sub-text">{{ userInfo ? '注册会员尊享更多专属特权' : '注册/登录' }}</text>
         </view>
       </view>
 
@@ -107,38 +106,183 @@
 import { ref } from 'vue';
 import { onShow } from "@dcloudio/uni-app";
 
-// 用户信息
-// const userInfo = ref<any>(null);
-// 用户信息 (已写死用于调试)
-const userInfo = ref<any>({
-  username: '测试用户',
-  couponCount: 5,
-  balance: '100.00',
-  points: 200,
-  phoneMasked: '138****8888', // 模拟已绑定手机号
-  openId: 'mock_openid_12345' // 模拟 openid
+// 用户信息接口
+interface UserInfo {
+  userId: number;
+  openId: string;
+  nickname: string;
+  avatar: string;
+  phoneMasked: string;
+  gender: number;
+  points: number;
+  balance: string;
+  birthday: string;
+  couponCount?: number; // 可选，如果后端返回
+}
+
+const userInfo = ref<UserInfo | null>(null);
+const showPhoneAuth = ref(false);
+const loadingPhone = ref(false);
+const showLoginMask = ref(false);
+
+const menuList = [
+  { name: '我的订单', icon: '📄', path: '/pages/order/orderList' },
+  { name: '隐私设置', icon: '🔒', path: '/pages/my/privacy' },
+  { name: '会员信息', icon: '💳', path: '/pages/my/information' },
+  { name: '账号绑定管理', icon: '🔗', path: '' },
+  { name: '切换账号', icon: '↩️', path: '' }
+];
+
+// ========== 核心：从后端获取用户信息 ==========
+const fetchUserInfo = (userId: number) => {
+  if (!userId) {
+    console.warn('用户ID为空，无法获取用户信息');
+    return;
+  }
+
+  uni.request({
+    url: `http://localhost:8081/api/user/get/${userId}`,
+    method: 'GET',
+    success: (res: any) => {
+      console.log('获取用户信息响应:', JSON.stringify(res.data));
+
+      if (res.data.code === 200 && res.data.data) {
+        const data = res.data.data;
+
+        // 合并数据，保留 couponCount（如果后端返回的话）
+        const updatedInfo = {
+          ...userInfo.value,
+          ...data,
+          // 确保字段名一致
+          userId: data.userId || userInfo.value?.userId,
+          nickname: data.nickname || '微信用户',
+          avatar: data.avatar || '/static/cow.png',
+          points: data.points || 0,
+          balance: data.balance || '0.00',
+          phoneMasked: data.phoneMasked || '',
+          gender: data.gender || 0,
+          birthday: data.birthday || ''
+        };
+
+        userInfo.value = updatedInfo;
+        // 更新缓存
+        uni.setStorageSync('userInfo', updatedInfo);
+        console.log('用户信息已更新:', updatedInfo);
+      } else {
+        console.warn('获取用户信息失败:', res.data.msg);
+      }
+    },
+    fail: (err) => {
+      console.error('获取用户信息请求失败:', err);
+    }
+  });
+};
+
+// ========== 页面显示时加载用户信息 ==========
+onShow(() => {
+  const stored = uni.getStorageSync('userInfo');
+  console.log('缓存中的用户信息:', stored);
+
+  if (stored) {
+    // 先设置缓存数据
+    userInfo.value = stored;
+
+    // 如果有 userId，从后端获取最新数据
+    if (stored.userId) {
+      fetchUserInfo(stored.userId);
+    } else {
+      console.warn('缓存的用户信息缺少 userId');
+    }
+  } else {
+    userInfo.value = null;
+  }
 });
 
-// 手机号
-const showPhoneAuth = ref(false);   // 是否显示手机号授权界面
-const loadingPhone = ref(false);    // 手机号绑定加载状态
-// 手机号授权按钮回调
+// 点击用户卡片
+const handleUserClick = () => {
+  if (!userInfo.value) {
+    showLoginMask.value = true;
+  }
+};
+
+// 微信一键登录
+const wechatLogin = () => {
+  uni.showLoading({ title: '登录中...' });
+
+  uni.login({
+    provider: 'weixin',
+    success: (loginRes) => {
+      if (!loginRes.code) {
+        uni.hideLoading();
+        uni.showToast({ title: '获取登录凭证失败', icon: 'none' });
+        return;
+      }
+
+      uni.request({
+        url: 'http://localhost:8081/api/login/wechat',
+        method: 'POST',
+        header: { 'Content-Type': 'application/json' },
+        data: { code: loginRes.code },
+        success: (res: any) => {
+          uni.hideLoading();
+          console.log('登录响应:', res.data);
+
+          if (res.data.code === 200) {
+            const userData = res.data.data;
+
+            // 保存用户信息到缓存
+            uni.setStorageSync('userInfo', userData);
+            if (userData.openId) {
+              uni.setStorageSync('openid', userData.openId);
+            }
+
+            // 更新页面
+            userInfo.value = userData;
+
+            // 判断是否有手机号
+            if (!userData.phoneMasked) {
+              showPhoneAuth.value = true;
+            } else {
+              showLoginMask.value = false;
+              uni.showToast({ title: '登录成功' });
+            }
+          } else {
+            uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
+          }
+        },
+        fail: () => {
+          uni.hideLoading();
+          uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+        }
+      });
+    },
+    fail: (err) => {
+      uni.hideLoading();
+      console.error('wx.login 失败:', err);
+      uni.showToast({ title: '微信登录失败', icon: 'none' });
+    }
+  });
+};
+
+// 手机号授权
 const onGetPhoneNumber = (e: any) => {
-  console.log(e)
+  console.log('手机号授权事件:', e);
   if (e.detail.errMsg !== 'getPhoneNumber:ok') {
     uni.showToast({ title: '授权已取消', icon: 'none' });
     return;
   }
-  const phoneCode = e.detail.code;   // 新版动态 code
+
+  const phoneCode = e.detail.code;
   const openid = uni.getStorageSync('openid');
+
   if (!openid) {
     uni.showToast({ title: '登录信息缺失，请重新登录', icon: 'none' });
     showLoginMask.value = false;
     return;
   }
+
   loadingPhone.value = true;
   uni.request({
-    // url: 'https://zx.juntaitec.cn/wechat/login/bindPhone',   // 后端需提供此接口
     url: 'http://localhost:8081/api/login/bindPhone',
     method: 'POST',
     header: { 'Content-Type': 'application/json' },
@@ -146,19 +290,14 @@ const onGetPhoneNumber = (e: any) => {
       openid: openid,
       code: phoneCode
     },
-    success: (res) => {
+    success: (res: any) => {
       loadingPhone.value = false;
       if (res.data.code === 200) {
-        // 绑定成功，更新用户信息
-        const phone = res.data.data;   // 假设接口直接返回手机号字符串
-        const newUserInfo = {
-          openid,
-          username: phone,
-          // 其他字段可保留默认值或从后端再次获取
-        };
-        uni.setStorageSync('userInfo', newUserInfo);
-        userInfo.value = newUserInfo;
-        showLoginMask.value = false;   // 关闭遮罩
+        // 绑定成功，重新获取用户信息
+        const updatedUser = res.data.data;
+        uni.setStorageSync('userInfo', updatedUser);
+        userInfo.value = updatedUser;
+        showLoginMask.value = false;
         showPhoneAuth.value = false;
         uni.showToast({ title: '绑定成功' });
       } else {
@@ -172,122 +311,24 @@ const onGetPhoneNumber = (e: any) => {
   });
 };
 
-// 修改关闭遮罩方法：如果在手机号授权步骤关闭，仅关闭遮罩，不清除登录状态（但用户未绑定手机号）
+// 关闭遮罩
 const closeMask = () => {
   if (showPhoneAuth.value) {
-    // 用户跳过手机号绑定，直接关闭，但已拿到 openid，可让用户稍后绑定
     showPhoneAuth.value = false;
   }
   showLoginMask.value = false;
 };
-// 遮罩层显示状态
-const showLoginMask = ref(false);
-const menuList = [
-  { name: '我的订单', icon: '📄', path: '/pages/order/orderList' },
-  { name: '隐私设置', icon: '🔒', path: '/pages/my/privacy' },
-  { name: '会员信息', icon: '💳', path: '/pages/my/information' },
-  { name: '账号绑定管理', icon: '🔗', path: '' },
-  { name: '切换账号', icon: '↩️', path: '' }
-];
-// 页面显示时检查登录状态
-onShow(() => {
-  const stored = uni.getStorageSync('userInfo');
-  if (stored) {
-    userInfo.value = stored;
-  }
-  // userInfo.value = stored || null;
-});
-// 点击用户卡片
-const handleUserClick = () => {
-  if (!userInfo.value) {
-    showLoginMask.value = true; // 弹出遮罩层
-  }
-};
-// 微信一键登录
-// 修改 wechatLogin 方法
-const wechatLogin = () => {
-  uni.showLoading({ title: '登录中...' });
-  // --- 模拟登录成功，跳过真实请求 ---
-  setTimeout(() => {
-    uni.hideLoading();
 
-    const mockUserData = {
-      openId: 'mock_openid_12345',
-      phoneMasked: '138****8888',
-      username: '测试用户',
-      couponCount: 5,
-      balance: '100.00',
-      points: 200
-    };
-
-    uni.setStorageSync('openid', mockUserData.openId);
-    uni.setStorageSync('userInfo', mockUserData);
-    userInfo.value = mockUserData;
-    showLoginMask.value = false;
-    uni.showToast({ title: '登录成功 (模拟)' });
-  }, 500); // 模拟 0.5 秒加载
-  // uni.login({
-  //   provider: 'weixin',
-  //   success: (loginRes) => {
-  //     if (!loginRes.code) {
-  //       uni.hideLoading();
-  //       uni.showToast({ title: '获取登录凭证失败', icon: 'none' });
-  //       return;
-  //     }
-  //     uni.request({
-  //       url: 'http://localhost:8081/api/login/wechat',
-  //       // url: 'https://zx.juntaitec.cn/wechat/login/wechat',
-  //       method: 'POST',
-  //       header: { 'Content-Type': 'application/json' },
-  //       data: { code: loginRes.code },
-  //       success: (res) => {
-  //         uni.hideLoading();
-  //         console.log(res)
-  //         if (res.data.code === 200) {
-  //           const userData = res.data.data;          // 假设返回 { openid, phone, ... }
-  //           const openid = userData.openId;
-  //           uni.setStorageSync('openid', openid);
-  //           console.log(openid)
-  //           // 核心判断：是否有手机号
-  //           if (!userData.phoneMasked) {
-  //             // 没有手机号 → 切换到手机号授权界面
-  //             showPhoneAuth.value = true;
-  //           } else {
-  //             // 已有手机号 → 直接完成登录
-  //             uni.setStorageSync('userInfo', userData);
-  //             userInfo.value = userData;
-  //             showLoginMask.value = false;
-  //             uni.showToast({ title: '登录成功' });
-  //           }
-  //         } else {
-  //           uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
-  //         }
-  //       },
-  //       fail: () => {
-  //         uni.hideLoading();
-  //         uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
-  //       }
-  //     });
-  //   },
-  //   fail: (err) => {
-  //     uni.hideLoading();
-  //     console.error('wx.login 失败:', err);
-  //     uni.showToast({ title: '微信登录失败', icon: 'none' });
-  //   }
-  // });
-};
-
-
-// 跳转手机号登录页
+// 管理员登录跳转
 const goAdminLogin = () => {
-  showLoginMask.value = false; // 先关闭遮罩层
+  showLoginMask.value = false;
   uni.navigateTo({ url: '/pages/my/login' });
 };
 
 // 跳转页面
 const goToPage = (path: string) => {
   if (!userInfo.value) {
-    showLoginMask.value = true; // 未登录弹遮罩层
+    showLoginMask.value = true;
     return;
   }
   uni.navigateTo({ url: path });
@@ -303,6 +344,7 @@ const handleMenuClick = (item: any) => {
         success: (res) => {
           if (res.confirm) {
             uni.removeStorageSync('userInfo');
+            uni.removeStorageSync('openid');
             userInfo.value = null;
             uni.showToast({ title: '已退出登录' });
           }
@@ -341,13 +383,12 @@ const handleMenuClick = (item: any) => {
 </script>
 
 <style scoped>
-/* 页面整体背景 */
+/* ... 样式保持不变 ... */
 .container {
   min-height: 100vh;
   background-color: #f7f8fa;
 }
 
-/* 顶部背景区域 */
 .header-bg {
   height: 250rpx;
   background: linear-gradient(180deg, #ffeaec 0%, #ffc6ce 100%);
@@ -370,7 +411,6 @@ const handleMenuClick = (item: any) => {
   color: #000;
 }
 
-/* 主体内容区域 */
 .main-content {
   margin-top: -60rpx;
   padding: 0 30rpx;
@@ -378,7 +418,6 @@ const handleMenuClick = (item: any) => {
   z-index: 10;
 }
 
-/* 通用卡片样式 */
 .card {
   background: #fff;
   border-radius: 24rpx;
@@ -387,7 +426,6 @@ const handleMenuClick = (item: any) => {
   overflow: hidden;
 }
 
-/* 用户卡片 */
 .user-card {
   display: flex;
   align-items: center;
@@ -420,7 +458,6 @@ const handleMenuClick = (item: any) => {
   color: #999;
 }
 
-/* 统计卡片 */
 .stats-card {
   display: flex;
   justify-content: space-around;
@@ -447,7 +484,6 @@ const handleMenuClick = (item: any) => {
   color: #999;
 }
 
-/* 菜单列表 */
 .menu-card {
   padding: 0 10rpx;
 }
@@ -481,7 +517,6 @@ const handleMenuClick = (item: any) => {
   flex: 1;
 }
 
-/* 底部电话栏 */
 .footer-banner {
   background: #ffeef0;
   border-radius: 24rpx;
@@ -518,7 +553,6 @@ const handleMenuClick = (item: any) => {
   letter-spacing: 1rpx;
 }
 
-/* ===== 微信登录遮罩层样式 ===== */
 .login-mask {
   position: fixed;
   top: 0;
@@ -573,7 +607,6 @@ const handleMenuClick = (item: any) => {
   margin-bottom: 60rpx;
 }
 
-/* 微信一键登录按钮 */
 .wechat-login-btn {
   width: 100%;
   height: 90rpx;
@@ -595,7 +628,6 @@ const handleMenuClick = (item: any) => {
   opacity: 0.9;
 }
 
-/* 手机号登录 */
 .phone-login-area {
   padding: 20rpx 0;
 }

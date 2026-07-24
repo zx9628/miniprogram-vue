@@ -2,13 +2,29 @@
 import { reactive } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 
+// --- 类型定义 ---
+interface UserInfo {
+  userId: number;
+  openId: string;
+  nickname: string;
+  avatar: string;
+  phoneMasked: string;
+  gender: number;        // 0: 未知, 1: 男, 2: 女
+  points: number;
+  balance: string;
+  birthday: string;      // 后端返回的是字符串 "yyyy-MM-dd"
+}
+
 // --- 状态定义 ---
-const userInfo = reactive({
-  id: 0,
-  avatar: '/static/cow.png', // 默认头像
+const userInfo = reactive<UserInfo>({
+  userId: 0,
+  openId: '',
   nickname: '',
-  username: '',
-  gender: 0,                 // 0: 未知, 1: 男, 2: 女
+  avatar: '/static/cow.png',
+  phoneMasked: '',
+  gender: 0,
+  points: 0,
+  balance: '0.00',
   birthday: ''
 });
 
@@ -19,7 +35,10 @@ const chooseAvatar = () => {
     sizeType: ['compressed'],
     sourceType: ['album', 'camera'],
     success: (res) => {
+      // 注意：这里只是临时显示，实际保存需要先上传到服务器
+      // 这里简化处理，直接使用临时路径
       userInfo.avatar = res.tempFilePaths[0];
+      uni.showToast({ title: '请点击保存上传头像', icon: 'none' });
     }
   });
 };
@@ -34,9 +53,9 @@ const getDate = (type: string) => {
   let month = date.getMonth() + 1;
   let day = date.getDate();
   if (type === 'end') year = year + 2;
-  month = month > 9 ? month : '0' + month;
-  day = day > 9 ? day : '0' + day;
-  return `${year}-${month}-${day}`;
+  const monthStr = month > 9 ? month : '0' + month;
+  const dayStr = day > 9 ? day : '0' + day;
+  return `${year}-${monthStr}-${dayStr}`;
 };
 
 const onBirthdayChange = (e: any) => {
@@ -44,47 +63,73 @@ const onBirthdayChange = (e: any) => {
 };
 
 const saveInfo = () => {
-  if (!userInfo.nickname) {
+  if (!userInfo.nickname?.trim()) {
     uni.showToast({ title: '请输入姓名', icon: 'none' });
     return;
   }
+
+  if (!userInfo.userId) {
+    uni.showToast({ title: '用户ID丢失，请重新登录', icon: 'none' });
+    return;
+  }
+
   uni.showLoading({ title: '保存中...' });
 
+  // 构造请求数据，只发送有值的字段
+  const requestData: any = {
+    userId: userInfo.userId
+  };
+
+  if (userInfo.nickname) requestData.nickname = userInfo.nickname;
+  if (userInfo.gender !== undefined && userInfo.gender !== null) {
+    requestData.gender = userInfo.gender;
+  }
+  if (userInfo.birthday) requestData.birthday = userInfo.birthday;
+  if (userInfo.avatar && userInfo.avatar.startsWith('http')) {
+    // 如果是网络地址才发送，临时路径不上传
+    requestData.avatar = userInfo.avatar;
+  }
+
+  console.log('发送数据:', JSON.stringify(requestData));
+
   uni.request({
-    url: 'http://172.20.10.2:8083/api/user/update',
+    url: 'http://localhost:8081/api/user/update',
     method: 'PUT',
-    data: {
-      userId: userInfo.id,
-      nickname: userInfo.nickname,
-      gender: userInfo.gender,
-      birthday: userInfo.birthday,
-      avatar: userInfo.avatar
+    header: {
+      'Content-Type': 'application/json'
     },
-    success: (res) => {
+    data: requestData,
+    success: (res: any) => {
       uni.hideLoading();
-      if (res.data.code === 200) {
-        // 获取后端返回的最新用户信息
-        const serverData = res.data.data;
-        Object.assign(userInfo, serverData);
-        userInfo.id = serverData.userId;
-        if (serverData.username) {
-          userInfo.nickname = serverData.username;
-        }
+      console.log('后端响应:', JSON.stringify(res.data));
 
-        //更新本地缓存，保证下次进来也是对的
+      if (res.data.code === 200 && res.data.data) {
+        const data = res.data.data;
+        // 更新页面数据
+        Object.assign(userInfo, {
+          userId: data.userId || userInfo.userId,
+          openId: data.openId || userInfo.openId,
+          nickname: data.nickname || userInfo.nickname,
+          avatar: data.avatar || userInfo.avatar,
+          phoneMasked: data.phoneMasked || userInfo.phoneMasked,
+          gender: data.gender !== undefined ? data.gender : userInfo.gender,
+          points: data.points || userInfo.points,
+          balance: data.balance || userInfo.balance,
+          birthday: data.birthday || userInfo.birthday
+        });
+
+        // 同步到缓存
         uni.setStorageSync('userInfo', userInfo);
-
         uni.showToast({ title: '保存成功' });
-
-        console.log('后端返回的数据:', res.data);
         setTimeout(() => uni.navigateBack(), 1000);
       } else {
         uni.showToast({ title: res.data.msg || '保存失败', icon: 'none' });
       }
     },
-    fail: () => {
+    fail: (err) => {
       uni.hideLoading();
-      uni.showToast({ title: '网络错误', icon: 'none' });
+      console.error('请求失败:', err);
+      uni.showToast({ title: '网络错误，请重试', icon: 'none' });
     }
   });
 };
@@ -93,15 +138,74 @@ const navigateTo = (url: string) => {
   uni.navigateTo({ url });
 };
 
-onLoad(() => {
+// 加载用户信息
+const loadUserInfo = () => {
   const storedUser = uni.getStorageSync('userInfo');
+  console.log('缓存中的userInfo:', JSON.stringify(storedUser));
+
   if (storedUser) {
-    Object.assign(userInfo, storedUser);
-    userInfo.id = storedUser.userId || storedUser.id;
-    userInfo.nickname = storedUser.nickname || storedUser.username || '';
+    // 合并缓存数据
+    Object.assign(userInfo, {
+      userId: storedUser.userId || storedUser.id || 0,
+      openId: storedUser.openId || '',
+      nickname: storedUser.nickname || storedUser.username || '微信用户',
+      avatar: storedUser.avatar || '/static/cow.png',
+      phoneMasked: storedUser.phoneMasked || storedUser.phone || '',
+      gender: storedUser.gender !== undefined ? storedUser.gender : 0,
+      points: storedUser.points || 0,
+      balance: storedUser.balance || '0.00',
+      birthday: storedUser.birthday || ''
+    });
   } else {
     uni.showToast({ title: '请先登录', icon: 'none' });
+    return;
   }
+
+  // 从后端获取最新用户信息
+  const userId = userInfo.userId;
+  if (!userId) {
+    uni.showToast({ title: '用户ID无效', icon: 'none' });
+    return;
+  }
+
+  console.log('请求用户信息, userId:', userId);
+
+  uni.request({
+    url: `http://localhost:8081/api/user/get/${userId}`,
+    method: 'GET',
+    success: (res: any) => {
+      console.log('获取用户信息响应:', JSON.stringify(res.data));
+
+      if (res.data.code === 200 && res.data.data) {
+        const data = res.data.data;
+        // 更新数据
+        Object.assign(userInfo, {
+          userId: data.userId || userInfo.userId,
+          openId: data.openId || '',
+          nickname: data.nickname || '微信用户',
+          avatar: data.avatar || '/static/cow.png',
+          phoneMasked: data.phoneMasked || '',
+          gender: data.gender !== undefined ? data.gender : 0,
+          points: data.points || 0,
+          balance: data.balance || '0.00',
+          birthday: data.birthday || ''
+        });
+
+        // 同步到缓存
+        uni.setStorageSync('userInfo', userInfo);
+      } else {
+        console.warn('获取用户信息失败:', res.data.msg);
+      }
+    },
+    fail: (err) => {
+      console.error('获取用户信息请求失败:', err);
+      uni.showToast({ title: '获取用户信息失败', icon: 'none' });
+    }
+  });
+};
+
+onLoad(() => {
+  loadUserInfo();
 });
 </script>
 
@@ -123,7 +227,7 @@ onLoad(() => {
       </uni-list-item>
 
       <!-- 分割线 -->
-      <view class="divider" v-if="true"></view>
+      <view class="divider"></view>
 
       <!-- 2. 姓名 -->
       <view class="list-item">
@@ -131,19 +235,20 @@ onLoad(() => {
         <input
             class="input-field"
             v-model="userInfo.nickname"
-            placeholder="请输入姓名"
+            placeholder="微信用户"
             placeholder-class="placeholder-style"
+            maxlength="20"
         />
       </view>
 
       <!-- 分割线 -->
-      <view class="divider" v-if="true"></view>
+      <view class="divider"></view>
 
       <!-- 3. 手机 (只读) -->
       <view class="list-item">
         <text class="label">手机</text>
         <view class="right-content link-row">
-          <text>{{ userInfo.username || '未绑定' }}</text>
+          <text>{{ userInfo.phoneMasked || '未绑定' }}</text>
           <uni-icons type="right" size="14" color="#ccc"></uni-icons>
         </view>
       </view>
@@ -166,7 +271,7 @@ onLoad(() => {
         </radio-group>
       </view>
 
-      <view class="divider" v-if="true"></view>
+      <view class="divider"></view>
 
       <!-- 5. 生日 -->
       <view class="list-item">
@@ -182,9 +287,27 @@ onLoad(() => {
       </view>
     </view>
 
-    <!-- 第三组：其他功能 -->
+    <!-- 第三组：积分和余额 -->
     <view class="card-group">
-      <!-- 6. 账户与安全 -->
+      <view class="list-item">
+        <text class="label">积分</text>
+        <view class="right-content link-row">
+          <text class="value-text">{{ userInfo.points || 0 }}</text>
+        </view>
+      </view>
+
+      <view class="divider"></view>
+
+      <view class="list-item">
+        <text class="label">余额</text>
+        <view class="right-content link-row">
+          <text class="value-text">¥{{ userInfo.balance || '0.00' }}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 第四组：其他功能 -->
+    <view class="card-group">
       <view class="list-item" @click="navigateTo('/pages/my/security')">
         <text class="label">账户与安全</text>
         <view class="right-content link-row">
@@ -192,9 +315,8 @@ onLoad(() => {
         </view>
       </view>
 
-      <view class="divider" v-if="true"></view>
+      <view class="divider"></view>
 
-      <!-- 7. 下载会员信息 -->
       <view class="list-item" @click="navigateTo('/pages/my/download')">
         <text class="label">下载会员信息</text>
         <view class="right-content link-row">
@@ -214,7 +336,7 @@ onLoad(() => {
 /* 页面背景 */
 .container {
   min-height: 100vh;
-  background-color: #f7f8fa; /* 浅灰背景，突出白色卡片 */
+  background-color: #f7f8fa;
   padding-bottom: 140rpx;
 }
 
@@ -230,73 +352,48 @@ onLoad(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 110rpx; /* 增加高度，更大气 */
+  height: 110rpx;
 }
 
-/* 左侧 Label 样式 (灰色) */
+/* 左侧 Label 样式 */
 .label {
   font-size: 30rpx;
-  color: #999999; /* 关键：左侧文字变灰 */
-  width: 180rpx; /* 固定宽度，保证右侧对齐整齐 */
+  color: #999999;
+  width: 180rpx;
   flex-shrink: 0;
 }
 
-/* 右侧内容容器 (通用) */
+/* 右侧内容容器 */
 .right-content {
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: flex-end; /* 内容靠右 */
+  justify-content: flex-end;
 }
 
 /* 分割线 */
 .divider {
   height: 1rpx;
   background-color: #f0f0f0;
-  margin-left: 0; /* 如果想让分割线顶格，设为0；如果想缩进，设 margin-left */
+  margin-left: 0;
 }
 
-/* 头像特定样式 */
-.avatar-box {
-  position: relative;
-  width: 100rpx;
-  height: 100rpx;
-  justify-content: flex-start; /* 头像不需要靠最右，稍微留白 */
-}
-
+/* 头像 */
 .avatar-img {
   width: 100rpx;
   height: 100rpx;
   border-radius: 50%;
   background-color: #eee;
+  border: 2rpx solid #f0f0f0;
 }
 
-.avatar-mask {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 32rpx;
-  background-color: rgba(0, 0, 0, 0.6);
-  border-bottom-left-radius: 50rpx;
-  border-bottom-right-radius: 50rpx;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.mask-text {
-  color: #fff;
-  font-size: 20rpx;
-  transform: scale(0.9);
-}
-
-/* 输入框样式 */
+/* 输入框 */
 .input-field {
   text-align: right;
   font-size: 30rpx;
-  color: #333; /* 输入内容黑色 */
+  color: #333;
   flex: 1;
+  height: 100rpx;
 }
 
 .placeholder-style {
@@ -304,13 +401,13 @@ onLoad(() => {
   font-size: 30rpx;
 }
 
-/* 带箭头的行 (手机、生日、菜单) */
+/* 带箭头的行 */
 .link-row {
   font-size: 30rpx;
   color: #333;
 }
 
-/* 性别单选组优化 */
+/* 性别单选组 */
 .radio-group {
   display: flex;
   align-items: center;
@@ -325,7 +422,14 @@ onLoad(() => {
   color: #333;
 }
 
-/* 底部按钮区域 */
+/* 数值显示 */
+.value-text {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 底部按钮 */
 .footer-btn-area {
   position: fixed;
   bottom: 0;
@@ -336,10 +440,11 @@ onLoad(() => {
   box-sizing: border-box;
   background-color: #fff;
   z-index: 10;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
 }
 
 .save-btn {
-  background-color: #ffc107; /* 黄色按钮 */
+  background-color: #ffc107;
   color: #fff;
   border-radius: 50rpx;
   font-size: 32rpx;
