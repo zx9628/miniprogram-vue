@@ -1,72 +1,141 @@
 {
-	"pages": [
-		{
-			"path": "pages/index/index",
-			"style": {
-				"navigationBarTitleText": "三品王-首页"
-			}
-		},
-		{
-			"path": "pages/cart/cart",
-			"style": {
-				"navigationBarTitleText": "点餐"
-			}
-		},
-		{
-			"path": "pages/order/order",
-			"style": {
-				"navigationBarTitleText": "订单"
-			}
-		},
-		{
-			"path": "pages/my/my",
-			"style": {
-				"navigationBarTitleText": "个人中心"
-			}
-		},
-		{
-			"path": "pages/cart/shopChoose/shopChoose",
-			"style": {
-				"navigationBarTitleText": "地图选择"
-			}
-		}
-	],
-	"globalStyle": {
-		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "UniApp-Store",
-		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
-	},
-	"tabBar": {
-		"color": "#7A7E83",
-		"selectedColor": "#1296DB",
-		"borderStyle": "black",
-		"backgroundColor": "#FFFFFF",
-		"list": [
-			{
-				"selectedIconPath": "static/icon/home-selected.png",
-				"iconPath": "static/icon/home.png",
-				"pagePath": "pages/index/index",
-				"text": "首页"
-			},
-			{
-				"selectedIconPath": "static/icon/cart-selected.png",
-				"iconPath": "static/icon/cart.png",
-				"pagePath": "pages/cart/shopChoose/shopChoose",
-				"text": "点餐"
-			},
-			{
-				"selectedIconPath": "static/icon/order-selected.png",
-				"iconPath": "static/icon/order.png",
-				"pagePath": "pages/order/order",
-				"text": "订单"
-			},
-			{
-				"selectedIconPath": "static/icon/my-selected.png",
-				"iconPath": "static/icon/my.png",
-				"pagePath": "pages/my/my",
-				"text": "我的"
-			}
-		]
-	}
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": { "navigationBarTitleText": "首页" }
+    },
+    {
+      "path": "pages/order/order",
+      "style": { "navigationBarTitleText": "订单" }
+    },
+    {
+      "path": "pages/orderFood/orderFood",
+      "style": { "navigationBarTitleText": "点餐" }
+    },
+    {
+      "path": "pages/orderFood/dish/dishAdd",
+      "style": { "navigationBarTitleText": "添加菜品" }
+    },
+    {
+      "path": "pages/orderFood/dish/dishDelete",
+      "style": { "navigationBarTitleText": "删除菜品" }
+    },
+    {
+      "path": "pages/orderFood/dish/dishChange",
+      "style": { "navigationBarTitleText": "修改菜品" }
+    },
+    {
+      "path": "pages/my/my",
+      "style": { "navigationBarTitleText": "我的" }
+    },
+    {
+      "path": "pages/my/login",
+      "style": { "navigationBarTitleText": "登录" }
+    },
+    {
+      "path": "pages/my/register",
+      "style": { "navigationBarTitleText": "注册" }
+    },
+    {
+      "path": "pages/my/coupon",
+      "style": { "navigationBarTitleText": "优惠券" }
+    },
+    {
+      "path": "pages/my/balance",
+      "style": { "navigationBarTitleText": "余额" }
+    },
+    {
+      "path": "pages/my/points",
+      "style": { "navigationBarTitleText": "积分" }
+    },
+    {
+      "path": "pages/my/information",
+      "style": { "navigationBarTitleText": "会员信息" }
+    },
+    {
+      "path": "pages/index/admin",
+      "style": { "navigationBarTitleText": "后台管理" }
+    },
+    {
+      "path": "pages/index/activity/activity",
+      "style": { "navigationBarTitleText": "暖心行动" }
+    },
+    {
+      "path": "pages/index/grid/groupMeal",
+      "style": { "navigationBarTitleText": "团餐" }
+    },
+    {
+      "path": "pages/index/grid/pointsMall",
+      "style": { "navigationBarTitleText": "积分商城" }
+    },
+    {
+      "path": "pages/index/grid/wheel",
+      "style": { "navigationBarTitleText": "积分大转盘" }
+    },
+    {
+      "path": "pages/index/join/join",
+      "style": { "navigationBarTitleText": "诚邀加盟" }
+    }
+  ],
+  "subPackages": [
+    {
+      "root": "subPackages",
+      "pages": [
+        {
+          "path": "member/memberCenter",
+          "style": { "navigationBarTitleText": "会员中心" }
+        },
+        {
+          "path": "member/recharge",
+          "style": { "navigationBarTitleText": "会员储值" }
+        },
+        {
+          "path": "member/points",
+          "style": { "navigationBarTitleText": "我的积分" }
+        },
+        {
+          "path": "member/coupons",
+          "style": { "navigationBarTitleText": "我的优惠券" }
+        },
+        {
+          "path": "member/qrcode",
+          "style": { "navigationBarTitleText": "会员码" }
+        }
+      ]
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "uni-app",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#1296DB",
+    "borderStyle": "black",
+    "backgroundColor": "#FFFFFF",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "selectedIconPath": "static/icon/home-selected.png",
+        "iconPath": "static/icon/home.png"
+      },
+      {
+        "pagePath": "pages/orderFood/orderFood",
+        "text": "点餐"
+      },
+      {
+        "pagePath": "pages/order/order",
+        "text": "订单"
+      },
+      {
+        "pagePath": "pages/my/my",
+        "text": "我的",
+        "selectedIconPath": "static/icon/my-selected.png",
+        "iconPath": "static/icon/my.png"
+      }
+    ]
+  }
 }

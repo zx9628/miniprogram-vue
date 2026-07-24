@@ -31,3 +31,15 @@ export function getSpecifications(specificationId:any) {
         params: { specificationId }
     });
 }
+
+export function addDish(data: any) {
+    return request.post('/api/dish/addDish', data);
+}
+
+export function deleteDish(data: any) {
+    return request.post('/api/dish/deleteDish', data);
+}
+
+export function changeDish(data: any) {
+    return request.post('/api/dish/changeDish', data);
+}
