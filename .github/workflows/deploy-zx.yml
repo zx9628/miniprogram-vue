@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - zhouxin
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -12,23 +12,31 @@ jobs:
 
     steps:
       - name: 检出代码
-        uses: actions/checkout@v5  # 🚀 从 v4 升级到 v5
+        uses: actions/checkout@v4  # ⭐ v5 尚未正式发布，回退到稳定的 v4
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v5  # 🚀 从 v4 升级到 v5
+        uses: actions/setup-node@v4  # ⭐ 同上，使用稳定版
         with:
-          node-version: '24'
+          node-version: '18'         # ⭐ 锁定 LTS 版本，避免兼容性问题
           cache: 'npm'
 
-      - name: 安装依赖
-        run: npm install miniprogram-ci --save-dev
+      - name: 配置国内镜像源
+        run: npm config set registry https://registry.npmmirror.com
+
+      - name: 安装项目依赖
+        run: npm ci --legacy-peer-deps  # ⭐ 先装项目依赖，ci 比 install 更快更确定
+
+      - name: 安装 miniprogram-ci（带重试）
+        run: |
+          for i in 1 2 3; do
+            npm install miniprogram-ci --save-dev --legacy-peer-deps && break || sleep 5
+          done
 
       - name: 编译小程序产物
         run: npm run build:mp-weixin
 
       - name: 写入上传密钥
-        run: |
-          echo "${{ secrets.ZX_PRIVATE_KEY }}" > private.key
+        run: printf '%s' "${{ secrets.ZX_PRIVATE_KEY }}" > private.key  # ⭐ printf 保留原始换行符
 
       - name: 执行上传脚本
         run: node deploy.js
