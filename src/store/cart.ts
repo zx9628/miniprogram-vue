@@ -1,5 +1,3 @@
-// utils/cart.ts
-
 export interface FoodItem {
     id: number
     name: string
@@ -46,9 +44,6 @@ export interface Order {
     createTime: string
     updateTime: string
 }
-
-// ============ 购物车操作 ============
-
 // 获取购物车
 export function getCart(): CartItem[] {
     try {
@@ -64,9 +59,8 @@ export function addToCart(
     quantity: number = 1,
     specId: any = 0,
     specName: string = '默认',
-    specPrice: number | null = null  // 规格价格，如果不传则使用 food.price
+    specPrice: number | null = null
 ): boolean {
-    // 确保 specId 是数字
     let finalSpecId = 0
     if (specId !== null && specId !== undefined) {
         if (typeof specId === 'object') {
@@ -77,7 +71,6 @@ export function addToCart(
         }
     }
 
-    // ✅ 价格优先级：specPrice > food.price > 0
     let finalPrice = 0
     if (specPrice !== null && !isNaN(Number(specPrice))) {
         finalPrice = Number(specPrice)
@@ -101,7 +94,6 @@ export function addToCart(
             return false
         }
         existing.quantity = newQuantity
-        // ✅ 如果价格变了，更新价格（价格可能因为规格不同而不同）
         if (existing.price !== finalPrice) {
             existing.price = finalPrice
         }
@@ -109,7 +101,7 @@ export function addToCart(
         items.push({
             dishId: Number(food.id),
             name: String(food.name),
-            price: finalPrice,  // ✅ 使用计算后的价格
+            price: finalPrice,
             image: food.image || '/static/images/default-food.png',
             specName: finalSpecName,
             specId: finalSpecId,
@@ -134,39 +126,33 @@ export function saveCart(items: CartItem[]) {
     }
 }
 
-// 清空购物车
 export function clearCart(): void {
     saveCart([])
 }
 
-// 获取购物车总数量
 export function getTotalCount(items: CartItem[]): number {
     return items.reduce((sum, item) => sum + item.quantity, 0)
 }
 
-// 获取选中商品
 export function getSelectedItems(items: CartItem[]): CartItem[] {
     return items.filter(item => item.selected)
 }
 
-// 获取选中商品总价
 export function getTotalPrice(items: CartItem[]): number {
     return getSelectedItems(items).reduce((sum, item) => {
         return sum + item.price * item.quantity
     }, 0)
 }
 
-// 获取选中商品总数量
 export function getSelectedCount(items: CartItem[]): number {
     return getSelectedItems(items).reduce((sum, item) => sum + item.quantity, 0)
 }
 
-// 判断是否全选
 export function isAllSelected(items: CartItem[]): boolean {
     if (items.length === 0) return true
     return items.every(item => item.selected)
 }
-// 修改商品数量
+
 export function updateCartQuantity(dishId: number, specName: string, delta: number): boolean {
     const items = getCart()
     const item = items.find(i => i.dishId === dishId && i.specName === specName)
@@ -186,7 +172,6 @@ export function updateCartQuantity(dishId: number, specName: string, delta: numb
     return true
 }
 
-// 从购物车移除商品
 export function removeFromCart(dishId: number, specName: string): boolean {
     const items = getCart()
     const index = items.findIndex(i => i.dishId === dishId && i.specName === specName)
@@ -197,7 +182,6 @@ export function removeFromCart(dishId: number, specName: string): boolean {
     return true
 }
 
-// 切换商品选中状态
 export function toggleSelected(dishId: number, specName: string): void {
     const items = getCart()
     const item = items.find(i => i.dishId === dishId && i.specName === specName)
@@ -207,21 +191,18 @@ export function toggleSelected(dishId: number, specName: string): void {
     saveCart(items)
 }
 
-// 全选/全不选
 export function toggleAll(selected: boolean): void {
     const items = getCart()
     items.forEach(item => item.selected = selected)
     saveCart(items)
 }
 
-// 获取购物车中商品数量
 export function getItemQuantity(dishId: number, specName: string = '默认'): number {
     const items = getCart()
     const item = items.find(i => i.dishId === dishId && i.specName === specName)
     return item ? item.quantity : 0
 }
 
-// 更新角标
 export function updateBadge(items: CartItem[]) {
     const count = getTotalCount(items)
     if (count > 0) {
@@ -234,9 +215,6 @@ export function updateBadge(items: CartItem[]) {
     }
 }
 
-// ============ 订单操作 ============
-
-// 获取所有订单
 export function getOrders(): Order[] {
     try {
         const data = uni.getStorageSync('orders')
@@ -246,7 +224,6 @@ export function getOrders(): Order[] {
     }
 }
 
-// 保存订单
 export function saveOrders(orders: Order[]) {
     try {
         uni.setStorageSync('orders', orders)
@@ -255,7 +232,6 @@ export function saveOrders(orders: Order[]) {
     }
 }
 
-// 创建订单
 export function createOrder(
     storeId: any,
     userId: any,
@@ -272,7 +248,6 @@ export function createOrder(
             return
         }
 
-        // 强制转换为数字
         const finalUserId = Number(userId) || 1
         const finalStoreId = Number(storeId) || 1
 
@@ -285,7 +260,6 @@ export function createOrder(
 
         const totalAmount = getTotalPrice(items)
 
-        // 构建订单数据
         const orderData = {
             userId: finalUserId,
             storeId: finalStoreId,
@@ -301,11 +275,6 @@ export function createOrder(
                 quantity: Number(item.quantity)
             }))
         }
-
-        console.log('========== 提交订单数据 ==========')
-        console.log('userId:', orderData.userId, '类型:', typeof orderData.userId)
-        console.log('storeId:', orderData.storeId, '类型:', typeof orderData.storeId)
-        console.log('selectedItems:', JSON.stringify(orderData.selectedItems, null, 2))
 
         uni.showLoading({ title: '正在下单...', mask: true })
 

@@ -1,15 +1,11 @@
-<!-- pages/orderFood/orderFood.vue -->
 <template>
   <view class="order-page">
-    <!-- 顶部店铺信息 -->
     <view class="shop_information">
       <view class="store-name">{{ ShopName }}</view>
       <view class="store-address">{{ ShopAddress }}</view>
     </view>
 
-    <!-- 主内容区域 -->
     <view class="main-content">
-      <!-- 左侧菜单 -->
       <scroll-view class="menu-sidebar" scroll-y>
         <view
             class="menu-item"
@@ -22,7 +18,6 @@
         </view>
       </scroll-view>
 
-      <!-- 右侧内容 -->
       <scroll-view class="content-area" scroll-y>
         <view class="category-title">{{ currentMenu.label }}</view>
 
@@ -39,7 +34,6 @@
                 <text class="tag" v-if="food.spicy === true">辣</text>
                 <text class="tag type-tag">{{ food.type || currentMenu.label }}</text>
               </view>
-              <!-- ✅ 显示最低价格 -->
               <text class="food-price">￥{{ getMinPrice(food) }}/份起</text>
             </view>
             <view class="food-action">
@@ -55,7 +49,6 @@
       </scroll-view>
     </view>
 
-    <!-- 底部购物车浮层 -->
     <view class="cart-footer" v-if="totalCount > 0" @click="goToCart">
       <view class="cart-info">
         <view class="cart-icon-wrap">
@@ -70,7 +63,6 @@
       <view class="checkout-btn" @click="goToCart">去结算</view>
     </view>
 
-    <!-- 规格选择弹窗 -->
     <uni-popup ref="specPopupRef" type="bottom" :safe-area="false">
       <view class="spec-dialog" v-if="selectedFood">
         <view class="dialog-header">
@@ -79,10 +71,8 @@
         </view>
         <view class="dialog-body">
           <text class="food-name-dialog">{{ selectedFood.name }}</text>
-          <!-- ✅ 显示当前选中规格的价格 -->
           <text class="food-price-dialog">￥{{ selectedSpecPrice.toFixed(2) }}</text>
 
-          <!-- 有规格时显示规格选择 -->
           <view class="spec-section" v-if="selectedFood.specs && selectedFood.specs.length > 0">
             <text class="spec-label">规格 <text class="required">*</text></text>
             <view class="spec-options">
@@ -93,14 +83,12 @@
                   :class="{ active: selectedSpecIndex === idx }"
                   @click="selectedSpecIndex = idx"
               >
-                <!-- ✅ 显示规格名称和价格 -->
                 <text class="spec-name">{{ spec.name }}</text>
                 <text class="spec-price">￥{{ spec.price || selectedFood.price }}</text>
               </view>
             </view>
           </view>
 
-          <!-- 没有规格时显示提示 -->
           <view class="spec-section" v-else>
             <text class="spec-label">规格</text>
             <text class="spec-default">默认规格</text>
@@ -135,14 +123,12 @@ import { ref, computed, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import * as CartUtils from '@/store/cart'
 
-// ============ 数据定义 ============
 const ShopName = ref<string>('')
 const ShopAddress = ref<string>('')
 const CategoryList = ref<any[]>([])
 const AllDishes = ref<any[]>([])
 const currentIndex = ref(0)
 
-// 规格弹窗相关
 const selectedFood = ref<any>(null)
 const selectedSpecIndex = ref<number>(-1)
 const dialogQuantity = ref(1)
@@ -151,7 +137,6 @@ const specPopupRef = ref<any>(null)
 // 购物车数据
 const cartItems = ref<CartUtils.CartItem[]>([])
 
-// ============ 计算属性 ============
 const menuList = computed(() => {
   if (CategoryList.value && CategoryList.value.length > 0) {
     return CategoryList.value.map(item => ({
@@ -184,18 +169,15 @@ const currentFoodList = computed(() => {
 const totalCount = computed(() => CartUtils.getTotalCount(cartItems.value))
 const totalPrice = computed(() => CartUtils.getTotalPrice(cartItems.value))
 
-// ✅ 获取当前选中规格的价格
+// 获取当前选中规格的价格
 const selectedSpecPrice = computed(() => {
   if (!selectedFood.value) return 0
 
-  // 如果有规格且选中了
   if (selectedFood.value.specs && selectedFood.value.specs.length > 0 && selectedSpecIndex.value >= 0) {
     const spec = selectedFood.value.specs[selectedSpecIndex.value]
-    // 如果规格有自己的价格，使用规格价格，否则使用菜品价格
     return spec.price || selectedFood.value.price || 0
   }
 
-  // 没有规格或未选中，使用菜品价格
   return selectedFood.value.price || 0
 })
 
@@ -207,8 +189,7 @@ const canAddToCart = computed(() => {
   return true
 })
 
-// ============ 辅助方法 ============
-// ✅ 获取菜品最低价格（用于列表显示）
+// 获取菜品最低价格（用于列表显示）
 function getMinPrice(food: any): number {
   if (!food) return 0
   if (food.specs && food.specs.length > 0) {
@@ -234,14 +215,12 @@ function updateCartQuantity(food: any, delta: number) {
   if (existing) {
     CartUtils.updateCartQuantity(food.id, existing.specName, delta)
   } else {
-    // ✅ 没有规格时，使用默认价格
     const defaultPrice = food.price || 0
     CartUtils.addToCart(food, 1, 0, '默认', defaultPrice)
   }
   loadCart()
 }
 
-// ============ 菜单切换 ============
 function switchMenu(index: number) {
   if (currentIndex.value !== index) {
     currentIndex.value = index
@@ -275,23 +254,20 @@ function confirmAddToCart() {
     const spec = food.specs[selectedSpecIndex.value]
     specName = spec.name || '默认'
     specId = typeof spec.id === 'number' ? spec.id : Number(spec.id) || (selectedSpecIndex.value + 1)
-    // ✅ 使用规格的价格
     specPrice = spec.price || food.price || 0
   }
 
-  console.log('========== 添加购物车 ==========')
   console.log('food:', food.name)
   console.log('specId:', specId)
   console.log('specName:', specName)
-  console.log('specPrice:', specPrice)  // ✅ 打印规格价格
+  console.log('specPrice:', specPrice)
 
-  // ✅ 传递规格价格
   const success = CartUtils.addToCart(
       food,
       dialogQuantity.value,
       specId,
       specName,
-      specPrice  // ✅ 传递规格价格
+      specPrice
   )
 
   if (success) {
@@ -306,7 +282,6 @@ function goToCart() {
   uni.switchTab({ url: '/pages/order/order' })
 }
 
-// ============ 生命周期 ============
 onShow(() => {
   loadCart()
 })
@@ -350,9 +325,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* ... 原有样式保持不变，添加规格选项的样式 ... */
-
-/* ✅ 规格选项显示名称和价格 */
 .spec-option {
   padding: 12rpx 28rpx;
   border: 2rpx solid #E5E5E5;

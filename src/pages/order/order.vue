@@ -8,14 +8,12 @@
       <text class="nav-edit" @click="toggleEditMode">{{ editMode ? '完成' : '编辑' }}</text>
     </view>
 
-    <!-- 空状态 -->
     <view class="empty-cart" v-if="cartItems.length === 0">
       <text class="empty-text">🛒 购物车空空如也</text>
       <text class="empty-hint">快去点餐吧，美食在等你</text>
       <button class="go-shop-btn" @click="goHome">去点餐</button>
     </view>
 
-    <!-- 购物车列表 -->
     <view class="cart-list" v-else>
       <view class="select-all-bar">
         <view class="select-all-left" @click="handleToggleAll">
@@ -68,7 +66,6 @@
       </view>
     </view>
 
-    <!-- 底部结算栏 -->
     <view class="cart-footer" v-if="cartItems.length > 0">
       <view class="footer-left">
         <view class="total-price-wrap">
@@ -86,7 +83,6 @@
   </view>
 </template>
 
-<!-- pages/cart/cart.vue -->
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
@@ -149,28 +145,23 @@ function handleClearCart() {
   })
 }
 
-// ✅ 创建订单 - 确保参数是数字
 function handleCreateOrder() {
   if (selectedCount.value === 0) {
     uni.showToast({ title: '请选择要下单的商品', icon: 'none' })
     return
   }
 
-  // ✅ 从本地存储获取用户和店铺信息，并确保是数字
   let userInfo = uni.getStorageSync('userInfo')
   let storeInfo = uni.getStorageSync('storeInfo')
 
-  // 打印原始数据查看
   console.log('原始 userInfo:', userInfo)
   console.log('原始 storeInfo:', storeInfo)
 
-  // ✅ 安全获取 userId 和 storeId
   let userId = 1
   let storeId = 1
   let storeName = '默认店铺'
 
   if (userInfo && typeof userInfo === 'object') {
-    // 如果是对象，取 id 字段
     userId = Number(userInfo.id) || Number(userInfo.userId) || 1
   } else if (typeof userInfo === 'number') {
     userId = userInfo
@@ -191,7 +182,6 @@ function handleCreateOrder() {
   console.log('最终 storeId:', storeId, '类型:', typeof storeId)
   console.log('storeName:', storeName)
 
-  // ✅ 调用 createOrder，传入数字
   CartUtils.createOrder(storeId, userId, '', storeName)
 }
 
@@ -207,7 +197,6 @@ function goHome() {
   uni.switchTab({ url: '/pages/orderFood/orderFood' })
 }
 
-// ============ 生命周期 ============
 onShow(() => {
   loadCart()
   editMode.value = false
