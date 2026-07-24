@@ -11,22 +11,21 @@
       <view class="user-card">
         <view class="user-info">
           <!-- 头像点击跳转 -->
-          <image src="/static/images/avatar.png" class="avatar" mode="aspectFill" @click="goToMemberCenter"></image>
+          <image :src="userInfo?.avatar || '/static/images/avatar.png'" class="avatar" mode="aspectFill" @click="goToMemberCenter"></image>
           <view class="info-text">
             <view class="greeting">
-              Hi 你好
+              <text>Hi {{ userInfo?.nickname || '你好' }}</text>
               <!-- 会员等级点击跳转 -->
               <text class="vip-tag" @click="goToMemberCenter">六品王VIP卡·铁牛会员</text>
             </view>
             <view class="stats">
-              <text @click="handleJump('balance')">余额 0</text>
-              <text @click="handleJump('points')">积分 0</text>
-              <text @click="handleJump('coupons')">优惠券 0</text>
+              <text @click="handleJump('balance')">余额 {{ userInfo?.balance || 0 }}</text>
+              <text @click="handleJump('points')">积分 {{ userInfo?.points || 0 }}</text>
+              <text @click="handleJump('coupons')">优惠券 {{ userInfo?.couponCount || 0 }}</text>
             </view>
           </view>
         </view>
 
-        <!-- ✅ 修复：这里 @click 前面补上了一个空格 -->
         <view class="qr-code" @click="goToMemberCode">
           <image src="/static/images/qrcode-icon.png" mode="widthFix" style="width: 40rpx;"></image>
           <text>会员码</text>
@@ -71,17 +70,16 @@
     </view>
   </view>
 </template>
+
 <script setup>
-import {onMounted, ref} from "vue";
-
-const title = ref("")
+import { onMounted, ref } from "vue";
+import { onShow } from "@dcloudio/uni-app";
 import request from "@/util/request";
-onMounted(()=>{
 
-    }
-);
+const title = ref("");
+const userInfo = ref(null);
 
-// ✅ 注意：如果会员储值也移到了分包，记得把这里的 url 也改成 /subPackages/member/recharge
+// 金刚区菜单
 const gridList = ref([
   { name: '会员储值', icon: '/static/images/grid-1.png', url: '/subPackages/member/recharge' },
   { name: '团餐', icon: '/static/images/grid-2.png', url: '/pages/index/grid/groupMeal' },
@@ -89,31 +87,92 @@ const gridList = ref([
   { name: '积分大转盘', icon: '/static/images/grid-4.png', url: '/pages/index/grid/wheel' }
 ]);
 
+// ========== 获取用户信息 ==========
+const fetchUserInfo = (userId) => {
+  if (!userId) {
+    console.warn('用户ID为空，无法获取用户信息');
+    return;
+  }
+
+  uni.request({
+    url: `http://localhost:8081/api/user/get/${userId}`,
+    method: 'GET',
+    success: (res) => {
+      console.log('首页获取用户信息响应:', res.data);
+
+      if (res.data.code === 200 && res.data.data) {
+        const data = res.data.data;
+        const updated = {
+          ...userInfo.value,
+          userId: data.userId || userInfo.value?.userId || 0,
+          openId: data.openId || userInfo.value?.openId || '',
+          nickname: data.nickname || '微信用户',
+          avatar: data.avatar || '/static/images/avatar.png',
+          phoneMasked: data.phoneMasked || '',
+          gender: data.gender !== undefined ? data.gender : 0,
+          points: data.points !== undefined ? data.points : 0,
+          balance: data.balance || '0.00',
+          birthday: data.birthday || '',
+          couponCount: userInfo.value?.couponCount || 0
+        };
+
+        userInfo.value = updated;
+        // 更新缓存
+        uni.setStorageSync('userInfo', updated);
+        console.log('首页用户信息已更新:', updated);
+      }
+    },
+    fail: (err) => {
+      console.error('获取用户信息失败:', err);
+    }
+  });
+};
+
+// ========== 页面显示时加载用户信息 ==========
+onShow(() => {
+  console.log('首页 onShow 触发');
+  const stored = uni.getStorageSync('userInfo');
+  console.log('首页缓存数据:', stored);
+
+  if (stored && typeof stored === 'object' && stored.userId) {
+    userInfo.value = stored;
+    // 请求最新数据（积分、余额会变化）
+    fetchUserInfo(Number(stored.userId));
+  } else {
+    userInfo.value = null;
+  }
+});
+
+onMounted(() => {
+  // 保留原有的 onMounted 逻辑
+});
+
+// ========== 跳转方法 ==========
 const handleJump = (type) => {
   console.log('触发跳转类型:', type);
 
   switch (type) {
-    case 'balance': // 余额 -> 充值界面
+    case 'balance':
       uni.navigateTo({
-        url: '/subPackages/member/recharge' // ✅ 更新分包路径
+        url: '/subPackages/member/recharge'
       });
       break;
 
-    case 'dineIn': // 堂食 -> 底部点餐界面 (假设是TabBar页)
+    case 'dineIn':
       uni.switchTab({
         url: '/pages/order/order'
       });
       break;
 
-    case 'points': // 积分
+    case 'points':
       uni.navigateTo({
-        url: '/subPackages/member/points' // ✅ 更新分包路径
+        url: '/subPackages/member/points'
       });
       break;
 
-    case 'coupons': // 优惠券
+    case 'coupons':
       uni.navigateTo({
-        url: '/subPackages/member/coupons' // ✅ 更新分包路径
+        url: '/subPackages/member/coupons'
       });
       break;
 
@@ -135,14 +194,12 @@ const handleGridClick = (item) => {
   }
 };
 
-// ✅ 更新分包路径
 const goToMemberCode = () => {
   uni.navigateTo({
     url: '/subPackages/member/qrcode'
   });
 };
 
-// ✅ 更新分包路径
 const goToMemberCenter = () => {
   uni.navigateTo({
     url: '/subPackages/member/memberCenter'
