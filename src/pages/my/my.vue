@@ -104,11 +104,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import {onMounted, reactive, ref} from 'vue';
 import { onShow } from "@dcloudio/uni-app";
 
 // 用户信息
-const userInfo = ref<any>(null);
+const userInfo = ref({
+  userId: 3,
+  username: 11,
+  points: 100
+});
 // 手机号
 const showPhoneAuth = ref(false);   // 是否显示手机号授权界面
 const loadingPhone = ref(false);    // 手机号绑定加载状态
@@ -212,7 +216,8 @@ const wechatLogin = () => {
           uni.hideLoading();
           console.log(res)
           if (res.data.code === 200) {
-            const userData = res.data.data;          // 假设返回 { openid, phone, ... }
+            const userData = res.data.data;            // 假设返回 { openid, phone, ... }
+
             const openid = userData.openId;
             uni.setStorageSync('openid', openid);
             console.log(openid)
@@ -244,7 +249,6 @@ const wechatLogin = () => {
     }
   });
 };
-
 
 // 跳转手机号登录页
 const goAdminLogin = () => {
@@ -306,6 +310,12 @@ const handleMenuClick = (item: any) => {
     });
   }
 };
+
+onMounted(() => {
+  // ref 必须加 .value 才能拿到真实数据
+  uni.setStorageSync('userInfo', userInfo.value);
+  console.log('已存入缓存:', userInfo.value);
+});
 </script>
 
 <style scoped>

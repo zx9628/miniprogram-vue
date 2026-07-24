@@ -1,3 +1,77 @@
+<script setup>
+import { ref } from "vue";
+import { onShow } from "@dcloudio/uni-app";
+
+// 1. 定义响应式的用户信息对象（初始为空）
+const userInfo = ref(null);
+
+// 2. 定义金刚区数据（不依赖登录状态，可以一直显示）
+const gridList = ref([
+  { name: '会员储值', icon: '💳', url: '/subPackages/member/recharge' },
+  { name: '团餐', icon: '🍱', url: '/pages/index/grid/groupMeal' },
+  { name: '积分商城', icon: '🎁', url: '/pages/index/grid/pointsMall' },
+  { name: '积分大转盘', icon: '🎡', url: '/pages/index/grid/wheel' }
+]);
+
+// 3. 每次页面显示时，检查登录状态并加载数据
+onShow(() => {
+  // 从本地缓存读取用户信息
+  const savedUser = uni.getStorageSync('user_info');
+
+  if (savedUser) {
+    userInfo.value = savedUser;
+
+    // 顺便把缓存里的余额也同步一下
+    const savedBalance = uni.getStorageSync('user_balance');
+    if (savedBalance) {
+      userInfo.value.balance = Number(savedBalance);
+    }
+  } else {
+    userInfo.value = null; // 没登录就置空
+  }
+});
+
+// 4. 跳转逻辑
+const handleJump = (type) => {
+  // 如果没登录，点击任何需要登录的功能，都强制跳转到“我的”页面去登录
+  if (!userInfo.value) {
+    uni.showToast({ title: '请先登录', icon: 'none' });
+    uni.switchTab({ url: '/pages/my/my' }); // 假设你的“我的”页面路径是这个
+    return;
+  }
+
+  switch (type) {
+    case 'balance':
+      uni.navigateTo({ url: '/subPackages/member/recharge' });
+      break;
+    case 'dineIn':
+      uni.switchTab({ url: '/pages/order/order' });
+      break;
+    case 'points':
+      uni.navigateTo({ url: '/subPackages/member/points' });
+      break;
+    case 'coupons':
+      uni.navigateTo({ url: '/subPackages/member/coupons' });
+      break;
+  }
+};
+
+// 5. 金刚区跳转
+const handleGridClick = (item) => {
+  if (item.url) {
+    uni.navigateTo({
+      url: item.url,
+      fail: () => uni.showToast({ title: '页面正在开发中', icon: 'none' })
+    });
+  }
+};
+
+// 6. 跳转会员中心
+const goToMemberCenter = () => {
+  uni.navigateTo({ url: '/subPackages/member/memberCenter' });
+};
+</script>
+
 <template>
   <view class="container">
     <!-- 1. 顶部背景区域 -->
@@ -7,21 +81,40 @@
 
     <!-- 2. 主要内容区域 -->
     <view class="main-content">
-      <!-- 会员信息卡片 -->
-      <view class="user-card">
+
+      <!-- 【核心修改】条件渲染：如果没登录，显示未登录卡片 -->
+      <view class="user-card" v-if="!userInfo">
         <view class="user-info">
-          <!-- 头像点击跳转 -->
-          <image src="/static/images/avatar.png" class="avatar" mode="aspectFill" @click="goToMemberCenter"></image>
+          <image src="/static/images/avatar.png" class="avatar" mode="aspectFill"></image>
           <view class="info-text">
             <view class="greeting">
-              Hi 你好
-              <!-- 会员等级点击跳转 -->
-              <text class="vip-tag" @click="goToMemberCenter">六品王VIP卡·铁牛会员</text>
+              <text>您好，欢迎来到本店</text>
+            </view>
+            <view class="login-btn" @click="handleJump('balance')">
+              <text>点击登录 / 注册</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 【核心修改】条件渲染：如果已登录，显示正常的会员信息卡片 -->
+      <view class="user-card" v-else>
+        <view class="user-info">
+          <image
+              :src="userInfo.avatar || '/static/images/avatar.png'"
+              class="avatar"
+              mode="aspectFill"
+              @click="goToMemberCenter"
+          ></image>
+          <view class="info-text">
+            <view class="greeting">
+              <text>Hi 你好</text>
+              <text class="vip-tag" @click="goToMemberCenter">{{ userInfo.vipName || '普通会员' }}</text>
             </view>
             <view class="stats">
-              <text @click="handleJump('balance')">余额 {{ userInfo.balance }}</text>
+              <text @click="handleJump('balance')">余额 {{ userInfo.balance?.toFixed(2) }}</text>
               <text @click="handleJump('points')">积分 {{ userInfo.points }}</text>
-              <text @click="handleJump('coupons')">优惠券 {{ userInfo.couponNum }}</text>
+              <text @click="handleJump('coupons')">优惠券 {{ userInfo.coupons }}</text>
             </view>
           </view>
         </view>
@@ -49,120 +142,10 @@
         </view>
       </view>
 
-      <!-- 占位符 -->
       <view style="height: 100rpx;"></view>
     </view>
   </view>
 </template>
-<script setup>
-import {onMounted, ref} from "vue";
-
-const title = ref("")
-import request from "@/util/request";
-
-// 用户信息（后端赋值，不再写死）
-const userInfo = ref({
-  username: "",
-  vipName: "",
-  balance: 0,
-  points: 0,
-  couponNum: 0
-});
-
-
-const gridList = ref([
-  { name: '会员储值', icon: '💳', url: '/subPackages/member/recharge' },
-  { name: '团餐', icon: '🍱', url: '/pages/index/grid/groupMeal' },
-  { name: '积分商城', icon: '🎁', url: '/pages/index/grid/pointsMall' },
-  { name: '积分大转盘', icon: '🎡', url: '/pages/index/grid/wheel' }
-]);
-
-// 页面加载
-onMounted(async () => {
-  // 1. 判断是否登录，无token直接跳登录
-  const token = uni.getStorageSync("token");
-  if (!token) {
-    await uni.redirectTo({url: "/pages/my/login"});
-    return;
-  }
-  // 2. 请求后端获取当前登录用户信息接口
-  await getUserData();
-});
-
-// 请求后端用户信息接口
-const getUserData = async () => {
-  try {
-    const res = await request("/api/user/getUserInfo", "GET");
-    if (res.code === 200) {
-      userInfo.value.username = res.data.username;
-      userInfo.value.vipName = res.data.vipName;
-      userInfo.value.balance = res.data.balance;
-      userInfo.value.points = res.data.points;
-      userInfo.value.couponNum = res.data.couponNum;
-    } else if (res.code === 401) {
-      uni.clearStorageSync("token");
-      uni.redirectTo({ url: "/pages/my/login" });
-    }
-  } catch (err) {
-    uni.showToast({ title: "获取用户信息失败", icon: "none" });
-    console.error("用户接口异常：", err);
-  }
-};
-
-// 跳转逻辑
-const handleJump = (type) => {
-  console.log('触发跳转类型:', type);
-
-  switch (type) {
-    case 'balance': // 余额 -> 充值界面
-      uni.navigateTo({
-        url: '/subPackages/member/recharge'
-      });
-      break;
-
-    case 'dineIn': // 堂食 -> 底部点餐Tab
-      uni.switchTab({
-        url: '/pages/order/order'
-      });
-      break;
-
-    case 'points': // 积分
-      uni.navigateTo({
-        url: '/subPackages/member/points'
-      });
-      break;
-
-    case 'coupons': // 优惠券
-      uni.navigateTo({
-        url: '/subPackages/member/coupons'
-      });
-      break;
-
-    default:
-      break;
-  }
-};
-
-// 金刚区跳转
-const handleGridClick = (item) => {
-  if (item.url) {
-    uni.navigateTo({
-      url: item.url,
-      fail: (err) => {
-        console.error('跳转失败，请检查路径:', item.url, err);
-        uni.showToast({ title: '页面正在开发中', icon: 'none' });
-      }
-    });
-  }
-};
-
-const goToMemberCenter = () => {
-  uni.navigateTo({
-    url: '/subPackages/member/memberCenter'
-  });
-};
-
-</script>
 
 <style lang="scss" scoped>
 $theme-pink: #f8dce4;
@@ -206,7 +189,19 @@ $text-gray: #999;
   align-items: center;
   box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
   margin-bottom: 24rpx;
+  .login-btn {
+    margin-top: 10rpx;
+    font-size: 24rpx;
+    color: #fff;
+    background-color: $theme-red;
+    padding: 6rpx 20rpx;
+    border-radius: 20rpx;
+    display: inline-block;
+    width: fit-content;
 
+    &:active {
+      opacity: 0.8;
+    }}
   .user-info {
     display: flex;
     align-items: center;
