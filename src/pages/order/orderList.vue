@@ -72,7 +72,7 @@
                 v-if="item.orderStatus === 0 && item.payStatus === 0"
                 size="mini"
                 type="primary"
-                @click="payOrder(item)"
+                @click="gotopay(item)"
             >去支付</button>
 
             <button
@@ -279,7 +279,15 @@ interface WxPayParams {
   paySign: string;
 }
 
-
+//跳转到具体支付界面
+const gotopay = (item:OrderVO) => {
+  uni.setStorageSync('pendingOrder', item)
+  //跳转路由
+  uni.navigateTo({
+    url: '/pages/order/goToPay'
+  });
+  // 如果未来需要传递订单id等，可以拼接参数，但当前需求不需要
+}
 
 const payOrder = async (item: OrderVO) => {
   console.log(item);

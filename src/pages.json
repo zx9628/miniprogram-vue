@@ -7,6 +7,12 @@
       }
     },
     {
+      "path": "pages/order/goToPay",
+      "style": {
+        "navigationBarTitleText": "支付界面"
+      }
+    },
+    {
       "path": "pages/index/activity/activity"
     },
     {

@@ -156,6 +156,9 @@
             <order-manage v-if="currentRoute === '/admin/order/view'" />
             <prod-manage v-if="currentRoute === '/admin/menu/view'" />
             <user-manage v-if="currentRoute === '/pages/index/admin/userManage'"></user-manage>
+            <coupon-manage v-if="currentRoute === '/admin/coupon'"
+                           @backHome="currentRoute = 'dashboard'"
+            />
 <!--            <text class="page-title">{{ currentPageTitle }}</text>-->
 <!--            <text class="page-desc">此处为【{{ currentPageTitle }}】功能页面，内容待实现。</text>-->
           </view>
@@ -171,6 +174,7 @@ import OrderManage from "@/pages/index/admin/orderManage.vue";
 import ProdManage from "@/pages/index/admin/prodManage.vue";
 import request from "@/util/request"
 import UserManage from "@/pages/index/admin/userManage.vue";
+import CouponManage from "@/pages/index/admin/couponManage.vue";
 const currentUser = reactive({
   name:'',
   role:'',
@@ -233,24 +237,6 @@ const toggleSidebar=()=>{
 }
 
 const currentRoute=ref('dashboard')
-
-const currentPageTitle=computed(()=>{
-  const findTitle=(menus,route)=>{
-    for(const menu of menus){
-      if(menu.route===route){
-        return menu.name
-      }
-      if(menu.children){
-        const child=findTitle(menu.children,route)
-        if(child){
-          return child
-        }
-      }
-    }
-    return '未知页面'
-  }
-  return findTitle(menuList.value,currentRoute.value)
-})
 
 const navigateTo=(menuItem)=>{
   if(menuItem.route){

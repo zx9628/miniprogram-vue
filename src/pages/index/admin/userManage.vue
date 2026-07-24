@@ -157,7 +157,7 @@ const fetchUsers = async (isLoadMore = false) => {
 
   try {
     const res = await uni.request({
-      url: `${BASE_URL}/api/users`,
+      url: `${BASE_URL}/wechat/users`,
       method: 'GET',
       data: {
         pageNum: pageNum.value,
@@ -222,7 +222,7 @@ const closeEdit = () => {
 const confirmEdit = async () => {
   try {
     const res = await uni.request({
-      url: `${BASE_URL}/api/users/${editForm.value.userId}`,
+      url: `${BASE_URL}/wechat/users/${editForm.value.userId}`,
       method: 'PUT',
       header: { 'Content-Type': 'application/json' },
       data: {
