@@ -104,21 +104,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import {onMounted, reactive, ref} from 'vue';
 import { onShow } from "@dcloudio/uni-app";
 
 // 用户信息
-// const userInfo = ref<any>(null);
-// 用户信息 (已写死用于调试)
-const userInfo = ref<any>({
-  username: '测试用户',
-  couponCount: 5,
-  balance: '100.00',
-  points: 200,
-  phoneMasked: '138****8888', // 模拟已绑定手机号
-  openId: 'mock_openid_12345' // 模拟 openid
+const userInfo = ref({
+  userId: 3,
+  username: 11,
+  points: 100
 });
-
 // 手机号
 const showPhoneAuth = ref(false);   // 是否显示手机号授权界面
 const loadingPhone = ref(false);    // 手机号绑定加载状态
@@ -184,18 +178,15 @@ const closeMask = () => {
 const showLoginMask = ref(false);
 const menuList = [
   { name: '我的订单', icon: '📄', path: '/pages/order/orderList' },
-  { name: '隐私设置', icon: '🔒', path: '/pages/my/privacy' },
-  { name: '会员信息', icon: '💳', path: '/pages/my/information' },
+  { name: '隐私设置', icon: '🔒', path: '' },
+  { name: '会员信息', icon: '💳', path: '' },
   { name: '账号绑定管理', icon: '🔗', path: '' },
   { name: '切换账号', icon: '↩️', path: '' }
 ];
 // 页面显示时检查登录状态
 onShow(() => {
   const stored = uni.getStorageSync('userInfo');
-  if (stored) {
-    userInfo.value = stored;
-  }
-  // userInfo.value = stored || null;
+  userInfo.value = stored || null;
 });
 // 点击用户卡片
 const handleUserClick = () => {
@@ -207,76 +198,59 @@ const handleUserClick = () => {
 // 修改 wechatLogin 方法
 const wechatLogin = () => {
   uni.showLoading({ title: '登录中...' });
-  // --- 模拟登录成功，跳过真实请求 ---
-  setTimeout(() => {
-    uni.hideLoading();
 
-    const mockUserData = {
-      openId: 'mock_openid_12345',
-      phoneMasked: '138****8888',
-      username: '测试用户',
-      couponCount: 5,
-      balance: '100.00',
-      points: 200
-    };
 
-    uni.setStorageSync('openid', mockUserData.openId);
-    uni.setStorageSync('userInfo', mockUserData);
-    userInfo.value = mockUserData;
-    showLoginMask.value = false;
-    uni.showToast({ title: '登录成功 (模拟)' });
-  }, 500); // 模拟 0.5 秒加载
-  // uni.login({
-  //   provider: 'weixin',
-  //   success: (loginRes) => {
-  //     if (!loginRes.code) {
-  //       uni.hideLoading();
-  //       uni.showToast({ title: '获取登录凭证失败', icon: 'none' });
-  //       return;
-  //     }
-  //     uni.request({
-  //       url: 'http://localhost:8081/api/login/wechat',
-  //       // url: 'https://zx.juntaitec.cn/wechat/login/wechat',
-  //       method: 'POST',
-  //       header: { 'Content-Type': 'application/json' },
-  //       data: { code: loginRes.code },
-  //       success: (res) => {
-  //         uni.hideLoading();
-  //         console.log(res)
-  //         if (res.data.code === 200) {
-  //           const userData = res.data.data;          // 假设返回 { openid, phone, ... }
-  //           const openid = userData.openId;
-  //           uni.setStorageSync('openid', openid);
-  //           console.log(openid)
-  //           // 核心判断：是否有手机号
-  //           if (!userData.phoneMasked) {
-  //             // 没有手机号 → 切换到手机号授权界面
-  //             showPhoneAuth.value = true;
-  //           } else {
-  //             // 已有手机号 → 直接完成登录
-  //             uni.setStorageSync('userInfo', userData);
-  //             userInfo.value = userData;
-  //             showLoginMask.value = false;
-  //             uni.showToast({ title: '登录成功' });
-  //           }
-  //         } else {
-  //           uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
-  //         }
-  //       },
-  //       fail: () => {
-  //         uni.hideLoading();
-  //         uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
-  //       }
-  //     });
-  //   },
-  //   fail: (err) => {
-  //     uni.hideLoading();
-  //     console.error('wx.login 失败:', err);
-  //     uni.showToast({ title: '微信登录失败', icon: 'none' });
-  //   }
-  // });
+  uni.login({
+    provider: 'weixin',
+    success: (loginRes) => {
+      if (!loginRes.code) {
+        uni.hideLoading();
+        uni.showToast({ title: '获取登录凭证失败', icon: 'none' });
+        return;
+      }
+      uni.request({
+        url: 'http://localhost:8081/api/login/wechat',
+        // url: 'https://zx.juntaitec.cn/wechat/login/wechat',
+        method: 'POST',
+        header: { 'Content-Type': 'application/json' },
+        data: { code: loginRes.code },
+        success: (res) => {
+          uni.hideLoading();
+          console.log(res)
+          if (res.data.code === 200) {
+            const userData = res.data.data;            // 假设返回 { openid, phone, ... }
+
+            const openid = userData.openId;
+            uni.setStorageSync('openid', openid);
+            console.log(openid)
+            // 核心判断：是否有手机号
+            if (!userData.phoneMasked) {
+              // 没有手机号 → 切换到手机号授权界面
+              showPhoneAuth.value = true;
+            } else {
+              // 已有手机号 → 直接完成登录
+              uni.setStorageSync('userInfo', userData);
+              userInfo.value = userData;
+              showLoginMask.value = false;
+              uni.showToast({ title: '登录成功' });
+            }
+          } else {
+            uni.showToast({ title: res.data.message || '登录失败', icon: 'none' });
+          }
+        },
+        fail: () => {
+          uni.hideLoading();
+          uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+        }
+      });
+    },
+    fail: (err) => {
+      uni.hideLoading();
+      console.error('wx.login 失败:', err);
+      uni.showToast({ title: '微信登录失败', icon: 'none' });
+    }
+  });
 };
-
 
 // 跳转手机号登录页
 const goAdminLogin = () => {
@@ -338,7 +312,14 @@ const handleMenuClick = (item: any) => {
     });
   }
 };
+
+onMounted(() => {
+  // ref 必须加 .value 才能拿到真实数据
+  uni.setStorageSync('userInfo', userInfo.value);
+  console.log('已存入缓存:', userInfo.value);
+});
 </script>
+
 
 <style scoped>
 /* 页面整体背景 */

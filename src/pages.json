@@ -15,7 +15,7 @@
     {
       "path": "pages/order/orderList",
       "style": {
-        "navigationBarTitleText": "订单"
+        "navigationBarTitleText": "订单列表"
       }
     },
     {
@@ -67,27 +67,12 @@
       }
     },
     {
-      "path": "pages/my/privacy",
-      "style": {
-        "navigationBarTitleText": "隐私设置"
-      }
-    },
-    {
       "path": "pages/index/admin",
       "style": {
         "navigationBarTitleText": "后台管理"
       }
     },
-    {
-      "path": "pages/index/admin/userManage",
-      "style": {
-        "navigationBarTitleText": "查看用户"
-      }
-    },
-    {
-      "path": "pages/index/activity/activity",
-      "style": { "navigationBarTitleText": "暖心行动" }
-    },
+
     {
       "path": "pages/index/grid/groupMeal",
       "style": { "navigationBarTitleText": "团餐" }
@@ -98,11 +83,9 @@
     },
     {
       "path": "pages/index/grid/wheel",
-      "style": { "navigationBarTitleText": "积分大转盘" }
-    },
-    {
-      "path": "pages/index/join/join",
-      "style": { "navigationBarTitleText": "诚邀加盟" }
+      "style": {
+        "navigationBarTitleText": "积分大转盘"
+      }
     }
   ],
 
@@ -125,10 +108,6 @@
         {
           "path": "member/coupons",
           "style": { "navigationBarTitleText": "我的优惠券" }
-        },
-        {
-          "path": "member/qrcode",
-          "style": { "navigationBarTitleText": "会员码" }
         }
       ]
     }
@@ -148,7 +127,6 @@
       {
         "pagePath": "pages/index/index",
         "text": "首页",
-        "selectedIconPath": "static/icon/home-selected.png",
         "iconPath": "static/icon/home.png"
       },
       {
@@ -161,12 +139,11 @@
       },
       {
         "pagePath": "pages/order/orderList",
-        "text": "订单"
+        "text": "订单列表"
       },
       {
         "pagePath": "pages/my/my",
         "text": "我的",
-        "selectedIconPath": "static/icon/my-selected.png",
         "iconPath": "static/icon/my.png"
       }
     ]

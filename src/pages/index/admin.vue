@@ -152,9 +152,9 @@
 
           <!-- 其他页面占位 -->
           <view v-else class="page-placeholder">
-            <order-manage v-if="currentPageTitle === '订单列表'"></order-manage>
-            <prod-manage v-if="currentPageTitle === '菜品编辑'"></prod-manage>
-            <user-manage v-if="currentRoute === '/pages/index/admin/userManage'"></user-manage>
+            <!-- 使用标准化后的 route 路径精确匹配 -->
+            <order-manage v-if="currentRoute === '/admin/order/view'" />
+            <prod-manage v-else-if="currentRoute === '/admin/menu/view'" />
 <!--            <text class="page-title">{{ currentPageTitle }}</text>-->
 <!--            <text class="page-desc">此处为【{{ currentPageTitle }}】功能页面，内容待实现。</text>-->
           </view>
@@ -169,19 +169,15 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import OrderManage from "@/pages/index/admin/orderManage.vue";
 import ProdManage from "@/pages/index/admin/prodManage.vue";
 import request from "@/util/request"
-import UserManage from "@/pages/index/admin/userManage.vue";
-
 const currentUser = reactive({
   name:'',
   role:'',
   permissions:[]
 })
 const menuList = ref([])
-
 const hasPermission = (permCode)=>{
   return currentUser.permissions.includes(permCode)
 }
-
 const getIcon=(code)=>{
   const icons={
     order:"list",
@@ -193,15 +189,24 @@ const getIcon=(code)=>{
   }
   return icons[code] || "list"
 }
+// 新增：内置的 code → route 转换函数（无需外部配置文件）
+const codeToRoute = (code) => {
+  if (!code) return null
+  // 将 "order:view" 转换为 "/admin/order/view"
+  return `/admin/${code.replace(/:/g, '/')}`
+}
 
-const formatMenu=(menus)=>{
-  return menus.map(item=>({
-    ...item,
-    route:item.path || item.code,
-    icon:getIcon(item.code),
-    open:true,
-    children:item.children ? formatMenu(item.children) : []
-  }))
+// 替换：重写 formatMenu，使用新的转换逻辑 + 过滤按钮节点 + 权限去重
+const formatMenu = (menus) => {
+  return menus
+      .filter(item => item.menuType !== 'BUTTON')
+      .map(item => ({
+        ...item,
+        route: item.path || codeToRoute(item.code), // ← 优先用path，否则自动转换code
+        icon: getIcon(item.code),
+        open: true,
+        children: item.children?.length ? formatMenu(item.children) : []
+      }))
 }
 
 const sidebarCollapsed = ref(false)
@@ -275,6 +280,7 @@ const stats=reactive({
   lowStock:7
 })
 
+//退出登录
 const handleLogout=()=>{
   uni.showModal({
     title:'提示',
@@ -291,7 +297,6 @@ const handleLogout=()=>{
 }
 
 onMounted(()=>{
-
   request.post(
       "/api/login/admin",
       {
@@ -299,40 +304,22 @@ onMounted(()=>{
         password:"12345678wlb"
       }
   ).then(res=>{
-
     if(res.code===200){
-
       const admin=res.data
-
       console.log("管理员信息",admin)
-
-
-      currentUser.name=
-          admin.username
-
-
-      currentUser.role=
-          admin.rolename
-
-
-      currentUser.permissions=
-          admin.permissionList
-              ?.map(item=>item.code)
-              .filter(Boolean)
-          ||
-          []
-
-
-      menuList.value=
-          formatMenu(admin.menuTree || [])
-
-
+      currentUser.name= admin.username
+      currentUser.role= admin.rolename
+      currentUser.permissions = [
+        ...new Set(
+            admin.permissionList
+                ?.map(item => item.code)
+                .filter(Boolean) || []
+        )
+      ]
+      menuList.value= formatMenu(admin.menuTree || [])
       console.log("动态菜单",menuList.value)
-
     }
-
   })
-
 })
 </script>
 

@@ -20,8 +20,11 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
+      - name: 配置国内镜像源
+        run: npm config set registry https://registry.npmmirror.com
+
       - name: 安装依赖
-        run: npm install miniprogram-ci --save-dev
+        run: npm install miniprogram-ci --save-dev --legacy-peer-deps
 
       - name: 编译小程序产物
         run: npm run build:mp-weixin
