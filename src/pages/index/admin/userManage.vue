@@ -105,7 +105,7 @@
 <script setup>
 import { ref, onMounted ,computed} from 'vue'
 
-const BASE_URL = 'http://localhost:8081'
+const BASE_URL = 'https://zx.juntaitec.cn'
 
 const userList = ref([])
 const keyword = ref('')
@@ -255,7 +255,7 @@ const handleDelete = (user) => {
       if (res.confirm) {
         try {
           const result = await uni.request({
-            url: `${BASE_URL}/api/users/${user.userId}`,
+            url: `${BASE_URL}/wechat/users/${user.userId}`,
             method: 'DELETE'
           })
           if (result.data.code === 200) {
