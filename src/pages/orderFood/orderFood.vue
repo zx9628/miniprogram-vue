@@ -63,7 +63,7 @@
       <view class="checkout-btn" @click="goToCart">去结算</view>
     </view>
 
-    <uni-popup ref="specPopupRef" type="bottom" :safe-area="false">
+    <uni-popup ref="specPopupRef" type="bottom" :safe-area="false" v-if="on">
       <view class="spec-dialog" v-if="selectedFood">
         <view class="dialog-header">
           <text class="dialog-title">选择规格</text>
@@ -128,13 +128,13 @@ const ShopAddress = ref<string>('')
 const CategoryList = ref<any[]>([])
 const AllDishes = ref<any[]>([])
 const currentIndex = ref(0)
+const on = ref<boolean>(false)
 
 const selectedFood = ref<any>(null)
 const selectedSpecIndex = ref<number>(-1)
 const dialogQuantity = ref(1)
 const specPopupRef = ref<any>(null)
 
-// 购物车数据
 const cartItems = ref<CartUtils.CartItem[]>([])
 
 const menuList = computed(() => {
@@ -169,7 +169,6 @@ const currentFoodList = computed(() => {
 const totalCount = computed(() => CartUtils.getTotalCount(cartItems.value))
 const totalPrice = computed(() => CartUtils.getTotalPrice(cartItems.value))
 
-// 获取当前选中规格的价格
 const selectedSpecPrice = computed(() => {
   if (!selectedFood.value) return 0
 
@@ -189,18 +188,15 @@ const canAddToCart = computed(() => {
   return true
 })
 
-// 获取菜品最低价格（用于列表显示）
 function getMinPrice(food: any): number {
   if (!food) return 0
   if (food.specs && food.specs.length > 0) {
-    // 找出所有规格中最低的价格
     const prices = food.specs.map((s: any) => s.price || food.price || 0)
     return Math.min(...prices)
   }
   return food.price || 0
 }
 
-// ============ 购物车方法 ============
 function loadCart() {
   cartItems.value = CartUtils.getCart()
 }
@@ -232,11 +228,11 @@ function showSpecDialog(food: any) {
   selectedFood.value = food
   selectedSpecIndex.value = -1
   dialogQuantity.value = 1
-  specPopupRef.value?.open()
+  on.value = true;
 }
 
 function closeSpecDialog() {
-  specPopupRef.value?.close()
+  on.value = false;
 }
 
 function confirmAddToCart() {
