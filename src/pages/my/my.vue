@@ -12,7 +12,7 @@
       <view class="card user-card" @click="handleUserClick">
         <image class="avatar" src="/static/cow.png" mode="aspectFill" />
         <view class="user-info">
-          <text v-if="userInfo" class="username">{{ userInfo.username || '微信用户' }}</text>
+          <text v-if="userInfo" class="username">{{ userInfo.nickname || '微信用户' }}</text>
           <text v-else class="username">注册/登录</text>
           <text class="sub-text">注册会员尊享更多专属特权</text>
         </view>
@@ -128,8 +128,8 @@ const onGetPhoneNumber = (e: any) => {
   }
   loadingPhone.value = true;
   uni.request({
-    // url: 'https://zx.juntaitec.cn/wechat/login/bindPhone',   // 后端需提供此接口
-    url: 'http://localhost:8081/api/login/bindPhone',
+    url: 'https://zx.juntaitec.cn/wechat/login/bindPhone',   // 后端需提供此接口
+    // url: 'http://localhost:8081/api/login/bindPhone',
     method: 'POST',
     header: { 'Content-Type': 'application/json' },
     data: {
@@ -203,8 +203,8 @@ const wechatLogin = () => {
         return;
       }
       uni.request({
-        url: 'http://localhost:8081/api/login/wechat',
-        // url: 'https://zx.juntaitec.cn/wechat/login/wechat',
+        // url: 'http://localhost:8081/api/login/wechat',
+        url: 'https://zx.juntaitec.cn/wechat/login/wechat',
         method: 'POST',
         header: { 'Content-Type': 'application/json' },
         data: { code: loginRes.code },
@@ -308,8 +308,6 @@ const handleMenuClick = (item: any) => {
 };
 
 onMounted(() => {
-  // ref 必须加 .value 才能拿到真实数据
-  uni.setStorageSync('userInfo', userInfo.value);
   console.log('已存入缓存:', userInfo.value);
 });
 </script>
