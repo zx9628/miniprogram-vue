@@ -122,6 +122,8 @@ const payOrder = async (order: any) => {
   console.log(order);
   uni.showLoading({ title: '正在支付...' });
 
+
+
   try {
     // 构造请求参数
     const requestData: any = {
@@ -133,6 +135,13 @@ const payOrder = async (order: any) => {
     if (selectedCouponId.value !== null) {
       requestData.couponId = selectedCouponId.value;
     }
+    const res1 = await uni.request({
+      //url: 'http://localhost:8081/api/order/updatePay',
+      url: 'https://zx.juntaitec.cn/wechat/order/updatePay',
+      method: 'POST',
+      data: requestData
+    });
+    console.log(res1);
 
     const res = await uni.request({
       //url: 'http://localhost:8081/api/order/pay',

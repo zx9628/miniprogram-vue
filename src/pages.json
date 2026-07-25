@@ -81,7 +81,28 @@
         "navigationBarTitleText": "后台管理"
       }
     },
-
+    {
+      "path": "pages/orderFood/dish/dishAdd",
+      "style": {
+        "navigationBarTitleText": "增加菜品"
+      }
+    },
+    {
+      "path": "pages/orderFood/dish/dishChange",
+      "style": {
+        "navigationBarTitleText": "修改菜品"
+      }
+    },
+    {
+      "path": "pages/orderFood/dish/dishDelete",
+      "style": {
+        "navigationBarTitleText": "删除菜品"
+      }
+    },
+    {
+      "path": "pages/my/privacy",
+      "style": { "navigationBarTitleText": "隐私设置" }
+    },
     {
       "path": "pages/index/grid/groupMeal",
       "style": { "navigationBarTitleText": "团餐" }

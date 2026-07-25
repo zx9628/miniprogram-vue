@@ -159,6 +159,7 @@
             <coupon-manage v-if="currentRoute === '/admin/coupon'"
                            @backHome="currentRoute = 'dashboard'"
             />
+            <DDDD v-if="currentRoute === '/admin/menu/view'"></DDDD>
 <!--            <text class="page-title">{{ currentPageTitle }}</text>-->
 <!--            <text class="page-desc">此处为【{{ currentPageTitle }}】功能页面，内容待实现。</text>-->
           </view>
@@ -175,6 +176,7 @@ import ProdManage from "@/pages/index/admin/prodManage.vue";
 import request from "@/util/request"
 import UserManage from "@/pages/index/admin/userManage.vue";
 import CouponManage from "@/pages/index/admin/couponManage.vue";
+import DDDD from "@/pages/orderFood/dish/DDDD.vue";
 const currentUser = reactive({
   name:'',
   role:'',
